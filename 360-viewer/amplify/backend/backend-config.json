@@ -1,1 +1,11 @@
-{}
+{
+  "auth": {
+    "360viewerb3eeeb6b": {
+      "service": "Cognito",
+      "serviceType": "imported",
+      "providerPlugin": "awscloudformation",
+      "dependsOn": [],
+      "customAuth": false
+    }
+  }
+}
