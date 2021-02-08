@@ -1,18 +1,43 @@
 <template>
-  <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js App" />
-  </div>
+  <v-container>
+    <v-img src="@/assets/logo.png" contain max-height="100" class="mb-10">
+    </v-img>
+    <amplify-authenticator>
+      <amplify-sign-in
+        header-text="CFA INDEX Login"
+        hide-sign-up
+        slot="sign-in"
+      ></amplify-sign-in>
+    </amplify-authenticator>
+  </v-container>
 </template>
 
 <script>
-// @ is an alias to /src
-import HelloWorld from "@/components/HelloWorld.vue";
+import { AuthState, onAuthUIStateChange } from "@aws-amplify/ui-components";
+import { mapState } from "vuex";
 
 export default {
   name: "Home",
-  components: {
-    HelloWorld,
+  computed: mapState(["user"]),
+  created() {
+    onAuthUIStateChange((nextAuthState, authData) => {
+      if (nextAuthState === AuthState.SignedIn) {
+        this.$store.commit("SET_USER_DATA", authData.attributes);
+        this.$router.push({ path: "/panolist" });
+      }
+      if (!authData) {
+        this.$store.commit("SET_USER_DATA", null);
+      }
+    });
+  },
+  beforeDestroy() {
+    return onAuthUIStateChange;
   },
 };
 </script>
+<style>
+amplify-authenticator {
+  --container-height: 100%;
+  --box-shadow: 0;
+}
+</style>
