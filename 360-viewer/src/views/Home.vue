@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <v-img src="@/assets/logo.png" contain max-height="100" class="mb-10">
+    <v-img src="@/assets/logo.png" contain max-height="120" class="mb-3 mt-8">
     </v-img>
     <amplify-authenticator>
       <amplify-sign-in

@@ -1,0 +1,65 @@
+type S3Object @aws_iam @aws_cognito_user_pools {
+  region: String!
+  bucket: String!
+  key: String!
+}
+
+type Pano
+  @model
+  @auth(
+    rules: [
+      { allow: private, provider: iam, operations: [read] }
+      { allow: groups, groups: ["360Admin"] }
+    ]
+  ) {
+  id: ID!
+  title: String!
+  img: S3Object!
+  thumbnail: S3Object!
+  spots: [Spot] @connection(keyName: "byPano", fields: ["id"])
+}
+
+type SpotDetail {
+  name: String!
+  type: String!
+  content: S3Object
+  link: String
+}
+
+type Spot
+  @model
+  @auth(
+    rules: [
+      { allow: private, operations: [read] }
+      { allow: groups, groups: ["360Admin"] }
+    ]
+  )
+  @key(name: "byPano", fields: ["panoID"]) {
+  id: ID!
+  name: String!
+  contents: [SpotDetail]
+  panoID: ID!
+  pano: Pano @connection(fields: ["panoID"])
+  comments: [Comment]
+    @connection(keyName: "bySpot", fields: ["id"], sortField: "updatedAt")
+}
+
+type Comment
+  @model
+  @auth(
+    rules: [
+      { allow: owner }
+      { allow: private, operations: [read] }
+      { allow: groups, groups: ["360Admin"] }
+    ]
+  )
+  @key(name: "bySpot", fields: ["spotID", "content"]) {
+  id: ID!
+  owner: ID!
+  spotID: ID!
+  spot: Spot @connection(fields: ["spotID"])
+  content: String!
+  reply: String
+  updatedAt: String!
+  repliedAt: String
+}

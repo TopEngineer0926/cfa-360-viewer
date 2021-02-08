@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "360viewer",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "auth360viewerb3eeeb6b",
+      "Outputs.UserPoolId"
+    ]
+  }
+}
