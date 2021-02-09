@@ -3,10 +3,8 @@
     <v-img src="@/assets/logo.png" contain max-height="120" class="mb-3 mt-8">
     </v-img>
     <amplify-authenticator>
-      <amplify-sign-in
-        header-text="CFA INDEX Login"
-        hide-sign-up
-        slot="sign-in"
+      <amplify-sign-in header-text="" hide-sign-up slot="sign-in">
+        <div slot="federated-buttons"></div
       ></amplify-sign-in>
     </amplify-authenticator>
   </v-container>

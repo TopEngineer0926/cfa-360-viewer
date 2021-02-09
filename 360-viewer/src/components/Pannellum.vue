@@ -109,7 +109,12 @@ export default {
     this.loadPano();
   },
   mounted() {
-    this.viewer = window.pannellum.viewer(this.$el, this.pano);
+    this.viewer = window.pannellum.viewer(this.$el, {
+      type: "equirectangular",
+      name: this.pano.title,
+      panorama: this.pano.imgUrl,
+      autoLoad: true,
+    });
   },
   methods: {
     loadPano() {

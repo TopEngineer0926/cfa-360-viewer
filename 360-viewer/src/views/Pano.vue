@@ -1,10 +1,10 @@
 <template>
   <div v-if="pano">
-    <!-- <v-pannellum
-      v-if="pano.img"
+    <v-pannellum
+      v-if="pano.imgUrl"
       :pano="pano"
       style="height: 85vh"
-    ></v-pannellum> -->
+    ></v-pannellum>
     <amplify-s3-image v-if="pano.img" level="protected" :img-key="pano.img" />
 
     <v-img
@@ -71,7 +71,7 @@ import { nanoid } from "nanoid";
 export default {
   name: "Pano",
   components: {
-    // "v-pannellum": () => import("@/components/Pannellum.vue"),
+    "v-pannellum": () => import("@/components/Pannellum.vue"),
   },
   data: function () {
     return {
@@ -84,9 +84,15 @@ export default {
   },
   mounted() {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
-      (data) => {
-        if (data.data.getPano) {
-          this.pano = data.data.getPano;
+      async (data) => {
+        let panoData = data.data.getPano;
+        if (panoData) {
+          if (panoData.img) {
+            panoData.imgUrl = await Storage.get(panoData.img, {
+              level: "protected",
+            });
+          }
+          this.pano = panoData;
           console.log("getPano", this.pano);
         } else {
           this.$router.push({ path: "/panolist" });
