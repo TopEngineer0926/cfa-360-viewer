@@ -22,11 +22,11 @@ export default {
   created() {
     onAuthUIStateChange((nextAuthState, authData) => {
       if (nextAuthState === AuthState.SignedIn) {
-        this.$store.commit("SET_USER_DATA", authData.attributes);
+        this.$store.commit("SET_USER_DATA", authData);
         this.$router.push({ path: "/panolist" });
       }
       if (!authData) {
-        this.$store.commit("SET_USER_DATA", null);
+        this.$store.commit("SET_USER_NULL");
       }
     });
   },

@@ -10,12 +10,26 @@ export default new Vuex.Store({
   },
   mutations: {
     SET_USER_DATA(state, data) {
-      state.user = data;
+      let ifAdmin = false;
+      try {
+        if (data.signInUserSession.accessToken.payload["cognito:groups"].includes('360Admin')) { ifAdmin = true }
+      }
+      catch { ifAdmin = false }
+      state.user = {
+        name: data.attributes.name,
+        email: data.attributes.email,
+        admin: ifAdmin
+      };
+
+
+    },
+    SET_USER_NULL(state) {
+      state.user = null;
     },
   },
   actions: {
     async logout({ commit }) {
-      commit("SET_USER_DATA", null);
+      commit("SET_USER_NULL");
       return await Auth.signOut();
     },
   },

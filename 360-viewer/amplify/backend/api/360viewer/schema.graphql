@@ -14,8 +14,8 @@ type Pano
   ) {
   id: ID!
   title: String!
-  img: S3Object!
-  thumbnail: S3Object!
+  img: S3Object
+  thumbnail: S3Object
   spots: [Spot] @connection(keyName: "byPano", fields: ["id"])
 }
 

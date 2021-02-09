@@ -11,11 +11,6 @@ export const listPanos = /* GraphQL */ `
       items {
         id
         title
-        img {
-          region
-          bucket
-          key
-        }
         thumbnail {
           region
           bucket
@@ -23,30 +18,6 @@ export const listPanos = /* GraphQL */ `
         }
         createdAt
         updatedAt
-        spots {
-          items {
-            id
-            name
-            contents {
-              name
-              type
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-          nextToken
-        }
       }
       nextToken
     }

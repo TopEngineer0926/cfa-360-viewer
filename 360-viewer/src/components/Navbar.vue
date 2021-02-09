@@ -7,8 +7,16 @@
     >
     <!-- <v-btn text @click="$router.push('/about').catch((err) => {})">About</v-btn> -->
 
-    <v-btn text @click="$router.push('/admin').catch((err) => {})">Admin</v-btn>
+    <v-btn
+      v-if="user.admin"
+      text
+      @click="$router.push('/admin').catch((err) => {})"
+      >Admin</v-btn
+    >
     <v-spacer />
+    <v-icon v-if="user.admin" color="red" class="mr-2">
+      mdi-alpha-a-box-outline
+    </v-icon>
     {{ user.name }}
     <v-btn text @click="logout">Logout</v-btn>
   </v-app-bar>
