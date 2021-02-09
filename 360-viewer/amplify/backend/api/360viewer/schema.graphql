@@ -1,9 +1,3 @@
-type S3Object @aws_iam @aws_cognito_user_pools {
-  region: String!
-  bucket: String!
-  key: String!
-}
-
 type Pano
   @model
   @auth(
@@ -14,15 +8,15 @@ type Pano
   ) {
   id: ID!
   title: String!
-  img: S3Object
-  thumbnail: S3Object
+  img: String
+  thumbnail: String
   spots: [Spot] @connection(keyName: "byPano", fields: ["id"])
 }
 
 type SpotDetail {
   name: String!
   type: String!
-  content: S3Object
+  content: String
   link: String
 }
 

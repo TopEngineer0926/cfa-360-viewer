@@ -11,13 +11,37 @@ export const listPanos = /* GraphQL */ `
       items {
         id
         title
-        thumbnail {
-          region
-          bucket
-          key
-        }
+        img
+        thumbnail
         createdAt
         updatedAt
+        spots {
+          items {
+            id
+            name
+            contents {
+              name
+              type
+              content
+              link
+            }
+            panoID
+            createdAt
+            updatedAt
+            pano {
+              id
+              title
+              img
+              thumbnail
+              createdAt
+              updatedAt
+            }
+            comments {
+              nextToken
+            }
+          }
+          nextToken
+        }
       }
       nextToken
     }
@@ -28,16 +52,8 @@ export const getPano = /* GraphQL */ `
     getPano(id: $id) {
       id
       title
-      img {
-        region
-        bucket
-        key
-      }
-      thumbnail {
-        region
-        bucket
-        key
-      }
+      img
+      thumbnail
       createdAt
       updatedAt
       spots {
@@ -47,11 +63,7 @@ export const getPano = /* GraphQL */ `
           contents {
             name
             type
-            content {
-              region
-              bucket
-              key
-            }
+            content
             link
           }
           panoID
@@ -60,16 +72,8 @@ export const getPano = /* GraphQL */ `
           pano {
             id
             title
-            img {
-              region
-              bucket
-              key
-            }
-            thumbnail {
-              region
-              bucket
-              key
-            }
+            img
+            thumbnail
             createdAt
             updatedAt
             spots {
@@ -108,11 +112,7 @@ export const listSpots = /* GraphQL */ `
         contents {
           name
           type
-          content {
-            region
-            bucket
-            key
-          }
+          content
           link
         }
         panoID
@@ -121,16 +121,8 @@ export const listSpots = /* GraphQL */ `
         pano {
           id
           title
-          img {
-            region
-            bucket
-            key
-          }
-          thumbnail {
-            region
-            bucket
-            key
-          }
+          img
+          thumbnail
           createdAt
           updatedAt
           spots {
@@ -177,11 +169,7 @@ export const getSpot = /* GraphQL */ `
       contents {
         name
         type
-        content {
-          region
-          bucket
-          key
-        }
+        content
         link
       }
       panoID
@@ -190,16 +178,8 @@ export const getSpot = /* GraphQL */ `
       pano {
         id
         title
-        img {
-          region
-          bucket
-          key
-        }
-        thumbnail {
-          region
-          bucket
-          key
-        }
+        img
+        thumbnail
         createdAt
         updatedAt
         spots {
@@ -209,6 +189,7 @@ export const getSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -217,6 +198,8 @@ export const getSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -243,6 +226,7 @@ export const getSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -251,6 +235,8 @@ export const getSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -281,11 +267,7 @@ export const getComment = /* GraphQL */ `
         contents {
           name
           type
-          content {
-            region
-            bucket
-            key
-          }
+          content
           link
         }
         panoID
@@ -294,16 +276,8 @@ export const getComment = /* GraphQL */ `
         pano {
           id
           title
-          img {
-            region
-            bucket
-            key
-          }
-          thumbnail {
-            region
-            bucket
-            key
-          }
+          img
+          thumbnail
           createdAt
           updatedAt
           spots {
@@ -363,11 +337,7 @@ export const listComments = /* GraphQL */ `
           contents {
             name
             type
-            content {
-              region
-              bucket
-              key
-            }
+            content
             link
           }
           panoID
@@ -376,16 +346,8 @@ export const listComments = /* GraphQL */ `
           pano {
             id
             title
-            img {
-              region
-              bucket
-              key
-            }
-            thumbnail {
-              region
-              bucket
-              key
-            }
+            img
+            thumbnail
             createdAt
             updatedAt
             spots {

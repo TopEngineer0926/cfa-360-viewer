@@ -9,7 +9,7 @@
     }
   },
   "storage": {
-    "360ViewerPanoImg": {
+    "amplify360": {
       "service": "S3",
       "providerPlugin": "awscloudformation"
     }

@@ -14,7 +14,7 @@
       >Admin</v-btn
     >
     <v-spacer />
-    <v-icon v-if="user.admin" color="red" class="mr-2">
+    <v-icon v-if="user.admin" color="primary" class="mr-2">
       mdi-alpha-a-box-outline
     </v-icon>
     {{ user.name }}

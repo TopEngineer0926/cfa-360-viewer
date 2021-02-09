@@ -8,6 +8,51 @@ export const createPano = /* GraphQL */ `
   ) {
     createPano(input: $input, condition: $condition) {
       id
+      title
+      img
+      thumbnail
+      createdAt
+      updatedAt
+      spots {
+        items {
+          id
+          name
+          contents {
+            name
+            type
+            content
+            link
+          }
+          panoID
+          createdAt
+          updatedAt
+          pano {
+            id
+            title
+            img
+            thumbnail
+            createdAt
+            updatedAt
+            spots {
+              nextToken
+            }
+          }
+          comments {
+            items {
+              id
+              owner
+              spotID
+              content
+              reply
+              updatedAt
+              repliedAt
+              createdAt
+            }
+            nextToken
+          }
+        }
+        nextToken
+      }
     }
   }
 `;
@@ -19,16 +64,8 @@ export const updatePano = /* GraphQL */ `
     updatePano(input: $input, condition: $condition) {
       id
       title
-      img {
-        region
-        bucket
-        key
-      }
-      thumbnail {
-        region
-        bucket
-        key
-      }
+      img
+      thumbnail
       createdAt
       updatedAt
       spots {
@@ -38,11 +75,7 @@ export const updatePano = /* GraphQL */ `
           contents {
             name
             type
-            content {
-              region
-              bucket
-              key
-            }
+            content
             link
           }
           panoID
@@ -51,16 +84,8 @@ export const updatePano = /* GraphQL */ `
           pano {
             id
             title
-            img {
-              region
-              bucket
-              key
-            }
-            thumbnail {
-              region
-              bucket
-              key
-            }
+            img
+            thumbnail
             createdAt
             updatedAt
             spots {
@@ -94,16 +119,8 @@ export const deletePano = /* GraphQL */ `
     deletePano(input: $input, condition: $condition) {
       id
       title
-      img {
-        region
-        bucket
-        key
-      }
-      thumbnail {
-        region
-        bucket
-        key
-      }
+      img
+      thumbnail
       createdAt
       updatedAt
       spots {
@@ -113,11 +130,7 @@ export const deletePano = /* GraphQL */ `
           contents {
             name
             type
-            content {
-              region
-              bucket
-              key
-            }
+            content
             link
           }
           panoID
@@ -126,16 +139,8 @@ export const deletePano = /* GraphQL */ `
           pano {
             id
             title
-            img {
-              region
-              bucket
-              key
-            }
-            thumbnail {
-              region
-              bucket
-              key
-            }
+            img
+            thumbnail
             createdAt
             updatedAt
             spots {
@@ -172,11 +177,7 @@ export const createSpot = /* GraphQL */ `
       contents {
         name
         type
-        content {
-          region
-          bucket
-          key
-        }
+        content
         link
       }
       panoID
@@ -185,16 +186,8 @@ export const createSpot = /* GraphQL */ `
       pano {
         id
         title
-        img {
-          region
-          bucket
-          key
-        }
-        thumbnail {
-          region
-          bucket
-          key
-        }
+        img
+        thumbnail
         createdAt
         updatedAt
         spots {
@@ -204,6 +197,7 @@ export const createSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -212,6 +206,8 @@ export const createSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -238,6 +234,7 @@ export const createSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -246,6 +243,8 @@ export const createSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -270,11 +269,7 @@ export const updateSpot = /* GraphQL */ `
       contents {
         name
         type
-        content {
-          region
-          bucket
-          key
-        }
+        content
         link
       }
       panoID
@@ -283,16 +278,8 @@ export const updateSpot = /* GraphQL */ `
       pano {
         id
         title
-        img {
-          region
-          bucket
-          key
-        }
-        thumbnail {
-          region
-          bucket
-          key
-        }
+        img
+        thumbnail
         createdAt
         updatedAt
         spots {
@@ -302,6 +289,7 @@ export const updateSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -310,6 +298,8 @@ export const updateSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -336,6 +326,7 @@ export const updateSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -344,6 +335,8 @@ export const updateSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -368,11 +361,7 @@ export const deleteSpot = /* GraphQL */ `
       contents {
         name
         type
-        content {
-          region
-          bucket
-          key
-        }
+        content
         link
       }
       panoID
@@ -381,16 +370,8 @@ export const deleteSpot = /* GraphQL */ `
       pano {
         id
         title
-        img {
-          region
-          bucket
-          key
-        }
-        thumbnail {
-          region
-          bucket
-          key
-        }
+        img
+        thumbnail
         createdAt
         updatedAt
         spots {
@@ -400,6 +381,7 @@ export const deleteSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -408,6 +390,8 @@ export const deleteSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -434,6 +418,7 @@ export const deleteSpot = /* GraphQL */ `
             contents {
               name
               type
+              content
               link
             }
             panoID
@@ -442,6 +427,8 @@ export const deleteSpot = /* GraphQL */ `
             pano {
               id
               title
+              img
+              thumbnail
               createdAt
               updatedAt
             }
@@ -475,11 +462,7 @@ export const createComment = /* GraphQL */ `
         contents {
           name
           type
-          content {
-            region
-            bucket
-            key
-          }
+          content
           link
         }
         panoID
@@ -488,16 +471,8 @@ export const createComment = /* GraphQL */ `
         pano {
           id
           title
-          img {
-            region
-            bucket
-            key
-          }
-          thumbnail {
-            region
-            bucket
-            key
-          }
+          img
+          thumbnail
           createdAt
           updatedAt
           spots {
@@ -555,11 +530,7 @@ export const updateComment = /* GraphQL */ `
         contents {
           name
           type
-          content {
-            region
-            bucket
-            key
-          }
+          content
           link
         }
         panoID
@@ -568,16 +539,8 @@ export const updateComment = /* GraphQL */ `
         pano {
           id
           title
-          img {
-            region
-            bucket
-            key
-          }
-          thumbnail {
-            region
-            bucket
-            key
-          }
+          img
+          thumbnail
           createdAt
           updatedAt
           spots {
@@ -635,11 +598,7 @@ export const deleteComment = /* GraphQL */ `
         contents {
           name
           type
-          content {
-            region
-            bucket
-            key
-          }
+          content
           link
         }
         panoID
@@ -648,16 +607,8 @@ export const deleteComment = /* GraphQL */ `
         pano {
           id
           title
-          img {
-            region
-            bucket
-            key
-          }
-          thumbnail {
-            region
-            bucket
-            key
-          }
+          img
+          thumbnail
           createdAt
           updatedAt
           spots {
