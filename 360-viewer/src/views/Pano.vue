@@ -1,11 +1,17 @@
 <template>
   <div v-if="pano">
-    <v-pannellum
+    <!-- <v-pannellum
       v-if="pano.img"
       :pano="pano"
       style="height: 85vh"
-    ></v-pannellum>
-    <div v-else>No Img</div>
+    ></v-pannellum> -->
+    <amplify-s3-image v-if="pano.img" level="protected" :img-key="pano.img" />
+
+    <v-img
+      v-else
+      :style="{ 'max-height': '70vh' }"
+      src="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
+    />
 
     <v-container>
       <v-btn
@@ -65,7 +71,7 @@ import { nanoid } from "nanoid";
 export default {
   name: "Pano",
   components: {
-    "v-pannellum": () => import("@/components/Pannellum.vue"),
+    // "v-pannellum": () => import("@/components/Pannellum.vue"),
   },
   data: function () {
     return {
@@ -90,29 +96,38 @@ export default {
   },
 
   methods: {
-    savePano() {
+    async savePano() {
       if (this.$refs.form.validate()) {
-        let imgId = nanoid();
-        let key = `panos/${imgId}`;
-        Storage.put(key, this.imgToUpload, {
-          level: "protected",
-          contentType: this.imgToUpload.type,
-          metadata: { panoid: this.pano.id },
-        })
-          .then(async (res) => {
-            await API.graphql({
-              query: updatePano,
-              variables: {
-                input: {
-                  id: this.pano.id,
-                  title: this.editTitle,
-                  img: res.key,
-                },
-              },
-            });
-            this.editDialog = false;
-          })
-          .catch((err) => console.error(err));
+        let newPano = {
+          id: this.pano.id,
+          title: this.editTitle,
+        };
+
+        if (this.imgToUpload) {
+          let imgId = nanoid();
+          let key = `panos/${imgId}`;
+          newPano.img = (
+            await Storage.put(key, this.imgToUpload, {
+              level: "protected",
+              contentType: this.imgToUpload.type,
+              metadata: { panoid: this.pano.id },
+            })
+          ).key;
+
+          //delete org img
+          if (this.pano.img) {
+            Storage.remove(this.pano.img, { level: "protected" });
+          }
+        }
+
+        await API.graphql({
+          query: updatePano,
+          variables: {
+            input: newPano,
+          },
+        });
+        this.editDialog = false;
+        this.$router.go();
       }
     },
   },
