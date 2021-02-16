@@ -11,6 +11,7 @@
   "dependencies": {
     "@aws-amplify/ui-vue": "^0.3.2",
     "aws-amplify": "^3.3.18",
+    "compressorjs": "^1.0.7",
     "core-js": "^3.6.5",
     "nanoid": "^3.1.20",
     "pannellum": "^2.5.6",

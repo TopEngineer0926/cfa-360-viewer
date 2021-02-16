@@ -31,6 +31,7 @@ type Spot
   @key(name: "byPano", fields: ["panoID"]) {
   id: ID!
   name: String!
+  layer: String
   contents: [SpotDetail]
   panoID: ID!
   pano: Pano @connection(fields: ["panoID"])

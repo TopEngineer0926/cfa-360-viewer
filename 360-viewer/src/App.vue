@@ -5,11 +5,15 @@
       <router-view :key="$route.fullPath" />
     </v-main>
     <foot />
+    <confirm ref="confirm"></confirm>
+    <dialog-loader ref="dialogLoader"></dialog-loader>
   </v-app>
 </template>
 
 <script>
 import { mapState } from "vuex";
+import DialogLoader from "./components/DialogLoader";
+import Confirm from "./components/Confirm";
 
 export default {
   name: "App",
@@ -17,8 +21,14 @@ export default {
   components: {
     navbar: () => import("./components/Navbar.vue"),
     foot: () => import("./components/Foot.vue"),
+    DialogLoader,
+    Confirm,
   },
   computed: mapState(["user"]),
+  mounted() {
+    this.$root.$confirm = this.$refs.confirm.open;
+    this.$root.$dialogLoader = this.$refs.dialogLoader;
+  },
 };
 </script>
 <style>

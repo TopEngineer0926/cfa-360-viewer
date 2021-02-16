@@ -25,7 +25,7 @@
 
             <!-- <v-card-text> {{ pano.title }}</v-card-text> -->
             <v-card-actions>
-              <v-btn v-if="user.admin" icon @click="deletePanoFunc(index)"
+              <v-btn v-if="user.admin" icon @click="deletePanoConfirm(index)"
                 ><v-icon>mdi-delete-outline </v-icon>
               </v-btn>
             </v-card-actions>
@@ -33,7 +33,9 @@
         </v-hover>
       </div>
     </div>
-    <v-btn v-if="user.admin" @click="createPanoFunc">Create</v-btn>
+    <v-btn v-if="user.admin" @click="createPanoFunc" class="mt-12"
+      >Create</v-btn
+    >
   </v-container>
 </template>
 
@@ -96,6 +98,24 @@ export default {
         })
       );
       this.panos.splice(index, 1);
+    },
+    async deletePanoConfirm(index) {
+      if (
+        await this.$root.$confirm(
+          "Delete?",
+          "Are you sure you want to delete ?",
+          { color: this.$vuetify.theme.currentTheme.warning }
+        )
+      ) {
+        this.$root.$dialogLoader.start(
+          "Deleted Successfully",
+          {},
+          () => {
+            this.deletePanoFunc(index);
+          },
+          true
+        );
+      }
     },
   },
 };

@@ -48,7 +48,7 @@
               <v-file-input
                 v-model="editPano.imgToUpload"
                 accept="image/*"
-                label="Select image"
+                label="Select panorama image"
               ></v-file-input>
             </v-form>
           </v-card-text>
@@ -71,6 +71,7 @@ import { getPano } from "../graphql/queries";
 import { updatePano } from "../graphql/mutations";
 import { nanoid } from "nanoid";
 import { mapState } from "vuex";
+import Compressor from "compressorjs";
 // import awsconfig from "@/aws-exports";
 
 export default {
@@ -135,12 +136,23 @@ export default {
         }
 
         if (this.editPano.thumbnailToUpload) {
+          //Compressor
+          let compressedThumbnail = await new Promise((resolve, reject) => {
+            new Compressor(this.editPano.thumbnailToUpload, {
+              quality: 0.7,
+              maxHeight: 512,
+              maxWidth: 512,
+              success: resolve,
+              error: reject,
+            });
+          });
+
           let imgId = nanoid();
           let key = `${this.pano.id}/${imgId}`;
           newPano.thumbnail = (
-            await Storage.put(key, this.editPano.thumbnailToUpload, {
+            await Storage.put(key, compressedThumbnail, {
               level: "protected",
-              contentType: this.editPano.thumbnailToUpload.type,
+              contentType: compressedThumbnail.type,
               metadata: { user: this.user.email },
             })
           ).key;

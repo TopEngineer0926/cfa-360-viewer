@@ -2,7 +2,27 @@
   <div>
     <div class="vue-pannellum">
       <div class="default-slot">
-        <div class="mb-8 ml-4">
+        <v-card class="ml-4" width="256">
+          <v-navigation-drawer permanent>
+            <v-system-bar>Layers</v-system-bar>
+
+            <v-divider></v-divider>
+            <v-list nav dense>
+              <v-list-item-group v-model="selectedItem" color="primary">
+                <v-list-item v-for="(item, i) in items" :key="i">
+                  <v-list-item-icon>
+                    <v-icon> mdi-layers </v-icon>
+                  </v-list-item-icon>
+
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
+          </v-navigation-drawer>
+        </v-card>
+        <div class="mb-8 ml-4 mt-4">
           <v-btn @click="addTagConfig">Add Tag</v-btn>
         </div>
       </div>
@@ -103,6 +123,14 @@ export default {
         dialog: false,
         newComment: null,
       },
+      selectedItem: 0,
+      items: [
+        { text: "Layer 1" },
+        { text: "Layer 2" },
+        { text: "Layer 3" },
+        { text: "Layer 4" },
+        { text: "Layer 5" },
+      ],
     };
   },
   created() {
@@ -233,5 +261,6 @@ export default {
   right: 0;
   bottom: 0;
   z-index: 2;
+  width: 150px;
 }
 </style>
