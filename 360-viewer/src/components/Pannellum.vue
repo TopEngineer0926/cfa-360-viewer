@@ -119,16 +119,18 @@ export default {
   methods: {
     loadPano() {
       // for (let scene in this.pano.scenes) {} this.pano.scenes[scene].hotSpots.forEach((spot) => {
-      this.pano.hotSpots.forEach((spot) => {
-        if (spot.data) {
-          spot.clickHandlerFunc = () => {
-            this.specsDialog.newComment = null;
-            this.specsDialog.dialog = true;
-            this.specsDialog.content = spot.data;
-            this.specsDialog.comments = spot.comments;
-          };
-        }
-      });
+      if (this.pano.hotSpots) {
+        this.pano.hotSpots.forEach((spot) => {
+          if (spot.data) {
+            spot.clickHandlerFunc = () => {
+              this.specsDialog.newComment = null;
+              this.specsDialog.dialog = true;
+              this.specsDialog.content = spot.data;
+              this.specsDialog.comments = spot.comments;
+            };
+          }
+        });
+      }
     },
     addComment() {
       this.specsDialog.comments.push({

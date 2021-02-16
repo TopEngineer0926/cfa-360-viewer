@@ -27,4 +27,11 @@ export default {
   --amplify-primary-tint: #e51636;
   --amplify-primary-shade: #e51636;
 }
+
+.pnlm-about-msg {
+  visibility: hidden;
+  a {
+    visibility: hidden;
+  }
+}
 </style>
