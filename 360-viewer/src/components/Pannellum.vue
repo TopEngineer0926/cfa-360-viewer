@@ -8,7 +8,7 @@
 
             <v-divider></v-divider>
             <v-list nav dense>
-              <v-list-item-group v-model="selectedItem" color="primary">
+              <v-list-item-group v-model="currentLayer" color="primary">
                 <v-list-item v-for="(item, i) in items" :key="i">
                   <v-list-item-icon>
                     <v-icon> mdi-layers </v-icon>
@@ -23,7 +23,7 @@
           </v-navigation-drawer>
         </v-card>
         <div class="mb-8 ml-4 mt-4">
-          <v-btn @click="addTagConfig">Add Tag</v-btn>
+          <v-btn small @click="addTagConfig">Add Tag</v-btn>
         </div>
       </div>
     </div>
@@ -123,7 +123,7 @@ export default {
         dialog: false,
         newComment: null,
       },
-      selectedItem: 0,
+      currentLayer: 0,
       items: [
         { text: "Layer 1" },
         { text: "Layer 2" },

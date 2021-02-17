@@ -19,6 +19,7 @@ export const listPanos = /* GraphQL */ `
           items {
             id
             name
+            layer
             contents {
               name
               type
@@ -60,6 +61,7 @@ export const getPano = /* GraphQL */ `
         items {
           id
           name
+          layer
           contents {
             name
             type
@@ -87,9 +89,8 @@ export const getPano = /* GraphQL */ `
               spotID
               content
               reply
-              updatedAt
-              repliedAt
               createdAt
+              updatedAt
             }
             nextToken
           }
@@ -109,6 +110,7 @@ export const listSpots = /* GraphQL */ `
       items {
         id
         name
+        layer
         contents {
           name
           type
@@ -129,6 +131,7 @@ export const listSpots = /* GraphQL */ `
             items {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -143,12 +146,12 @@ export const listSpots = /* GraphQL */ `
             spotID
             content
             reply
-            updatedAt
-            repliedAt
             createdAt
+            updatedAt
             spot {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -166,6 +169,7 @@ export const getSpot = /* GraphQL */ `
     getSpot(id: $id) {
       id
       name
+      layer
       contents {
         name
         type
@@ -186,6 +190,7 @@ export const getSpot = /* GraphQL */ `
           items {
             id
             name
+            layer
             contents {
               name
               type
@@ -217,12 +222,12 @@ export const getSpot = /* GraphQL */ `
           spotID
           content
           reply
-          updatedAt
-          repliedAt
           createdAt
+          updatedAt
           spot {
             id
             name
+            layer
             contents {
               name
               type
@@ -258,12 +263,12 @@ export const getComment = /* GraphQL */ `
       spotID
       content
       reply
-      updatedAt
-      repliedAt
       createdAt
+      updatedAt
       spot {
         id
         name
+        layer
         contents {
           name
           type
@@ -284,6 +289,7 @@ export const getComment = /* GraphQL */ `
             items {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -298,12 +304,12 @@ export const getComment = /* GraphQL */ `
             spotID
             content
             reply
-            updatedAt
-            repliedAt
             createdAt
+            updatedAt
             spot {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -328,12 +334,12 @@ export const listComments = /* GraphQL */ `
         spotID
         content
         reply
-        updatedAt
-        repliedAt
         createdAt
+        updatedAt
         spot {
           id
           name
+          layer
           contents {
             name
             type
@@ -361,9 +367,8 @@ export const listComments = /* GraphQL */ `
               spotID
               content
               reply
-              updatedAt
-              repliedAt
               createdAt
+              updatedAt
             }
             nextToken
           }

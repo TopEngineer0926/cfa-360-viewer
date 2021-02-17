@@ -17,6 +17,7 @@ export const createPano = /* GraphQL */ `
         items {
           id
           name
+          layer
           contents {
             name
             type
@@ -44,9 +45,8 @@ export const createPano = /* GraphQL */ `
               spotID
               content
               reply
-              updatedAt
-              repliedAt
               createdAt
+              updatedAt
             }
             nextToken
           }
@@ -72,6 +72,7 @@ export const updatePano = /* GraphQL */ `
         items {
           id
           name
+          layer
           contents {
             name
             type
@@ -99,9 +100,8 @@ export const updatePano = /* GraphQL */ `
               spotID
               content
               reply
-              updatedAt
-              repliedAt
               createdAt
+              updatedAt
             }
             nextToken
           }
@@ -127,6 +127,7 @@ export const deletePano = /* GraphQL */ `
         items {
           id
           name
+          layer
           contents {
             name
             type
@@ -154,9 +155,8 @@ export const deletePano = /* GraphQL */ `
               spotID
               content
               reply
-              updatedAt
-              repliedAt
               createdAt
+              updatedAt
             }
             nextToken
           }
@@ -174,6 +174,7 @@ export const createSpot = /* GraphQL */ `
     createSpot(input: $input, condition: $condition) {
       id
       name
+      layer
       contents {
         name
         type
@@ -194,6 +195,7 @@ export const createSpot = /* GraphQL */ `
           items {
             id
             name
+            layer
             contents {
               name
               type
@@ -225,12 +227,12 @@ export const createSpot = /* GraphQL */ `
           spotID
           content
           reply
-          updatedAt
-          repliedAt
           createdAt
+          updatedAt
           spot {
             id
             name
+            layer
             contents {
               name
               type
@@ -266,6 +268,7 @@ export const updateSpot = /* GraphQL */ `
     updateSpot(input: $input, condition: $condition) {
       id
       name
+      layer
       contents {
         name
         type
@@ -286,6 +289,7 @@ export const updateSpot = /* GraphQL */ `
           items {
             id
             name
+            layer
             contents {
               name
               type
@@ -317,12 +321,12 @@ export const updateSpot = /* GraphQL */ `
           spotID
           content
           reply
-          updatedAt
-          repliedAt
           createdAt
+          updatedAt
           spot {
             id
             name
+            layer
             contents {
               name
               type
@@ -358,6 +362,7 @@ export const deleteSpot = /* GraphQL */ `
     deleteSpot(input: $input, condition: $condition) {
       id
       name
+      layer
       contents {
         name
         type
@@ -378,6 +383,7 @@ export const deleteSpot = /* GraphQL */ `
           items {
             id
             name
+            layer
             contents {
               name
               type
@@ -409,12 +415,12 @@ export const deleteSpot = /* GraphQL */ `
           spotID
           content
           reply
-          updatedAt
-          repliedAt
           createdAt
+          updatedAt
           spot {
             id
             name
+            layer
             contents {
               name
               type
@@ -453,12 +459,12 @@ export const createComment = /* GraphQL */ `
       spotID
       content
       reply
-      updatedAt
-      repliedAt
       createdAt
+      updatedAt
       spot {
         id
         name
+        layer
         contents {
           name
           type
@@ -479,6 +485,7 @@ export const createComment = /* GraphQL */ `
             items {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -493,12 +500,12 @@ export const createComment = /* GraphQL */ `
             spotID
             content
             reply
-            updatedAt
-            repliedAt
             createdAt
+            updatedAt
             spot {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -521,12 +528,12 @@ export const updateComment = /* GraphQL */ `
       spotID
       content
       reply
-      updatedAt
-      repliedAt
       createdAt
+      updatedAt
       spot {
         id
         name
+        layer
         contents {
           name
           type
@@ -547,6 +554,7 @@ export const updateComment = /* GraphQL */ `
             items {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -561,12 +569,12 @@ export const updateComment = /* GraphQL */ `
             spotID
             content
             reply
-            updatedAt
-            repliedAt
             createdAt
+            updatedAt
             spot {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -589,12 +597,12 @@ export const deleteComment = /* GraphQL */ `
       spotID
       content
       reply
-      updatedAt
-      repliedAt
       createdAt
+      updatedAt
       spot {
         id
         name
+        layer
         contents {
           name
           type
@@ -615,6 +623,7 @@ export const deleteComment = /* GraphQL */ `
             items {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt
@@ -629,12 +638,12 @@ export const deleteComment = /* GraphQL */ `
             spotID
             content
             reply
-            updatedAt
-            repliedAt
             createdAt
+            updatedAt
             spot {
               id
               name
+              layer
               panoID
               createdAt
               updatedAt

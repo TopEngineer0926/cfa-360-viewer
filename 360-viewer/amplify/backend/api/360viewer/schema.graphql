@@ -11,6 +11,8 @@ type Pano
   img: String
   thumbnail: String
   spots: [Spot] @connection(keyName: "byPano", fields: ["id"])
+  createdAt: String
+  updatedAt: String
 }
 
 type SpotDetail {
@@ -37,6 +39,8 @@ type Spot
   pano: Pano @connection(fields: ["panoID"])
   comments: [Comment]
     @connection(keyName: "bySpot", fields: ["id"], sortField: "updatedAt")
+  createdAt: String
+  updatedAt: String
 }
 
 type Comment
@@ -55,6 +59,7 @@ type Comment
   spot: Spot @connection(fields: ["spotID"])
   content: String!
   reply: String
-  updatedAt: String!
-  repliedAt: String
+  # repliedAt: String
+  createdAt: String
+  updatedAt: String
 }
