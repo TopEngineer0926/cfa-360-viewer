@@ -8,6 +8,7 @@
             class="ma-6"
             width="500"
             height="200"
+            @click="$router.push('/pano/' + pano.id)"
           >
             <v-img
               :src="
@@ -18,19 +19,20 @@
               height="200"
               max-width="500"
               class="white--text align-end grey"
-              @click="$router.push('/pano/' + pano.id)"
             >
               <v-card-title v-text="pano.title"></v-card-title>
             </v-img>
 
             <!-- <v-card-text> {{ pano.title }}</v-card-text> -->
-            <v-card-actions>
-              <v-btn v-if="user.admin" icon @click="deletePanoConfirm(index)"
-                ><v-icon>mdi-delete-outline </v-icon>
-              </v-btn>
-            </v-card-actions>
           </v-card>
         </v-hover>
+        <v-btn
+          v-if="user.admin"
+          icon
+          @click="deletePanoConfirm(index)"
+          class="ml-4"
+          ><v-icon>mdi-delete-outline </v-icon>
+        </v-btn>
       </div>
     </div>
     <v-btn v-if="user.admin" @click="createPanoFunc" class="mt-12"
@@ -102,9 +104,9 @@ export default {
     async deletePanoConfirm(index) {
       if (
         await this.$root.$confirm(
-          "Delete?",
-          "Are you sure you want to delete ?",
-          { color: this.$vuetify.theme.currentTheme.warning }
+          `Delete ${this.panos[index].title}?`,
+          "This action cannot be undone. This scene will be deleted permanently.",
+          { color: this.$vuetify.theme.currentTheme.primary }
         )
       ) {
         this.$root.$dialogLoader.start(

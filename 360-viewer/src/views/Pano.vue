@@ -41,14 +41,14 @@
                 label="Title"
               ></v-text-field>
               <v-file-input
-                v-model="editPano.thumbnailToUpload"
-                accept="image/*"
-                label="Select thumbnail"
-              ></v-file-input>
-              <v-file-input
                 v-model="editPano.imgToUpload"
                 accept="image/*"
                 label="Select panorama image"
+              ></v-file-input>
+              <v-file-input
+                v-model="editPano.thumbnailToUpload"
+                accept="image/*"
+                label="Select thumbnail"
               ></v-file-input>
             </v-form>
           </v-card-text>
@@ -133,6 +133,14 @@ export default {
           if (this.pano.img) {
             Storage.remove(this.pano.img, { level: "protected" });
           }
+        }
+
+        if (
+          !this.editPano.thumbnailToUpload &&
+          !this.pano.thumbnail &&
+          this.editPano.imgToUpload
+        ) {
+          this.editPano.thumbnailToUpload = this.editPano.imgToUpload;
         }
 
         if (this.editPano.thumbnailToUpload) {
