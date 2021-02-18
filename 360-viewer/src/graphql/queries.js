@@ -7,7 +7,21 @@ export const getPano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes
+      sceneArr {
+        id
+        title
+        img
+        hotSpots {
+          id
+          pitch
+          yaw
+          type
+          targetYaw
+          targetPitch
+          text
+          sceneId
+        }
+      }
       createdAt
       updatedAt
     }
@@ -24,7 +38,11 @@ export const listPanos = /* GraphQL */ `
         id
         title
         thumbnail
-        scenes
+        sceneArr {
+          id
+          title
+          img
+        }
         createdAt
         updatedAt
       }

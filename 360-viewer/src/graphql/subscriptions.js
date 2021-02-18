@@ -7,7 +7,21 @@ export const onCreatePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes
+      sceneArr {
+        id
+        title
+        img
+        hotSpots {
+          id
+          pitch
+          yaw
+          type
+          targetYaw
+          targetPitch
+          text
+          sceneId
+        }
+      }
       createdAt
       updatedAt
     }
@@ -19,7 +33,21 @@ export const onUpdatePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes
+      sceneArr {
+        id
+        title
+        img
+        hotSpots {
+          id
+          pitch
+          yaw
+          type
+          targetYaw
+          targetPitch
+          text
+          sceneId
+        }
+      }
       createdAt
       updatedAt
     }
@@ -31,7 +59,21 @@ export const onDeletePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes
+      sceneArr {
+        id
+        title
+        img
+        hotSpots {
+          id
+          pitch
+          yaw
+          type
+          targetYaw
+          targetPitch
+          text
+          sceneId
+        }
+      }
       createdAt
       updatedAt
     }

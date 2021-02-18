@@ -90,15 +90,23 @@ export default {
       async (data) => {
         this.pano = data.data.getPano;
         if (this.pano) {
-          if (this.pano.scenes) {
-            for (const [key, value] of Object.entries(this.pano.scenes)) {
-              if (value.img) {
-                console.log("key", key);
-                value.panorama = await Storage.get(value.img, {
-                  level: "protected",
-                });
-              }
-            }
+          if (this.pano.sceneArr) {
+            this.pano.scenes = {};
+
+            await Promise.all(
+              this.pano.sceneArr.map(async (scene, index) => {
+                this.pano.scenes[scene.id] = {};
+                this.pano.scenes[scene.id].index = index;
+                this.pano.scenes[scene.id].title = scene.title;
+                this.pano.scenes[scene.id].panorama = await Storage.get(
+                  scene.img,
+                  {
+                    level: "protected",
+                  }
+                );
+              })
+            );
+
             this.reloadViewer();
           }
         } else {
@@ -159,12 +167,47 @@ export default {
     deleteScene() {},
     addTag() {},
     deleteTag() {},
-    savePano() {
-      this.pano.scenes = JSON.stringify(this.pano.scenes);
-      API.graphql({
+    async savePano() {
+      let updatePanoData = this.pano;
+
+      updatePanoData.sceneArr = [];
+      for (const [sceneID, scene] of Object.entries(updatePanoData.scenes)) {
+        scene.id = sceneID;
+        updatePanoData.sceneArr.push(scene);
+      }
+
+      console.log("updatePanoData.sceneArr", updatePanoData.sceneArr);
+      delete updatePanoData.scenes;
+      delete updatePanoData.default;
+
+      await Promise.all(
+        updatePanoData.sceneArr.map(async (scene) => {
+          console.log("scene", scene);
+          if (scene.s3Update) {
+            let imgId = nanoid();
+            scene.img = (
+              await Storage.put(imgId, scene.panorama, {
+                level: "protected",
+                contentType: scene.panorama.type,
+                metadata: {
+                  user: this.user.email,
+                  pano: this.pano.id,
+                  type: "scene",
+                },
+              })
+            ).key;
+
+            delete scene.s3Update;
+            delete scene.panorama;
+            console.log("scene.img", scene.img);
+          }
+        })
+      );
+      console.log("save", updatePanoData);
+      await API.graphql({
         query: updatePano,
         variables: {
-          input: this.pano,
+          input: updatePanoData,
         },
       });
     },

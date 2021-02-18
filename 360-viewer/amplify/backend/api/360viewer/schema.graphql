@@ -9,16 +9,27 @@ type Pano
   id: ID!
   title: String!
   thumbnail: String
-  scenes: AWSJSON
+  sceneArr: [SceneObject]
   createdAt: String
   updatedAt: String
 }
 
-type SpotContent {
-  name: String
-  type: String
-  content: String
-  link: String
+type SceneObject {
+  id: ID!
+  title: String
+  img: String
+  hotSpots: [hotSpotObject]
+}
+
+type hotSpotObject {
+  id: ID!
+  pitch: String!
+  yaw: Float!
+  type: Float!
+  targetYaw: Float
+  targetPitch: Float
+  text: String
+  sceneId: ID
 }
 
 # type Scene
