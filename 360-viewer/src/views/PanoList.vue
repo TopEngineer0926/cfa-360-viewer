@@ -166,6 +166,11 @@ export default {
           input: { id: this.panos[index].id },
         })
       );
+
+      //delete Spots
+      // +++++
+      //delete Comments
+      // +++++
       this.panos.splice(index, 1);
     },
     async deletePanoConfirm(index) {

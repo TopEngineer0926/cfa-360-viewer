@@ -7,15 +7,7 @@ export const getPano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
-      }
+      scenes
       createdAt
       updatedAt
     }
@@ -32,12 +24,60 @@ export const listPanos = /* GraphQL */ `
         id
         title
         thumbnail
-        scenes {
-          title
-          img
+        scenes
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const getSpot = /* GraphQL */ `
+  query GetSpot($id: ID!) {
+    getSpot(id: $id) {
+      id
+      contents {
+        name
+        type
+        content
+        link
+      }
+      createdAt
+      updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+    }
+  }
+`;
+export const listSpots = /* GraphQL */ `
+  query ListSpots(
+    $filter: ModelSpotFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listSpots(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        contents {
+          name
+          type
+          content
+          link
         }
         createdAt
         updatedAt
+        comments {
+          nextToken
+        }
       }
       nextToken
     }
@@ -62,33 +102,6 @@ export const listComments = /* GraphQL */ `
     $nextToken: String
   ) {
     listComments(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        owner
-        spotID
-        msg
-        createdAt
-        updatedAt
-      }
-      nextToken
-    }
-  }
-`;
-export const commentsBySpot = /* GraphQL */ `
-  query CommentsBySpot(
-    $spotID: ID
-    $sortDirection: ModelSortDirection
-    $filter: ModelCommentFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    commentsBySpot(
-      spotID: $spotID
-      sortDirection: $sortDirection
-      filter: $filter
-      limit: $limit
-      nextToken: $nextToken
-    ) {
       items {
         id
         owner

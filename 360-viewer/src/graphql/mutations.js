@@ -10,15 +10,7 @@ export const createPano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
-      }
+      scenes
       createdAt
       updatedAt
     }
@@ -33,15 +25,7 @@ export const updatePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
-      }
+      scenes
       createdAt
       updatedAt
     }
@@ -56,17 +40,96 @@ export const deletePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
+      scenes
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createSpot = /* GraphQL */ `
+  mutation CreateSpot(
+    $input: CreateSpotInput!
+    $condition: ModelSpotConditionInput
+  ) {
+    createSpot(input: $input, condition: $condition) {
+      id
+      contents {
+        name
+        type
+        content
+        link
       }
       createdAt
       updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+    }
+  }
+`;
+export const updateSpot = /* GraphQL */ `
+  mutation UpdateSpot(
+    $input: UpdateSpotInput!
+    $condition: ModelSpotConditionInput
+  ) {
+    updateSpot(input: $input, condition: $condition) {
+      id
+      contents {
+        name
+        type
+        content
+        link
+      }
+      createdAt
+      updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+    }
+  }
+`;
+export const deleteSpot = /* GraphQL */ `
+  mutation DeleteSpot(
+    $input: DeleteSpotInput!
+    $condition: ModelSpotConditionInput
+  ) {
+    deleteSpot(input: $input, condition: $condition) {
+      id
+      contents {
+        name
+        type
+        content
+        link
+      }
+      createdAt
+      updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
     }
   }
 `;

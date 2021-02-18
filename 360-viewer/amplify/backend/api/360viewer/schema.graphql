@@ -9,29 +9,58 @@ type Pano
   id: ID!
   title: String!
   thumbnail: String
-  scenes: [Scene]
+  scenes: AWSJSON
   createdAt: String
   updatedAt: String
 }
 
-type Scene {
-  title: String!
-  img: String!
-  spots: [Spot]
-}
-
 type SpotContent {
-  name: String!
+  name: String
   type: String
   content: String
   link: String
 }
 
-type Spot {
-  id: ID!
-  name: String!
-  layer: String
+# type Scene
+#   @model
+#   @auth(
+#     rules: [
+#       { allow: private, operations: [read] }
+#       { allow: groups, groups: ["360Admin"] }
+#     ]
+#   )
+#   @key(name: "byPano", fields: ["panoID"]) {
+#   id: ID!
+#   panoID: ID!
+#   pano: Pano @connection(fields: ["panoID"])
+#   title: String!
+#   img: String!
+#   spots: [Spot]
+#   createdAt: String
+#   updatedAt: String
+# }
+
+type SpotContent {
+  name: String
+  type: String
+  content: String
+  link: String
+}
+
+type Spot
+  @model
+  @auth(
+    rules: [
+      { allow: private, operations: [read] }
+      { allow: groups, groups: ["360Admin"] }
+    ]
+  ) {
+  id: ID! #same as spotID
   contents: [SpotContent]
+  comments: [Comment]
+    @connection(keyName: "bySpot", fields: ["id"], sortField: "updatedAt")
+  createdAt: String
+  updatedAt: String
 }
 
 type Comment
@@ -43,7 +72,7 @@ type Comment
       { allow: groups, groups: ["360Admin"] }
     ]
   )
-  @key(name: "bySpot", fields: ["spotID"], queryField: "commentsBySpot") {
+  @key(name: "bySpot", fields: ["spotID"]) {
   id: ID!
   owner: ID!
   spotID: ID!

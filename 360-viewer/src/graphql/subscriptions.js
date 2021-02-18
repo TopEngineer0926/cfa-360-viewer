@@ -7,15 +7,7 @@ export const onCreatePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
-      }
+      scenes
       createdAt
       updatedAt
     }
@@ -27,15 +19,7 @@ export const onUpdatePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
-      }
+      scenes
       createdAt
       updatedAt
     }
@@ -47,17 +31,87 @@ export const onDeletePano = /* GraphQL */ `
       id
       title
       thumbnail
-      scenes {
-        title
-        img
-        spots {
-          id
-          name
-          layer
-        }
+      scenes
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateSpot = /* GraphQL */ `
+  subscription OnCreateSpot {
+    onCreateSpot {
+      id
+      contents {
+        name
+        type
+        content
+        link
       }
       createdAt
       updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+    }
+  }
+`;
+export const onUpdateSpot = /* GraphQL */ `
+  subscription OnUpdateSpot {
+    onUpdateSpot {
+      id
+      contents {
+        name
+        type
+        content
+        link
+      }
+      createdAt
+      updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
+    }
+  }
+`;
+export const onDeleteSpot = /* GraphQL */ `
+  subscription OnDeleteSpot {
+    onDeleteSpot {
+      id
+      contents {
+        name
+        type
+        content
+        link
+      }
+      createdAt
+      updatedAt
+      comments {
+        items {
+          id
+          owner
+          spotID
+          msg
+          createdAt
+          updatedAt
+        }
+        nextToken
+      }
     }
   }
 `;

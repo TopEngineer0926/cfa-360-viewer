@@ -1,7 +1,14 @@
 <template>
   <div>
     <div v-if="pano && pano.scenes" class="vue-pannellum">
-      <div class="default-slot"></div>
+      <div class="default-slot">
+        <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
+          <v-btn @click="loadScene(sceneID)"> {{ scene.title }}</v-btn>
+          <v-btn v-if="user.admin" icon @click="initEditScene(sceneID)">
+            <v-icon>mdi-pencil-outline</v-icon></v-btn
+          >
+        </div>
+      </div>
     </div>
 
     <v-img
@@ -9,8 +16,8 @@
       :style="{ 'max-height': '70vh' }"
       src="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
     />
-    <v-btn @click="initEditScene"> Add Scene </v-btn>
-
+    <v-btn @click="initEditScene(null)"> Add Scene </v-btn>
+    <v-btn @click="savePano()"> Save Project </v-btn>
     <v-dialog
       v-if="editSceneData.dialog"
       v-model="editSceneData.dialog"
@@ -39,7 +46,7 @@
           <v-btn
             color="primary"
             text
-            @click="savePano"
+            @click="editScene"
             :disabled="!editSceneData.editValid"
           >
             Save
@@ -56,51 +63,44 @@
 <script>
 import "pannellum";
 import "pannellum/build/pannellum.css";
-
+import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
 import { getPano } from "../graphql/queries";
 import { updatePano } from "../graphql/mutations";
+import { nanoid } from "nanoid";
 
 export default {
   name: "Pano",
   data: function () {
     return {
       pano: null,
+      viewer: null,
       editSceneData: {
         dialog: false,
-        index: null,
+        sceneID: null,
         title: null,
         imgToUpload: null,
         editValid: false,
       },
     };
   },
+  computed: mapState(["user"]),
   mounted() {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       async (data) => {
-        let panoData = data.data.getPano;
-        if (panoData) {
-          console.log("getPano", panoData);
-
-          if (panoData.scenes) {
-            await Promise.all(
-              panoData.scenes.map(async (scene, index) => {
-                panoData.scenes[index].imgUrl = await Storage.get(scene.img, {
+        this.pano = data.data.getPano;
+        if (this.pano) {
+          if (this.pano.scenes) {
+            for (const [key, value] of Object.entries(this.pano.scenes)) {
+              if (value.img) {
+                console.log("key", key);
+                value.panorama = await Storage.get(value.img, {
                   level: "protected",
                 });
-              })
-            );
-
-            this.viewer = window.pannellum.viewer(this.$el, {
-              type: "equirectangular",
-              name: panoData.title,
-              panorama:
-                "https://cdn.pannellum.org/2.5/pannellum.htm#panorama=https://pannellum.org/images/alma.jpg",
-              autoLoad: true,
-            });
+              }
+            }
+            this.reloadViewer();
           }
-
-          this.pano = panoData;
         } else {
           this.$router.push({ path: "/panolist" });
         }
@@ -108,15 +108,59 @@ export default {
     );
   },
   methods: {
-    initEditScene(index) {
-      this.editSceneData.dialog = true;
-      this.editSceneData.index = index;
+    reloadViewer() {
+      console.log("getPano", this.pano);
+
+      this.pano.default = {
+        firstScene: Object.keys(this.pano.scenes)[0],
+        autoLoad: true,
+      };
+
+      this.viewer = window.pannellum.viewer(this.$el, this.pano);
     },
-    editScene() {},
+    loadScene(sceneID) {
+      console.log("load sceneID", sceneID);
+      this.viewer.loadScene(sceneID);
+    },
+    initEditScene(sceneID) {
+      if (!sceneID) {
+        this.editSceneData.sceneID = nanoid();
+        this.editSceneData.title = null;
+
+        if (!this.pano.scenes) {
+          this.pano.scenes = {};
+        }
+      } else {
+        this.editSceneData.sceneID = sceneID;
+        this.editSceneData.title = this.pano.scenes[
+          this.editSceneData.sceneID
+        ].title;
+      }
+
+      this.editSceneData.imgToUpload = null;
+      this.editSceneData.dialog = true;
+    },
+    editScene() {
+      if (!this.pano.scenes[this.editSceneData.sceneID]) {
+        this.pano.scenes[this.editSceneData.sceneID] = {};
+      }
+      if (this.editSceneData.imgToUpload) {
+        var fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
+        this.pano.scenes[this.editSceneData.sceneID].panorama = fileURL;
+        this.pano.scenes[this.editSceneData.sceneID].s3Update = true;
+      }
+
+      this.pano.scenes[
+        this.editSceneData.sceneID
+      ].title = this.editSceneData.title;
+      this.reloadViewer();
+      this.editSceneData.dialog = false;
+    },
     deleteScene() {},
     addTag() {},
     deleteTag() {},
     savePano() {
+      this.pano.scenes = JSON.stringify(this.pano.scenes);
       API.graphql({
         query: updatePano,
         variables: {
