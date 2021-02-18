@@ -2,45 +2,36 @@ type Pano
   @model
   @auth(
     rules: [
-      { allow: private, provider: iam, operations: [read] }
+      { allow: private, operations: [read] }
       { allow: groups, groups: ["360Admin"] }
     ]
   ) {
   id: ID!
   title: String!
-  img: String
   thumbnail: String
-  spots: [Spot] @connection(keyName: "byPano", fields: ["id"])
+  scenes: [Scene]
   createdAt: String
   updatedAt: String
 }
 
-type SpotDetail {
+type Scene {
+  title: String!
+  img: String!
+  spots: [Spot]
+}
+
+type SpotContent {
   name: String!
-  type: String!
+  type: String
   content: String
   link: String
 }
 
-type Spot
-  @model
-  @auth(
-    rules: [
-      { allow: private, operations: [read] }
-      { allow: groups, groups: ["360Admin"] }
-    ]
-  )
-  @key(name: "byPano", fields: ["panoID"]) {
+type Spot {
   id: ID!
   name: String!
   layer: String
-  contents: [SpotDetail]
-  panoID: ID!
-  pano: Pano @connection(fields: ["panoID"])
-  comments: [Comment]
-    @connection(keyName: "bySpot", fields: ["id"], sortField: "updatedAt")
-  createdAt: String
-  updatedAt: String
+  contents: [SpotContent]
 }
 
 type Comment
@@ -52,13 +43,12 @@ type Comment
       { allow: groups, groups: ["360Admin"] }
     ]
   )
-  @key(name: "bySpot", fields: ["spotID", "content"]) {
+  @key(name: "bySpot", fields: ["spotID"], queryField: "commentsBySpot") {
   id: ID!
   owner: ID!
   spotID: ID!
-  spot: Spot @connection(fields: ["spotID"])
-  content: String!
-  reply: String
+  msg: String
+  # reply: String
   # repliedAt: String
   createdAt: String
   updatedAt: String

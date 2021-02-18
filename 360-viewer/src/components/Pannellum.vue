@@ -202,17 +202,6 @@ export default {
             title: "James",
             subtitle: `Wish I could come, but I'm out of town this weekend.`,
           },
-          {
-            avatar: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-            title: "Harper",
-            subtitle: "Do you have Paris recommendations? Have you ever been?",
-          },
-          {
-            avatar: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-            title: "Evelyn",
-            subtitle:
-              "Have any ideas about what we should get Heidi for her birthday?",
-          },
         ],
       };
       newSpot.clickHandlerFunc = () => {

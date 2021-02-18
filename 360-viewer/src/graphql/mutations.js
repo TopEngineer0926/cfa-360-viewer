@@ -9,50 +9,18 @@ export const createPano = /* GraphQL */ `
     createPano(input: $input, condition: $condition) {
       id
       title
-      img
       thumbnail
-      createdAt
-      updatedAt
-      spots {
-        items {
+      scenes {
+        title
+        img
+        spots {
           id
           name
           layer
-          contents {
-            name
-            type
-            content
-            link
-          }
-          panoID
-          createdAt
-          updatedAt
-          pano {
-            id
-            title
-            img
-            thumbnail
-            createdAt
-            updatedAt
-            spots {
-              nextToken
-            }
-          }
-          comments {
-            items {
-              id
-              owner
-              spotID
-              content
-              reply
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
         }
-        nextToken
       }
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -64,50 +32,18 @@ export const updatePano = /* GraphQL */ `
     updatePano(input: $input, condition: $condition) {
       id
       title
-      img
       thumbnail
-      createdAt
-      updatedAt
-      spots {
-        items {
+      scenes {
+        title
+        img
+        spots {
           id
           name
           layer
-          contents {
-            name
-            type
-            content
-            link
-          }
-          panoID
-          createdAt
-          updatedAt
-          pano {
-            id
-            title
-            img
-            thumbnail
-            createdAt
-            updatedAt
-            spots {
-              nextToken
-            }
-          }
-          comments {
-            items {
-              id
-              owner
-              spotID
-              content
-              reply
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
         }
-        nextToken
       }
+      createdAt
+      updatedAt
     }
   }
 `;
@@ -119,332 +55,18 @@ export const deletePano = /* GraphQL */ `
     deletePano(input: $input, condition: $condition) {
       id
       title
-      img
       thumbnail
-      createdAt
-      updatedAt
-      spots {
-        items {
+      scenes {
+        title
+        img
+        spots {
           id
           name
           layer
-          contents {
-            name
-            type
-            content
-            link
-          }
-          panoID
-          createdAt
-          updatedAt
-          pano {
-            id
-            title
-            img
-            thumbnail
-            createdAt
-            updatedAt
-            spots {
-              nextToken
-            }
-          }
-          comments {
-            items {
-              id
-              owner
-              spotID
-              content
-              reply
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
         }
-        nextToken
       }
-    }
-  }
-`;
-export const createSpot = /* GraphQL */ `
-  mutation CreateSpot(
-    $input: CreateSpotInput!
-    $condition: ModelSpotConditionInput
-  ) {
-    createSpot(input: $input, condition: $condition) {
-      id
-      name
-      layer
-      contents {
-        name
-        type
-        content
-        link
-      }
-      panoID
       createdAt
       updatedAt
-      pano {
-        id
-        title
-        img
-        thumbnail
-        createdAt
-        updatedAt
-        spots {
-          items {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-          nextToken
-        }
-      }
-      comments {
-        items {
-          id
-          owner
-          spotID
-          content
-          reply
-          createdAt
-          updatedAt
-          spot {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-        }
-        nextToken
-      }
-    }
-  }
-`;
-export const updateSpot = /* GraphQL */ `
-  mutation UpdateSpot(
-    $input: UpdateSpotInput!
-    $condition: ModelSpotConditionInput
-  ) {
-    updateSpot(input: $input, condition: $condition) {
-      id
-      name
-      layer
-      contents {
-        name
-        type
-        content
-        link
-      }
-      panoID
-      createdAt
-      updatedAt
-      pano {
-        id
-        title
-        img
-        thumbnail
-        createdAt
-        updatedAt
-        spots {
-          items {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-          nextToken
-        }
-      }
-      comments {
-        items {
-          id
-          owner
-          spotID
-          content
-          reply
-          createdAt
-          updatedAt
-          spot {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-        }
-        nextToken
-      }
-    }
-  }
-`;
-export const deleteSpot = /* GraphQL */ `
-  mutation DeleteSpot(
-    $input: DeleteSpotInput!
-    $condition: ModelSpotConditionInput
-  ) {
-    deleteSpot(input: $input, condition: $condition) {
-      id
-      name
-      layer
-      contents {
-        name
-        type
-        content
-        link
-      }
-      panoID
-      createdAt
-      updatedAt
-      pano {
-        id
-        title
-        img
-        thumbnail
-        createdAt
-        updatedAt
-        spots {
-          items {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-          nextToken
-        }
-      }
-      comments {
-        items {
-          id
-          owner
-          spotID
-          content
-          reply
-          createdAt
-          updatedAt
-          spot {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-        }
-        nextToken
-      }
     }
   }
 `;
@@ -457,63 +79,9 @@ export const createComment = /* GraphQL */ `
       id
       owner
       spotID
-      content
-      reply
+      msg
       createdAt
       updatedAt
-      spot {
-        id
-        name
-        layer
-        contents {
-          name
-          type
-          content
-          link
-        }
-        panoID
-        createdAt
-        updatedAt
-        pano {
-          id
-          title
-          img
-          thumbnail
-          createdAt
-          updatedAt
-          spots {
-            items {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
-        }
-        comments {
-          items {
-            id
-            owner
-            spotID
-            content
-            reply
-            createdAt
-            updatedAt
-            spot {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-          }
-          nextToken
-        }
-      }
     }
   }
 `;
@@ -526,63 +94,9 @@ export const updateComment = /* GraphQL */ `
       id
       owner
       spotID
-      content
-      reply
+      msg
       createdAt
       updatedAt
-      spot {
-        id
-        name
-        layer
-        contents {
-          name
-          type
-          content
-          link
-        }
-        panoID
-        createdAt
-        updatedAt
-        pano {
-          id
-          title
-          img
-          thumbnail
-          createdAt
-          updatedAt
-          spots {
-            items {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
-        }
-        comments {
-          items {
-            id
-            owner
-            spotID
-            content
-            reply
-            createdAt
-            updatedAt
-            spot {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-          }
-          nextToken
-        }
-      }
     }
   }
 `;
@@ -595,63 +109,9 @@ export const deleteComment = /* GraphQL */ `
       id
       owner
       spotID
-      content
-      reply
+      msg
       createdAt
       updatedAt
-      spot {
-        id
-        name
-        layer
-        contents {
-          name
-          type
-          content
-          link
-        }
-        panoID
-        createdAt
-        updatedAt
-        pano {
-          id
-          title
-          img
-          thumbnail
-          createdAt
-          updatedAt
-          spots {
-            items {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
-        }
-        comments {
-          items {
-            id
-            owner
-            spotID
-            content
-            reply
-            createdAt
-            updatedAt
-            spot {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-          }
-          nextToken
-        }
-      }
     }
   }
 `;

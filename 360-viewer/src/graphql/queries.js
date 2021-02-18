@@ -1,6 +1,26 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
+export const getPano = /* GraphQL */ `
+  query GetPano($id: ID!) {
+    getPano(id: $id) {
+      id
+      title
+      thumbnail
+      scenes {
+        title
+        img
+        spots {
+          id
+          name
+          layer
+        }
+      }
+      createdAt
+      updatedAt
+    }
+  }
+`;
 export const listPanos = /* GraphQL */ `
   query ListPanos(
     $filter: ModelPanoFilterInput
@@ -11,247 +31,15 @@ export const listPanos = /* GraphQL */ `
       items {
         id
         title
-        img
         thumbnail
-        createdAt
-        updatedAt
-        spots {
-          items {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-          nextToken
-        }
-      }
-      nextToken
-    }
-  }
-`;
-export const getPano = /* GraphQL */ `
-  query GetPano($id: ID!) {
-    getPano(id: $id) {
-      id
-      title
-      img
-      thumbnail
-      createdAt
-      updatedAt
-      spots {
-        items {
-          id
-          name
-          layer
-          contents {
-            name
-            type
-            content
-            link
-          }
-          panoID
-          createdAt
-          updatedAt
-          pano {
-            id
-            title
-            img
-            thumbnail
-            createdAt
-            updatedAt
-            spots {
-              nextToken
-            }
-          }
-          comments {
-            items {
-              id
-              owner
-              spotID
-              content
-              reply
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
-        }
-        nextToken
-      }
-    }
-  }
-`;
-export const listSpots = /* GraphQL */ `
-  query ListSpots(
-    $filter: ModelSpotFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listSpots(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        name
-        layer
-        contents {
-          name
-          type
-          content
-          link
-        }
-        panoID
-        createdAt
-        updatedAt
-        pano {
-          id
+        scenes {
           title
           img
-          thumbnail
-          createdAt
-          updatedAt
-          spots {
-            items {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
         }
-        comments {
-          items {
-            id
-            owner
-            spotID
-            content
-            reply
-            createdAt
-            updatedAt
-            spot {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-          }
-          nextToken
-        }
-      }
-      nextToken
-    }
-  }
-`;
-export const getSpot = /* GraphQL */ `
-  query GetSpot($id: ID!) {
-    getSpot(id: $id) {
-      id
-      name
-      layer
-      contents {
-        name
-        type
-        content
-        link
-      }
-      panoID
-      createdAt
-      updatedAt
-      pano {
-        id
-        title
-        img
-        thumbnail
         createdAt
         updatedAt
-        spots {
-          items {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-          nextToken
-        }
       }
-      comments {
-        items {
-          id
-          owner
-          spotID
-          content
-          reply
-          createdAt
-          updatedAt
-          spot {
-            id
-            name
-            layer
-            contents {
-              name
-              type
-              content
-              link
-            }
-            panoID
-            createdAt
-            updatedAt
-            pano {
-              id
-              title
-              img
-              thumbnail
-              createdAt
-              updatedAt
-            }
-            comments {
-              nextToken
-            }
-          }
-        }
-        nextToken
-      }
+      nextToken
     }
   }
 `;
@@ -261,63 +49,9 @@ export const getComment = /* GraphQL */ `
       id
       owner
       spotID
-      content
-      reply
+      msg
       createdAt
       updatedAt
-      spot {
-        id
-        name
-        layer
-        contents {
-          name
-          type
-          content
-          link
-        }
-        panoID
-        createdAt
-        updatedAt
-        pano {
-          id
-          title
-          img
-          thumbnail
-          createdAt
-          updatedAt
-          spots {
-            items {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
-        }
-        comments {
-          items {
-            id
-            owner
-            spotID
-            content
-            reply
-            createdAt
-            updatedAt
-            spot {
-              id
-              name
-              layer
-              panoID
-              createdAt
-              updatedAt
-            }
-          }
-          nextToken
-        }
-      }
     }
   }
 `;
@@ -332,47 +66,36 @@ export const listComments = /* GraphQL */ `
         id
         owner
         spotID
-        content
-        reply
+        msg
         createdAt
         updatedAt
-        spot {
-          id
-          name
-          layer
-          contents {
-            name
-            type
-            content
-            link
-          }
-          panoID
-          createdAt
-          updatedAt
-          pano {
-            id
-            title
-            img
-            thumbnail
-            createdAt
-            updatedAt
-            spots {
-              nextToken
-            }
-          }
-          comments {
-            items {
-              id
-              owner
-              spotID
-              content
-              reply
-              createdAt
-              updatedAt
-            }
-            nextToken
-          }
-        }
+      }
+      nextToken
+    }
+  }
+`;
+export const commentsBySpot = /* GraphQL */ `
+  query CommentsBySpot(
+    $spotID: ID
+    $sortDirection: ModelSortDirection
+    $filter: ModelCommentFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    commentsBySpot(
+      spotID: $spotID
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        owner
+        spotID
+        msg
+        createdAt
+        updatedAt
       }
       nextToken
     }

@@ -65,11 +65,11 @@
               :rules="[(v) => !!v || 'Title is required']"
               label="Title"
             ></v-text-field>
-            <v-file-input
+            <!-- <v-file-input
               v-model="editPano.imgToUpload"
               accept="image/*"
               label="Select panorama image"
-            ></v-file-input>
+            ></v-file-input> -->
             <v-file-input
               v-model="editPano.thumbnailToUpload"
               accept="image/*"
@@ -193,29 +193,28 @@ export default {
           title: this.editPano.title,
         };
 
-        if (this.editPano.imgToUpload) {
-          let imgId = nanoid();
-          let key = `${this.pano.id}/${imgId}`;
-          newPano.img = (
-            await Storage.put(key, this.editPano.imgToUpload, {
-              level: "protected",
-              contentType: this.editPano.imgToUpload.type,
-              metadata: { user: this.user.email },
-            })
-          ).key;
-          //delete org img
-          if (this.panos[this.editPano.index].img) {
-            Storage.remove(this.pano.img, { level: "protected" });
-          }
-        }
+        // if (this.editPano.imgToUpload) {
+        //   let imgId = nanoid();
+        //   newPano.img = (
+        //     await Storage.put(imgId, this.editPano.imgToUpload, {
+        //       level: "protected",
+        //       contentType: this.editPano.imgToUpload.type,
+        //       metadata: { user: this.user.email },
+        //     })
+        //   ).key;
+        //   //delete org img
+        //   if (this.panos[this.editPano.index].img) {
+        //     Storage.remove(this.pano.img, { level: "protected" });
+        //   }
+        // }
 
-        if (
-          !this.editPano.thumbnailToUpload &&
-          !this.panos[this.editPano.index].thumbnail &&
-          this.editPano.imgToUpload
-        ) {
-          this.editPano.thumbnailToUpload = this.editPano.imgToUpload;
-        }
+        // if (
+        //   !this.editPano.thumbnailToUpload &&
+        //   !this.panos[this.editPano.index].thumbnail &&
+        //   this.editPano.imgToUpload
+        // ) {
+        //   this.editPano.thumbnailToUpload = this.editPano.imgToUpload;
+        // }
 
         if (this.editPano.thumbnailToUpload) {
           //Compressor
@@ -228,14 +227,16 @@ export default {
               error: reject,
             });
           });
-
           let imgId = nanoid();
-          let key = `${this.pano.id}/${imgId}`;
           newPano.thumbnail = (
-            await Storage.put(key, compressedThumbnail, {
+            await Storage.put(imgId, compressedThumbnail, {
               level: "protected",
               contentType: compressedThumbnail.type,
-              metadata: { user: this.user.email },
+              metadata: {
+                user: this.user.email,
+                pano: newPano.id,
+                type: "thumbnail",
+              },
             })
           ).key;
           //delete org img
