@@ -25,7 +25,7 @@
           class="ml-2"
           small
         >
-          Add Scene
+          Add Image
         </v-btn>
         <v-btn v-if="user.admin" text @click="savePano()" class="ml-2" small>
           Save Project
@@ -34,7 +34,7 @@
     </div>
 
     <v-btn v-else @click="initEditScene(null)" class="center">
-      Add Scene
+      Add Image
     </v-btn>
 
     <v-dialog
@@ -44,9 +44,13 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline"> Edit Scene</v-card-title>
+        <v-card-title class="headline"> Edit Image</v-card-title>
         <v-card-text>
-          <v-form ref="form" v-model="editSceneData.editValid" lazy-validation>
+          <v-form
+            ref="editimgform"
+            v-model="editSceneData.editValid"
+            lazy-validation
+          >
             <v-text-field
               v-model="editSceneData.title"
               require
@@ -57,6 +61,16 @@
               v-model="editSceneData.imgToUpload"
               accept="image/*"
               label="Select panorama image"
+              :rules="[
+                (v) =>
+                  !!(
+                    (pano.scenes[editSceneData.sceneID] &&
+                      pano.scenes[editSceneData.sceneID].panorama) ||
+                    (pano.scenes[editSceneData.sceneID] &&
+                      pano.scenes[editSceneData.sceneID].panorama) ||
+                    v
+                  ) || 'Image is required',
+              ]"
             ></v-file-input>
           </v-form>
         </v-card-text>
@@ -171,22 +185,24 @@ export default {
       this.editSceneData.dialog = true;
     },
     editScene() {
-      if (!this.pano.scenes[this.editSceneData.sceneID]) {
-        this.pano.scenes[this.editSceneData.sceneID] = {};
-      }
-      if (this.editSceneData.imgToUpload) {
-        var fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
-        this.pano.scenes[this.editSceneData.sceneID].panorama = fileURL;
+      if (this.$refs.editimgform.validate()) {
+        if (!this.pano.scenes[this.editSceneData.sceneID]) {
+          this.pano.scenes[this.editSceneData.sceneID] = {};
+        }
+        if (this.editSceneData.imgToUpload) {
+          var fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
+          this.pano.scenes[this.editSceneData.sceneID].panorama = fileURL;
+          this.pano.scenes[
+            this.editSceneData.sceneID
+          ].s3Update = this.editSceneData.imgToUpload;
+        }
+
         this.pano.scenes[
           this.editSceneData.sceneID
-        ].s3Update = this.editSceneData.imgToUpload;
+        ].title = this.editSceneData.title;
+        this.reloadViewer();
+        this.editSceneData.dialog = false;
       }
-
-      this.pano.scenes[
-        this.editSceneData.sceneID
-      ].title = this.editSceneData.title;
-      this.reloadViewer();
-      this.editSceneData.dialog = false;
     },
     deleteScene() {},
     addTag() {},

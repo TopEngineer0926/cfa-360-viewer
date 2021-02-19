@@ -144,7 +144,7 @@ export default {
       try {
         let newPanoId = await API.graphql(
           graphqlOperation(createPano, {
-            input: { title: "New Scene" },
+            input: { title: "New Project" },
           })
         );
         this.$router.push({ path: "/pano/" + newPanoId.data.createPano.id });
@@ -258,7 +258,7 @@ export default {
             );
           }
         }
-
+        console.log("updatePano", newPano);
         await API.graphql({
           query: updatePano,
           variables: {
