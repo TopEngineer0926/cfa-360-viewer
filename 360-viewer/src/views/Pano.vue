@@ -1,23 +1,31 @@
 <template>
-  <div>
-    <div v-if="pano && pano.scenes" class="vue-pannellum">
+  <div v-if="pano" class="bg">
+    <div
+      v-if="pano.scenes && Object.keys(pano.scenes).length > 0"
+      class="vue-pannellum"
+    >
       <div class="default-slot">
         <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
-          <v-btn @click="loadScene(sceneID)"> {{ scene.title }}</v-btn>
+          <v-btn
+            @click="loadScene(sceneID)"
+            class="ma-1"
+            :class="{ primary: sceneID == currentScene }"
+          >
+            {{ scene.title }}</v-btn
+          >
           <v-btn v-if="user.admin" icon @click="initEditScene(sceneID)">
             <v-icon>mdi-pencil-outline</v-icon></v-btn
           >
         </div>
+        <v-btn @click="initEditScene(null)" class="ma-1"> Add Scene </v-btn>
+        <v-btn @click="savePano()" class="ma-1"> Save Project </v-btn>
       </div>
     </div>
 
-    <v-img
-      v-else
-      :style="{ 'max-height': '70vh' }"
-      src="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-    />
-    <v-btn @click="initEditScene(null)"> Add Scene </v-btn>
-    <v-btn @click="savePano()"> Save Project </v-btn>
+    <v-btn v-else @click="initEditScene(null)" class="center">
+      Add Scene
+    </v-btn>
+
     <v-dialog
       v-if="editSceneData.dialog"
       v-model="editSceneData.dialog"
@@ -75,6 +83,7 @@ export default {
     return {
       pano: null,
       viewer: null,
+      currentScene: null,
       editSceneData: {
         dialog: false,
         sceneID: null,
@@ -98,6 +107,7 @@ export default {
                 this.pano.scenes[scene.id] = {};
                 this.pano.scenes[scene.id].index = index;
                 this.pano.scenes[scene.id].title = scene.title;
+                this.pano.scenes[scene.id].img = scene.img;
                 this.pano.scenes[scene.id].panorama = await Storage.get(
                   scene.img,
                   {
@@ -117,10 +127,9 @@ export default {
   },
   methods: {
     reloadViewer() {
-      console.log("getPano", this.pano);
-
+      this.currentScene = Object.keys(this.pano.scenes)[0];
       this.pano.default = {
-        firstScene: Object.keys(this.pano.scenes)[0],
+        firstScene: this.currentScene,
         autoLoad: true,
       };
 
@@ -128,6 +137,7 @@ export default {
     },
     loadScene(sceneID) {
       console.log("load sceneID", sceneID);
+      this.currentScene = sceneID;
       this.viewer.loadScene(sceneID);
     },
     initEditScene(sceneID) {
@@ -155,7 +165,9 @@ export default {
       if (this.editSceneData.imgToUpload) {
         var fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
         this.pano.scenes[this.editSceneData.sceneID].panorama = fileURL;
-        this.pano.scenes[this.editSceneData.sceneID].s3Update = true;
+        this.pano.scenes[
+          this.editSceneData.sceneID
+        ].s3Update = this.editSceneData.imgToUpload;
       }
 
       this.pano.scenes[
@@ -173,43 +185,42 @@ export default {
       updatePanoData.sceneArr = [];
       for (const [sceneID, scene] of Object.entries(updatePanoData.scenes)) {
         scene.id = sceneID;
+        if (scene.s3Update) {
+          if (scene.img) {
+            Storage.remove(scene.img, {
+              level: "protected",
+            });
+          }
+          let imgId = nanoid();
+          scene.img = (
+            await Storage.put(imgId, scene.s3Update, {
+              level: "protected",
+              contentType: scene.s3Update.type,
+              metadata: {
+                user: this.user.email,
+                pano: this.pano.id,
+                type: "scene",
+              },
+            })
+          ).key;
+          URL.revokeObjectURL(scene.panorama);
+          delete scene.s3Update;
+        }
+        delete scene.panorama;
+        delete scene.index;
         updatePanoData.sceneArr.push(scene);
       }
 
-      console.log("updatePanoData.sceneArr", updatePanoData.sceneArr);
       delete updatePanoData.scenes;
       delete updatePanoData.default;
-
-      await Promise.all(
-        updatePanoData.sceneArr.map(async (scene) => {
-          console.log("scene", scene);
-          if (scene.s3Update) {
-            let imgId = nanoid();
-            scene.img = (
-              await Storage.put(imgId, scene.panorama, {
-                level: "protected",
-                contentType: scene.panorama.type,
-                metadata: {
-                  user: this.user.email,
-                  pano: this.pano.id,
-                  type: "scene",
-                },
-              })
-            ).key;
-
-            delete scene.s3Update;
-            delete scene.panorama;
-            console.log("scene.img", scene.img);
-          }
-        })
-      );
-      console.log("save", updatePanoData);
+      console.log("updatePanoData", updatePanoData);
       await API.graphql({
         query: updatePano,
         variables: {
           input: updatePanoData,
         },
       });
+      this.$router.go();
     },
   },
 };
@@ -228,6 +239,15 @@ export default {
 </style>
 
 <style scoped>
+.bg {
+  width: 100%;
+  height: 100%;
+  background-color: lightgray;
+}
+
+.currentSceneClass {
+  color: brown;
+}
 .top-slot {
   position: absolute;
   left: 0;
@@ -240,6 +260,6 @@ export default {
   right: 0;
   bottom: 0;
   z-index: 2;
-  width: 150px;
+  width: 250px;
 }
 </style>

@@ -32,6 +32,15 @@ export default {
 };
 </script>
 <style>
+.center {
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  transform: translate3d(-50%, -50%, 0);
+}
+
 :root {
   --amplify-primary-color: #e51636;
   --amplify-primary-tint: #e51636;
