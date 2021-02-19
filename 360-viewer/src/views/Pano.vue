@@ -8,7 +8,8 @@
         <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
           <v-btn
             @click="loadScene(sceneID)"
-            class="ma-1"
+            class="ml-2 my-1"
+            small
             :class="{ primary: sceneID == currentScene }"
           >
             {{ scene.title }}</v-btn
@@ -17,8 +18,18 @@
             <v-icon>mdi-pencil-outline</v-icon></v-btn
           >
         </div>
-        <v-btn @click="initEditScene(null)" class="ma-1"> Add Scene </v-btn>
-        <v-btn @click="savePano()" class="ma-1"> Save Project </v-btn>
+        <v-btn
+          v-if="user.admin"
+          text
+          @click="initEditScene(null)"
+          class="ml-2"
+          small
+        >
+          Add Scene
+        </v-btn>
+        <v-btn v-if="user.admin" text @click="savePano()" class="ml-2" small>
+          Save Project
+        </v-btn>
       </div>
     </div>
 

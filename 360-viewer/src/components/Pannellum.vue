@@ -250,6 +250,6 @@ export default {
   right: 0;
   bottom: 0;
   z-index: 2;
-  width: 150px;
+  width: 200px;
 }
 </style>
