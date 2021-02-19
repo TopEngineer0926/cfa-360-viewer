@@ -4,7 +4,7 @@
       v-if="pano.scenes && Object.keys(pano.scenes).length > 0"
       class="vue-pannellum"
     >
-      <div class="default-slot">
+      <div class="default-slot mb-12">
         <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
           <v-btn
             @click="loadScene(sceneID)"
@@ -109,10 +109,11 @@ export default {
                 this.pano.scenes[scene.id].title = scene.title;
                 this.pano.scenes[scene.id].img = scene.img;
                 this.pano.scenes[scene.id].panorama = await Storage.get(
-                  scene.img,
-                  {
-                    level: "protected",
-                  }
+                  this.pano.id + "/" + scene.img
+                );
+                console.log(
+                  "this.pano.scenes[scene.id].panorama",
+                  this.pano.scenes[scene.id].panorama
                 );
               })
             );
@@ -187,14 +188,11 @@ export default {
         scene.id = sceneID;
         if (scene.s3Update) {
           if (scene.img) {
-            Storage.remove(scene.img, {
-              level: "protected",
-            });
+            Storage.remove(this.pano.id + "/" + scene.img);
           }
           let imgId = nanoid();
           scene.img = (
-            await Storage.put(imgId, scene.s3Update, {
-              level: "protected",
+            await Storage.put(this.pano.id + "/" + imgId, scene.s3Update, {
               contentType: scene.s3Update.type,
               metadata: {
                 user: this.user.email,
@@ -202,7 +200,7 @@ export default {
                 type: "scene",
               },
             })
-          ).key;
+          ).key.split("/")[1];
           URL.revokeObjectURL(scene.panorama);
           delete scene.s3Update;
         }

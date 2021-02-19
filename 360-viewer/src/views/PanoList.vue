@@ -129,9 +129,9 @@ export default {
       await Promise.all(
         panosRes.map(async (pano) => {
           if (pano.thumbnail) {
-            pano.thumbnailUrl = await Storage.get(pano.thumbnail, {
-              level: "protected",
-            });
+            pano.thumbnailUrl = await Storage.get(
+              pano.id + "/" + pano.thumbnail
+            );
           }
           return pano;
         })
@@ -153,13 +153,20 @@ export default {
       }
     },
     deletePanoFunc(index) {
-      //delete img, thumbnail
-      if (this.panos[index].img) {
-        Storage.remove(this.panos[index].img, { level: "protected" });
-      }
+      //delete thumbnail
       if (this.panos[index].thumbnail) {
-        Storage.remove(this.panos[index].thumbnail, { level: "protected" });
+        Storage.remove(
+          this.panos[index].id + "/" + this.panos[index].thumbnail
+        );
       }
+
+      //delete scene imgs
+      if (this.panos[index].sceneArr && this.panos[index].sceneArr.length > 0) {
+        this.panos[index].sceneArr.forEach((scene) => {
+          Storage.remove(this.panos[index].id + "/" + scene.img);
+        });
+      }
+
       //delete pano
       API.graphql(
         graphqlOperation(deletePano, {
@@ -234,21 +241,21 @@ export default {
           });
           let imgId = nanoid();
           newPano.thumbnail = (
-            await Storage.put(imgId, compressedThumbnail, {
-              level: "protected",
+            await Storage.put(newPano.id + "/" + imgId, compressedThumbnail, {
               contentType: compressedThumbnail.type,
               metadata: {
                 user: this.user.email,
-                pano: newPano.id,
                 type: "thumbnail",
               },
             })
-          ).key;
+          ).key.split("/")[1];
           //delete org img
           if (this.panos[this.editPano.index].thumbnail) {
-            Storage.remove(this.panos[this.editPano.index].thumbnail, {
-              level: "protected",
-            });
+            Storage.remove(
+              this.panos[this.editPano.index].id +
+                "/" +
+                this.panos[this.editPano.index].thumbnail
+            );
           }
         }
 
