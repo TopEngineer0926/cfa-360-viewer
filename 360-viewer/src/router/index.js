@@ -47,7 +47,7 @@ router.beforeResolve((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     Auth.currentAuthenticatedUser()
       .then((authData) => {
-        console.log('welcome', authData);
+        // console.log('welcome', authData);
         if (!store.state.user) { store.commit("SET_USER_DATA", authData) }
         next();
       })

@@ -2,20 +2,58 @@ type Pano
   @model
   @auth(
     rules: [
-      { allow: private, provider: iam, operations: [read] }
+      { allow: private, operations: [read] }
       { allow: groups, groups: ["360Admin"] }
     ]
   ) {
   id: ID!
   title: String!
-  img: String
   thumbnail: String
-  spots: [Spot] @connection(keyName: "byPano", fields: ["id"])
+  sceneArr: [SceneObject]
+  createdAt: String
+  updatedAt: String
 }
 
-type SpotDetail {
-  name: String!
-  type: String!
+type SceneObject {
+  id: ID!
+  title: String
+  img: String
+  hotSpots: [hotSpotObject]
+}
+
+type hotSpotObject {
+  id: ID!
+  pitch: String!
+  yaw: Float!
+  type: Float!
+  targetYaw: Float
+  targetPitch: Float
+  text: String
+  sceneId: ID
+}
+
+# type Scene
+#   @model
+#   @auth(
+#     rules: [
+#       { allow: private, operations: [read] }
+#       { allow: groups, groups: ["360Admin"] }
+#     ]
+#   )
+#   @key(name: "byPano", fields: ["panoID"]) {
+#   id: ID!
+#   panoID: ID!
+#   pano: Pano @connection(fields: ["panoID"])
+#   title: String!
+#   img: String!
+#   spots: [Spot]
+#   createdAt: String
+#   updatedAt: String
+# }
+
+type SpotContent {
+  name: String
+  type: String
   content: String
   link: String
 }
@@ -27,15 +65,13 @@ type Spot
       { allow: private, operations: [read] }
       { allow: groups, groups: ["360Admin"] }
     ]
-  )
-  @key(name: "byPano", fields: ["panoID"]) {
-  id: ID!
-  name: String!
-  contents: [SpotDetail]
-  panoID: ID!
-  pano: Pano @connection(fields: ["panoID"])
+  ) {
+  id: ID! #same as spotID
+  contents: [SpotContent]
   comments: [Comment]
     @connection(keyName: "bySpot", fields: ["id"], sortField: "updatedAt")
+  createdAt: String
+  updatedAt: String
 }
 
 type Comment
@@ -47,13 +83,13 @@ type Comment
       { allow: groups, groups: ["360Admin"] }
     ]
   )
-  @key(name: "bySpot", fields: ["spotID", "content"]) {
+  @key(name: "bySpot", fields: ["spotID"]) {
   id: ID!
   owner: ID!
   spotID: ID!
-  spot: Spot @connection(fields: ["spotID"])
-  content: String!
-  reply: String
-  updatedAt: String!
-  repliedAt: String
+  msg: String
+  # reply: String
+  # repliedAt: String
+  createdAt: String
+  updatedAt: String
 }

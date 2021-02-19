@@ -2,8 +2,28 @@
   <div>
     <div class="vue-pannellum">
       <div class="default-slot">
-        <div class="mb-8 ml-4">
-          <v-btn @click="addTagConfig">Add Tag</v-btn>
+        <v-card class="ml-4" width="256">
+          <v-navigation-drawer permanent>
+            <v-system-bar>Layers</v-system-bar>
+
+            <v-divider></v-divider>
+            <v-list nav dense>
+              <v-list-item-group v-model="currentLayer" color="primary">
+                <v-list-item v-for="(item, i) in items" :key="i">
+                  <v-list-item-icon>
+                    <v-icon> mdi-layers </v-icon>
+                  </v-list-item-icon>
+
+                  <v-list-item-content>
+                    <v-list-item-title v-text="item.text"></v-list-item-title>
+                  </v-list-item-content>
+                </v-list-item>
+              </v-list-item-group>
+            </v-list>
+          </v-navigation-drawer>
+        </v-card>
+        <div class="mb-8 ml-4 mt-4">
+          <v-btn small @click="addTagConfig">Add Tag</v-btn>
         </div>
       </div>
     </div>
@@ -103,27 +123,42 @@ export default {
         dialog: false,
         newComment: null,
       },
+      currentLayer: 0,
+      items: [
+        { text: "Layer 1" },
+        { text: "Layer 2" },
+        { text: "Layer 3" },
+        { text: "Layer 4" },
+        { text: "Layer 5" },
+      ],
     };
   },
   created() {
     this.loadPano();
   },
   mounted() {
-    this.viewer = window.pannellum.viewer(this.$el, this.pano);
+    this.viewer = window.pannellum.viewer(this.$el, {
+      type: "equirectangular",
+      name: this.pano.title,
+      panorama: this.pano.imgUrl,
+      autoLoad: true,
+    });
   },
   methods: {
     loadPano() {
       // for (let scene in this.pano.scenes) {} this.pano.scenes[scene].hotSpots.forEach((spot) => {
-      this.pano.hotSpots.forEach((spot) => {
-        if (spot.data) {
-          spot.clickHandlerFunc = () => {
-            this.specsDialog.newComment = null;
-            this.specsDialog.dialog = true;
-            this.specsDialog.content = spot.data;
-            this.specsDialog.comments = spot.comments;
-          };
-        }
-      });
+      if (this.pano.hotSpots) {
+        this.pano.hotSpots.forEach((spot) => {
+          if (spot.data) {
+            spot.clickHandlerFunc = () => {
+              this.specsDialog.newComment = null;
+              this.specsDialog.dialog = true;
+              this.specsDialog.content = spot.data;
+              this.specsDialog.comments = spot.comments;
+            };
+          }
+        });
+      }
     },
     addComment() {
       this.specsDialog.comments.push({
@@ -166,17 +201,6 @@ export default {
             avatar: "https://cdn.vuetifyjs.com/images/lists/2.jpg",
             title: "James",
             subtitle: `Wish I could come, but I'm out of town this weekend.`,
-          },
-          {
-            avatar: "https://cdn.vuetifyjs.com/images/lists/3.jpg",
-            title: "Harper",
-            subtitle: "Do you have Paris recommendations? Have you ever been?",
-          },
-          {
-            avatar: "https://cdn.vuetifyjs.com/images/lists/4.jpg",
-            title: "Evelyn",
-            subtitle:
-              "Have any ideas about what we should get Heidi for her birthday?",
           },
         ],
       };
@@ -226,5 +250,6 @@ export default {
   right: 0;
   bottom: 0;
   z-index: 2;
+  width: 200px;
 }
 </style>

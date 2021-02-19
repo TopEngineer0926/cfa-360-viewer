@@ -1,135 +1,290 @@
 <template>
-  <div v-if="pano">
-    <!-- <v-pannellum
-      v-if="pano.img"
-      :pano="pano"
-      style="height: 85vh"
-    ></v-pannellum> -->
-    <amplify-s3-image v-if="pano.img" level="protected" :img-key="pano.img" />
+  <div v-if="pano" class="bg">
+    <div
+      v-if="pano.scenes && Object.keys(pano.scenes).length > 0"
+      class="vue-pannellum"
+    >
+      <div class="default-slot mb-12">
+        <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
+          <v-btn
+            @click="loadScene(sceneID)"
+            class="ml-2 my-1"
+            small
+            :class="{ primary: sceneID == currentScene }"
+          >
+            {{ scene.title }}</v-btn
+          >
+          <v-btn v-if="user.admin" icon @click="initEditScene(sceneID)">
+            <v-icon>mdi-pencil-outline</v-icon></v-btn
+          >
+        </div>
+        <v-btn
+          v-if="user.admin"
+          text
+          @click="initEditScene(null)"
+          class="ml-2"
+          small
+        >
+          Add Image
+        </v-btn>
+        <v-btn v-if="user.admin" text @click="savePano()" class="ml-2" small>
+          Save Project
+        </v-btn>
+      </div>
+    </div>
 
-    <v-img
-      v-else
-      :style="{ 'max-height': '70vh' }"
-      src="data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=="
-    />
+    <v-btn v-else @click="initEditScene(null)" class="center">
+      Add Image
+    </v-btn>
 
-    <v-container>
-      <v-btn
-        color="primary"
-        dark
-        @click="
-          editDialog = true;
-          editTitle = pano.title;
-        "
-      >
-        Edit
-      </v-btn>
-
-      <v-dialog
-        v-if="editDialog"
-        v-model="editDialog"
-        persistent
-        max-width="600"
-      >
-        <v-card>
-          <v-card-title class="headline"> Edit </v-card-title>
-          <v-card-text>
-            <v-form ref="form" v-model="editValid" lazy-validation>
-              <v-text-field
-                v-model="editTitle"
-                require
-                :rules="[(v) => !!v || 'Title is required']"
-                label="Title"
-              ></v-text-field>
-              <v-file-input
-                v-model="imgToUpload"
-                accept="image/*"
-                label="Select image"
-              ></v-file-input>
-            </v-form>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="primary" text @click="savePano"> Save </v-btn>
-            <v-btn color="grey" text @click="editDialog = false">
-              Cancel
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-container>
+    <v-dialog
+      v-if="editSceneData.dialog"
+      v-model="editSceneData.dialog"
+      persistent
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline"> Edit Image</v-card-title>
+        <v-card-text>
+          <v-form
+            ref="editimgform"
+            v-model="editSceneData.editValid"
+            lazy-validation
+          >
+            <v-text-field
+              v-model="editSceneData.title"
+              require
+              :rules="[(v) => !!v || 'Title is required']"
+              label="Title"
+            ></v-text-field>
+            <v-file-input
+              v-model="editSceneData.imgToUpload"
+              accept="image/*"
+              label="Select panorama image"
+              :rules="[
+                (v) =>
+                  !!(
+                    (pano.scenes[editSceneData.sceneID] &&
+                      pano.scenes[editSceneData.sceneID].panorama) ||
+                    (pano.scenes[editSceneData.sceneID] &&
+                      pano.scenes[editSceneData.sceneID].panorama) ||
+                    v
+                  ) || 'Image is required',
+              ]"
+            ></v-file-input>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="editScene"
+            :disabled="!editSceneData.editValid"
+          >
+            Save
+          </v-btn>
+          <v-btn color="grey" text @click="editSceneData.dialog = false">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
 <script>
+import "pannellum";
+import "pannellum/build/pannellum.css";
+import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
 import { getPano } from "../graphql/queries";
 import { updatePano } from "../graphql/mutations";
 import { nanoid } from "nanoid";
-// import awsconfig from "@/aws-exports";
 
 export default {
   name: "Pano",
-  components: {
-    // "v-pannellum": () => import("@/components/Pannellum.vue"),
-  },
   data: function () {
     return {
       pano: null,
-      editDialog: false,
-      editValid: false,
-      imgToUpload: null,
-      editTitle: null,
+      viewer: null,
+      currentScene: null,
+      editSceneData: {
+        dialog: false,
+        sceneID: null,
+        title: null,
+        imgToUpload: null,
+        editValid: false,
+      },
     };
   },
+  computed: mapState(["user"]),
   mounted() {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
-      (data) => {
-        if (data.data.getPano) {
-          this.pano = data.data.getPano;
-          console.log("getPano", this.pano);
+      async (data) => {
+        this.pano = data.data.getPano;
+        if (this.pano) {
+          if (this.pano.sceneArr) {
+            this.pano.scenes = {};
+
+            await Promise.all(
+              this.pano.sceneArr.map(async (scene, index) => {
+                this.pano.scenes[scene.id] = {};
+                this.pano.scenes[scene.id].index = index;
+                this.pano.scenes[scene.id].title = scene.title;
+                this.pano.scenes[scene.id].img = scene.img;
+                this.pano.scenes[scene.id].panorama = await Storage.get(
+                  this.pano.id + "/" + scene.img
+                );
+                console.log(
+                  "this.pano.scenes[scene.id].panorama",
+                  this.pano.scenes[scene.id].panorama
+                );
+              })
+            );
+
+            this.reloadViewer();
+          }
         } else {
           this.$router.push({ path: "/panolist" });
         }
       }
     );
   },
-
   methods: {
-    async savePano() {
-      if (this.$refs.form.validate()) {
-        let newPano = {
-          id: this.pano.id,
-          title: this.editTitle,
-        };
+    reloadViewer() {
+      this.currentScene = Object.keys(this.pano.scenes)[0];
+      this.pano.default = {
+        firstScene: this.currentScene,
+        autoLoad: true,
+      };
 
-        if (this.imgToUpload) {
-          let imgId = nanoid();
-          let key = `panos/${imgId}`;
-          newPano.img = (
-            await Storage.put(key, this.imgToUpload, {
-              level: "protected",
-              contentType: this.imgToUpload.type,
-              metadata: { panoid: this.pano.id },
-            })
-          ).key;
+      this.viewer = window.pannellum.viewer(this.$el, this.pano);
+    },
+    loadScene(sceneID) {
+      console.log("load sceneID", sceneID);
+      this.currentScene = sceneID;
+      this.viewer.loadScene(sceneID);
+    },
+    initEditScene(sceneID) {
+      if (!sceneID) {
+        this.editSceneData.sceneID = nanoid();
+        this.editSceneData.title = null;
 
-          //delete org img
-          if (this.pano.img) {
-            Storage.remove(this.pano.img, { level: "protected" });
-          }
+        if (!this.pano.scenes) {
+          this.pano.scenes = {};
+        }
+      } else {
+        this.editSceneData.sceneID = sceneID;
+        this.editSceneData.title = this.pano.scenes[
+          this.editSceneData.sceneID
+        ].title;
+      }
+
+      this.editSceneData.imgToUpload = null;
+      this.editSceneData.dialog = true;
+    },
+    editScene() {
+      if (this.$refs.editimgform.validate()) {
+        if (!this.pano.scenes[this.editSceneData.sceneID]) {
+          this.pano.scenes[this.editSceneData.sceneID] = {};
+        }
+        if (this.editSceneData.imgToUpload) {
+          var fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
+          this.pano.scenes[this.editSceneData.sceneID].panorama = fileURL;
+          this.pano.scenes[
+            this.editSceneData.sceneID
+          ].s3Update = this.editSceneData.imgToUpload;
         }
 
-        await API.graphql({
-          query: updatePano,
-          variables: {
-            input: newPano,
-          },
-        });
-        this.editDialog = false;
-        this.$router.go();
+        this.pano.scenes[
+          this.editSceneData.sceneID
+        ].title = this.editSceneData.title;
+        this.reloadViewer();
+        this.editSceneData.dialog = false;
       }
+    },
+    deleteScene() {},
+    addTag() {},
+    deleteTag() {},
+    async savePano() {
+      let updatePanoData = this.pano;
+
+      updatePanoData.sceneArr = [];
+      for (const [sceneID, scene] of Object.entries(updatePanoData.scenes)) {
+        scene.id = sceneID;
+        if (scene.s3Update) {
+          if (scene.img) {
+            Storage.remove(this.pano.id + "/" + scene.img);
+          }
+          let imgId = nanoid();
+          scene.img = (
+            await Storage.put(this.pano.id + "/" + imgId, scene.s3Update, {
+              contentType: scene.s3Update.type,
+              metadata: {
+                user: this.user.email,
+                pano: this.pano.id,
+                type: "scene",
+              },
+            })
+          ).key.split("/")[1];
+          URL.revokeObjectURL(scene.panorama);
+          delete scene.s3Update;
+        }
+        delete scene.panorama;
+        delete scene.index;
+        updatePanoData.sceneArr.push(scene);
+      }
+
+      delete updatePanoData.scenes;
+      delete updatePanoData.default;
+      console.log("updatePanoData", updatePanoData);
+      await API.graphql({
+        query: updatePano,
+        variables: {
+          input: updatePanoData,
+        },
+      });
+      this.$router.go();
     },
   },
 };
 </script>
+<style>
+.panoTip {
+  white-space: pre-line;
+}
+
+.pnlm-panorama-info {
+  bottom: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0) !important;
+  text-transform: capitalize;
+}
+</style>
+
+<style scoped>
+.bg {
+  width: 100%;
+  height: 100%;
+  background-color: lightgray;
+}
+
+.currentSceneClass {
+  color: brown;
+}
+.top-slot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+}
+.default-slot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 250px;
+}
+</style>
