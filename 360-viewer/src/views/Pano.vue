@@ -44,7 +44,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline"> Edit Image</v-card-title>
+        <v-card-title class="headline">Edit Image</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"
