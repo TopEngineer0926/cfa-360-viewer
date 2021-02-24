@@ -9,7 +9,7 @@
     }
   },
   "storage": {
-    "s3dev": {
+    "360viewer": {
       "service": "S3",
       "providerPlugin": "awscloudformation"
     }
