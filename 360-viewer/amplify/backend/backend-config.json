@@ -9,7 +9,7 @@
     }
   },
   "storage": {
-    "amplify360": {
+    "360viewer": {
       "service": "S3",
       "providerPlugin": "awscloudformation"
     }
