@@ -13,7 +13,7 @@
       v-if="user.admin"
       text
       @click="$router.push('/admin').catch((err) => {})"
-      >Admin</v-btn
+      >Admin Page</v-btn
     >
     <v-spacer />
     <v-icon v-if="user.admin" color="primary" class="mr-2">
