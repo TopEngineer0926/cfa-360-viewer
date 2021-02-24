@@ -1,14 +1,44 @@
 {
   "dev": {
     "awscloudformation": {
-      "AuthRoleName": "amplify-360viewer-dev-182125-authRole",
-      "UnauthRoleArn": "arn:aws:iam::310460685849:role/amplify-360viewer-dev-182125-unauthRole",
-      "AuthRoleArn": "arn:aws:iam::310460685849:role/amplify-360viewer-dev-182125-authRole",
+      "AuthRoleName": "amplify-360viewer-dev-202327-authRole",
+      "UnauthRoleArn": "arn:aws:iam::310460685849:role/amplify-360viewer-dev-202327-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::310460685849:role/amplify-360viewer-dev-202327-authRole",
       "Region": "us-east-2",
-      "DeploymentBucketName": "amplify-360viewer-dev-182125-deployment",
-      "UnauthRoleName": "amplify-360viewer-dev-182125-unauthRole",
-      "StackName": "amplify-360viewer-dev-182125",
-      "StackId": "arn:aws:cloudformation:us-east-2:310460685849:stack/amplify-360viewer-dev-182125/b4c6cc60-673f-11eb-af0b-0622dacf52ae",
+      "DeploymentBucketName": "amplify-360viewer-dev-202327-deployment",
+      "UnauthRoleName": "amplify-360viewer-dev-202327-unauthRole",
+      "StackName": "amplify-360viewer-dev-202327",
+      "StackId": "arn:aws:cloudformation:us-east-2:310460685849:stack/amplify-360viewer-dev-202327/e57f57b0-763e-11eb-9ac4-0a7769755218",
+      "AmplifyAppId": "d32u8xw887w8nk"
+    },
+    "categories": {
+      "auth": {
+        "360viewerb3eeeb6b": {
+          "userPoolId": "us-east-2_UCbUOtQYX",
+          "userPoolName": "cfa-dev-userpool",
+          "webClientId": "3g2pvp6o6eai3rl87h5ifnskrh",
+          "nativeClientId": "3uaqu7hntmspvftf71dlo3jjst",
+          "identityPoolId": "us-east-2:71d5d37f-833f-4493-870f-44933bddb89d",
+          "identityPoolName": "cfadevIdentityPool",
+          "allowUnauthenticatedIdentities": false,
+          "authRoleArn": "arn:aws:iam::310460685849:role/cfa-dev-CognitoAuthRole-ZV6AUTEF8XX2",
+          "authRoleName": "cfa-dev-CognitoAuthRole-ZV6AUTEF8XX2",
+          "unauthRoleArn": "arn:aws:iam::310460685849:role/Cognito_cfadevIdentityPoolUnauth_Role",
+          "unauthRoleName": "Cognito_cfadevIdentityPoolUnauth_Role"
+        }
+      }
+    }
+  },
+  "prod": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-360viewer-prod-203029-authRole",
+      "UnauthRoleArn": "arn:aws:iam::310460685849:role/amplify-360viewer-prod-203029-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::310460685849:role/amplify-360viewer-prod-203029-authRole",
+      "Region": "us-east-2",
+      "DeploymentBucketName": "amplify-360viewer-prod-203029-deployment",
+      "UnauthRoleName": "amplify-360viewer-prod-203029-unauthRole",
+      "StackName": "amplify-360viewer-prod-203029",
+      "StackId": "arn:aws:cloudformation:us-east-2:310460685849:stack/amplify-360viewer-prod-203029/e146c1a0-763f-11eb-ab16-0a9b6e46949c",
       "AmplifyAppId": "d32u8xw887w8nk"
     },
     "categories": {
