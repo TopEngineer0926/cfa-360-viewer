@@ -7,6 +7,9 @@ export const getPano = /* GraphQL */ `
       id
       title
       thumbnail
+      pabout
+      ptype
+      psize
       sceneArr {
         id
         title
@@ -16,6 +19,7 @@ export const getPano = /* GraphQL */ `
           pitch
           yaw
           type
+          layer
           targetYaw
           targetPitch
           text
@@ -38,6 +42,9 @@ export const listPanos = /* GraphQL */ `
         id
         title
         thumbnail
+        pabout
+        ptype
+        psize
         sceneArr {
           id
           title

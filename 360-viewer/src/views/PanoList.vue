@@ -42,6 +42,8 @@
               editPano.dialog = true;
               editPano.index = index;
               editPano.title = pano.title;
+              editPano.ptype = pano.ptype;
+              editPano.psize = pano.psize;
             "
           >
             <v-icon>mdi-pencil-outline</v-icon>
@@ -65,6 +67,8 @@
               :rules="[(v) => !!v || 'Title is required']"
               label="Title"
             ></v-text-field>
+            <v-text-field v-model="editPano.ptype" label="Type"></v-text-field>
+            <v-text-field v-model="editPano.psize" label="Size"></v-text-field>
             <!-- <v-file-input
               v-model="editPano.imgToUpload"
               accept="image/*"
@@ -113,6 +117,8 @@ export default {
       panos: null,
       editPano: {
         index: null,
+        ptype: null,
+        psize: null,
         editValid: false,
         dialog: false,
         title: null,
@@ -204,7 +210,12 @@ export default {
           id: this.panos[this.editPano.index].id,
           title: this.editPano.title,
         };
-
+        if (this.editPano.psize) {
+          newPano.psize = this.editPano.psize;
+        }
+        if (this.editPano.ptype) {
+          newPano.ptype = this.editPano.ptype;
+        }
         // if (this.editPano.imgToUpload) {
         //   let imgId = nanoid();
         //   newPano.img = (

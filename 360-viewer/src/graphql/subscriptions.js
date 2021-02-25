@@ -7,6 +7,9 @@ export const onCreatePano = /* GraphQL */ `
       id
       title
       thumbnail
+      pabout
+      ptype
+      psize
       sceneArr {
         id
         title
@@ -16,6 +19,7 @@ export const onCreatePano = /* GraphQL */ `
           pitch
           yaw
           type
+          layer
           targetYaw
           targetPitch
           text
@@ -33,6 +37,9 @@ export const onUpdatePano = /* GraphQL */ `
       id
       title
       thumbnail
+      pabout
+      ptype
+      psize
       sceneArr {
         id
         title
@@ -42,6 +49,7 @@ export const onUpdatePano = /* GraphQL */ `
           pitch
           yaw
           type
+          layer
           targetYaw
           targetPitch
           text
@@ -59,6 +67,9 @@ export const onDeletePano = /* GraphQL */ `
       id
       title
       thumbnail
+      pabout
+      ptype
+      psize
       sceneArr {
         id
         title
@@ -68,6 +79,7 @@ export const onDeletePano = /* GraphQL */ `
           pitch
           yaw
           type
+          layer
           targetYaw
           targetPitch
           text
