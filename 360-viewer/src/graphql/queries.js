@@ -14,16 +14,14 @@ export const getPano = /* GraphQL */ `
         id
         title
         img
-        hotSpots {
+        spots {
           id
           pitch
           yaw
-          type
-          layer
-          targetYaw
-          targetPitch
+          style
           text
-          sceneId
+          URL
+          layer
         }
       }
       createdAt

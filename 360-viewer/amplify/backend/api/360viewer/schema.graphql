@@ -19,41 +19,20 @@ type Pano
 
 type SceneObject {
   id: ID!
-  title: String
+  title: String!
   img: String
-  hotSpots: [hotSpotObject]
+  spots: [SpotObject]
 }
 
-type hotSpotObject {
+type SpotObject {
   id: ID!
-  pitch: String!
+  pitch: Float!
   yaw: Float!
-  type: Float!
+  style: String!
+  text: String!
+  URL: String
   layer: String
-  targetYaw: Float
-  targetPitch: Float
-  text: String
-  sceneId: ID
 }
-
-# type Scene
-#   @model
-#   @auth(
-#     rules: [
-#       { allow: private, operations: [read] }
-#       { allow: groups, groups: ["360Admin"] }
-#     ]
-#   )
-#   @key(name: "byPano", fields: ["panoID"]) {
-#   id: ID!
-#   panoID: ID!
-#   pano: Pano @connection(fields: ["panoID"])
-#   title: String!
-#   img: String!
-#   spots: [Spot]
-#   createdAt: String
-#   updatedAt: String
-# }
 
 type SpotContent {
   name: String
@@ -92,8 +71,6 @@ type Comment
   owner: ID!
   spotID: ID!
   msg: String
-  # reply: String
-  # repliedAt: String
   createdAt: String
   updatedAt: String
 }

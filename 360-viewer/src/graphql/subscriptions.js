@@ -14,16 +14,14 @@ export const onCreatePano = /* GraphQL */ `
         id
         title
         img
-        hotSpots {
+        spots {
           id
           pitch
           yaw
-          type
-          layer
-          targetYaw
-          targetPitch
+          style
           text
-          sceneId
+          URL
+          layer
         }
       }
       createdAt
@@ -44,16 +42,14 @@ export const onUpdatePano = /* GraphQL */ `
         id
         title
         img
-        hotSpots {
+        spots {
           id
           pitch
           yaw
-          type
-          layer
-          targetYaw
-          targetPitch
+          style
           text
-          sceneId
+          URL
+          layer
         }
       }
       createdAt
@@ -74,16 +70,14 @@ export const onDeletePano = /* GraphQL */ `
         id
         title
         img
-        hotSpots {
+        spots {
           id
           pitch
           yaw
-          type
-          layer
-          targetYaw
-          targetPitch
+          style
           text
-          sceneId
+          URL
+          layer
         }
       }
       createdAt
