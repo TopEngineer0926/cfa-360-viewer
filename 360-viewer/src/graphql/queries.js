@@ -20,7 +20,7 @@ export const getPano = /* GraphQL */ `
           yaw
           style
           text
-          URL
+          link
           layer
         }
       }

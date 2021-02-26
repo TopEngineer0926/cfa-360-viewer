@@ -30,7 +30,7 @@ type SpotObject {
   yaw: Float!
   style: String!
   text: String!
-  URL: String
+  link: String
   layer: String
 }
 

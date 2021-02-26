@@ -1,9 +1,6 @@
 <template>
-  <div v-if="pano" class="bg">
-    <div
-      v-if="pano.scenes && Object.keys(pano.scenes).length > 0"
-      class="vue-pannellum"
-    >
+  <div class="bg">
+    <div v-if="pano" class="vue-pannellum">
       <div class="default-slot mb-12">
         <div v-for="(layer, layerIndex) in layers" :key="layerIndex">
           <v-btn
@@ -77,14 +74,7 @@
               accept="image/*"
               label="Select panorama image"
               :rules="[
-                (v) =>
-                  !!(
-                    (pano.scenes[editSceneData.sceneID] &&
-                      pano.scenes[editSceneData.sceneID].panorama) ||
-                    (pano.scenes[editSceneData.sceneID] &&
-                      pano.scenes[editSceneData.sceneID].panorama) ||
-                    v
-                  ) || 'Image is required',
+                (v) => !!(editSceneData.sceneID || v) || 'Image is required',
               ]"
             ></v-file-input>
           </v-form>
@@ -140,7 +130,7 @@
 
             <v-text-field
               v-if="editSpotData.style == 'link'"
-              v-model="editSpotData.URL"
+              v-model="editSpotData.link"
               label="Link Address"
             ></v-text-field>
             <v-select
@@ -183,7 +173,7 @@ export default {
   name: "Pano",
   data: function () {
     return {
-      pano: {},
+      pano: null,
       panoSource: null,
       viewer: null,
       currentScene: null,
@@ -203,7 +193,8 @@ export default {
         yaw: null,
         style: null,
         text: null,
-        URL: null,
+        link: null,
+        sceneId: null,
         contents: null,
         comments: null,
       },
@@ -231,12 +222,11 @@ export default {
   },
   methods: {
     async initPano() {
-      this.pano = {
-        title: this.panoSource.title,
-      };
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
-        this.pano.scenes = {};
-        console.log("this.panoSource", this.panoSource);
+        this.pano = {
+          title: this.panoSource.title,
+          scenes: {},
+        };
         await Promise.all(
           this.panoSource.sceneArr.map(async (scene) => {
             this.pano.scenes[scene.id] = {};
@@ -252,8 +242,8 @@ export default {
           autoLoad: true,
         };
 
-        this.viewer = window.pannellum.viewer(this.$el, this.pano);
         this.updateLayerList();
+        this.viewer = window.pannellum.viewer(this.$el, this.pano);
       }
     },
 
@@ -329,11 +319,26 @@ export default {
           //   Storage.remove(this.pano.id + "/" + scene.img);
           // }
         } else {
-          //add scene
-          this.viewer.addScene(sceneID, {
-            title: this.editSceneData.title,
-            panorama: await Storage.get(s3link),
-          });
+          if (!this.pano) {
+            // first scene
+            this.pano = {
+              default: { firstScene: sceneID, autoLoad: true },
+              scenes: {
+                [sceneID]: {
+                  title: this.editSceneData.title,
+                  panorama: await Storage.get(s3link),
+                },
+              },
+            };
+            console.log(" this.pano ", this.pano);
+            this.viewer = window.pannellum.viewer(this.$el, this.pano);
+          } else {
+            //add scene
+            this.viewer.addScene(sceneID, {
+              title: this.editSceneData.title,
+              panorama: await Storage.get(s3link),
+            });
+          }
           //add sceneArr
           if (!this.panoSource.sceneArr) {
             this.panoSource.sceneArr = [];
@@ -345,16 +350,25 @@ export default {
           });
         }
         this.savePano();
-        this.viewer.loadScene(sceneID);
         this.editSceneData.dialog = false;
       }
     },
     mouseDownHandler(event) {
       let coords = this.viewer.mouseEventToCoords(event);
-      this.updateSceneSelectList();
-      this.editSpotData.dialog = true;
-      this.editSpotData.pitch = coords[0];
-      this.editSpotData.yaw = coords[1];
+
+      this.editSpotData = {
+        dialog: true,
+        editValid: false,
+        id: null,
+        pitch: coords[0],
+        yaw: coords[1],
+        style: "detail",
+        text: null,
+        // link: null,
+        // sceneId: null,
+        contents: null,
+        comments: null,
+      };
       this.viewer.off("mousedown", this.mouseDownHandler);
       // let pitch = this.viewer.getPitch();
       // let yaw = this.viewer.getYaw();
@@ -387,11 +401,20 @@ export default {
           text: this.editSpotData.text,
         };
         if (this.editSpotData.style == "link") {
-          newSpot.URL = this.editSpotData.URL;
+          newSpot.link = this.editSpotData.link;
+        }
+        if (this.editSpotData.style == "scene") {
+          newSpot.sceneID = this.editSpotData.sceneID;
         }
         if (this.editSpotData.id) {
           //edit existing
-          // newSpot.id = this.editSpotData.id;
+          this.viewer.removeHotSpot(this.editSpotData.id);
+          newSpot.id = this.editSpotData.id;
+          let spotIndex = this.panoSource.sceneArr[sceneIndex].spots.findIndex(
+            (spot) => spot.id == newSpot.id
+          );
+          this.panoSource.sceneArr[sceneIndex].spots[spotIndex] = newSpot;
+          // this.showSpot(newSpot);
           // let foundIndex = this.pano.scenes[
           //   this.currentScene
           // ].hotSpots.findIndex((x) => x.id == this.editSpotData.id);
@@ -401,10 +424,9 @@ export default {
           //create new
           newSpot.id = nanoid();
           this.panoSource.sceneArr[sceneIndex].spots.push(newSpot);
-
-          this.loadLayer(newSpot.layer);
-          this.editSpotData.dialog = false;
         }
+        this.loadLayer(newSpot.layer);
+        this.editSpotData.dialog = false;
         this.updateLayerList();
         this.savePano();
       }
@@ -437,14 +459,48 @@ export default {
       }
       this.layers = layerList;
     },
-    updateSceneSelectList() {
-      this.sceneSelectList = [];
-      for (const sceneId in this.pano.scenes) {
-        this.sceneSelectList.push({
-          text: this.pano.scenes[sceneId].title,
-          value: sceneId,
-        });
+
+    showSpot(spot) {
+      let addSpot = JSON.parse(JSON.stringify(spot));
+      if (this.user.admin) {
+        addSpot.type = "info";
+        addSpot.clickHandlerFunc = () => {
+          this.editSpotData.id = spot.id;
+          this.editSpotData.style = addSpot.style;
+          this.editSpotData.text = addSpot.text;
+          this.editSpotData.layer = addSpot.layer;
+          this.editSpotData.pitch = addSpot.pitch;
+          this.editSpotData.yaw = addSpot.yaw;
+          this.editSpotData.sceneId = addSpot.sceneId;
+          this.editSpotData.link = addSpot.link;
+          this.editSpotData.dialog = true;
+        };
+      } else {
+        switch (addSpot.style) {
+          case "detail":
+            addSpot.type = "info";
+            addSpot.clickHandlerFunc = () => {
+              this.editSpotData.id = addSpot.id;
+              this.editSpotData.style = addSpot.style;
+              this.editSpotData.text = addSpot.text;
+              this.editSpotData.layer = addSpot.layer;
+              this.editSpotData.pitch = addSpot.pitch;
+              this.editSpotData.yaw = addSpot.yaw;
+              this.editSpotData.dialog = true;
+            };
+            break;
+          case "link":
+            addSpot.type = "info";
+            addSpot.URL = addSpot.link;
+            break;
+          case "scene":
+            addSpot.type = "scene";
+            break;
+          default:
+            addSpot.type = "info";
+        }
       }
+      this.viewer.addHotSpot(addSpot);
     },
     loadLayer(layer) {
       if (this.currentLayer) {
@@ -461,32 +517,7 @@ export default {
       );
       this.panoSource.sceneArr[sceneIndex].spots.forEach((spot) => {
         if (spot.layer == layer) {
-          let addSpot = JSON.parse(JSON.stringify(spot));
-
-          switch (addSpot.style) {
-            case "detail":
-              addSpot.type = "info";
-              addSpot.clickHandlerFunc = () => {
-                this.editSpotData.id = addSpot.id;
-                this.editSpotData.style = addSpot.style;
-                this.editSpotData.text = addSpot.text;
-                this.editSpotData.layer = addSpot.layer;
-                this.editSpotData.pitch = addSpot.pitch;
-                this.editSpotData.yaw = addSpot.yaw;
-                this.editSpotData.dialog = true;
-              };
-              break;
-            case "link":
-              addSpot.type = "info";
-              break;
-            case "scene":
-              addSpot.type = "scene";
-              break;
-            default:
-              addSpot.type = "info";
-          }
-
-          this.viewer.addHotSpot(addSpot);
+          this.showSpot(spot);
         }
       });
       this.currentLayer = layer;
@@ -494,6 +525,19 @@ export default {
   },
   computed: {
     ...mapState(["user"]),
+  },
+  watch: {
+    "editSpotData.dialog": function (val) {
+      if (val) {
+        this.sceneSelectList = [];
+        for (const sceneId in this.pano.scenes) {
+          this.sceneSelectList.push({
+            text: this.pano.scenes[sceneId].title,
+            value: sceneId,
+          });
+        }
+      }
+    },
   },
 };
 </script>

@@ -20,7 +20,7 @@ export const onCreatePano = /* GraphQL */ `
           yaw
           style
           text
-          URL
+          link
           layer
         }
       }
@@ -48,7 +48,7 @@ export const onUpdatePano = /* GraphQL */ `
           yaw
           style
           text
-          URL
+          link
           layer
         }
       }
@@ -76,7 +76,7 @@ export const onDeletePano = /* GraphQL */ `
           yaw
           style
           text
-          URL
+          link
           layer
         }
       }
