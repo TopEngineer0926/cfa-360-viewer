@@ -31,6 +31,7 @@ type SpotObject {
   style: String!
   text: String!
   link: String
+  sceneID: String
   layer: String
 }
 

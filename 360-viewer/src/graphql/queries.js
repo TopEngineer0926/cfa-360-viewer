@@ -21,6 +21,7 @@ export const getPano = /* GraphQL */ `
           style
           text
           link
+          sceneID
           layer
         }
       }

@@ -21,6 +21,7 @@ export const onCreatePano = /* GraphQL */ `
           style
           text
           link
+          sceneID
           layer
         }
       }
@@ -49,6 +50,7 @@ export const onUpdatePano = /* GraphQL */ `
           style
           text
           link
+          sceneID
           layer
         }
       }
@@ -77,6 +79,7 @@ export const onDeletePano = /* GraphQL */ `
           style
           text
           link
+          sceneID
           layer
         }
       }

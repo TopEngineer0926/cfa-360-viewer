@@ -111,31 +111,31 @@
             lazy-validation
           >
             <v-select
-              v-model="editSpotData.style"
+              v-model="editSpotData.spot.style"
               :items="spotStyles"
               label="Type"
             ></v-select>
             <v-text-field
-              v-model="editSpotData.text"
+              v-model="editSpotData.spot.text"
               require
               :rules="[(v) => !!v || 'Tag Name is required']"
               label="Tag Name"
             ></v-text-field>
             <v-text-field
-              v-model="editSpotData.layer"
+              v-model="editSpotData.spot.layer"
               label="Layer"
               require
               :rules="[(v) => !!v || 'Layer is required']"
             ></v-text-field>
 
             <v-text-field
-              v-if="editSpotData.style == 'link'"
-              v-model="editSpotData.link"
+              v-if="editSpotData.spot.style == 'link'"
+              v-model="editSpotData.spot.link"
               label="Link Address"
             ></v-text-field>
             <v-select
-              v-if="editSpotData.style == 'scene'"
-              v-model="editSpotData.sceneId"
+              v-if="editSpotData.spot.style == 'scene'"
+              v-model="editSpotData.spot.sceneID"
               :items="sceneSelectList"
               label="Pano Image List"
             ></v-select>
@@ -188,15 +188,11 @@ export default {
       editSpotData: {
         dialog: false,
         editValid: false,
-        id: null,
-        pitch: null,
-        yaw: null,
-        style: null,
-        text: null,
-        link: null,
-        sceneId: null,
-        contents: null,
-        comments: null,
+        spot: null,
+      },
+      showSpotDetail: {
+        dialog: false,
+        spot: null,
       },
       spotStyles: [
         { text: "Product Detail", value: "detail" },
@@ -330,7 +326,6 @@ export default {
                 },
               },
             };
-            console.log(" this.pano ", this.pano);
             this.viewer = window.pannellum.viewer(this.$el, this.pano);
           } else {
             //add scene
@@ -359,15 +354,11 @@ export default {
       this.editSpotData = {
         dialog: true,
         editValid: false,
-        id: null,
-        pitch: coords[0],
-        yaw: coords[1],
-        style: "detail",
-        text: null,
-        // link: null,
-        // sceneId: null,
-        contents: null,
-        comments: null,
+        spot: {
+          pitch: coords[0],
+          yaw: coords[1],
+          style: "detail",
+        },
       };
       this.viewer.off("mousedown", this.mouseDownHandler);
       // let pitch = this.viewer.getPitch();
@@ -393,39 +384,28 @@ export default {
         if (!this.panoSource.sceneArr[sceneIndex].spots) {
           this.panoSource.sceneArr[sceneIndex].spots = [];
         }
-        let newSpot = {
-          pitch: this.editSpotData.pitch,
-          yaw: this.editSpotData.yaw,
-          style: this.editSpotData.style,
-          layer: this.editSpotData.layer,
-          text: this.editSpotData.text,
-        };
-        if (this.editSpotData.style == "link") {
-          newSpot.link = this.editSpotData.link;
-        }
-        if (this.editSpotData.style == "scene") {
-          newSpot.sceneID = this.editSpotData.sceneID;
-        }
-        if (this.editSpotData.id) {
+
+        if (this.editSpotData.spot.id) {
           //edit existing
-          this.viewer.removeHotSpot(this.editSpotData.id);
-          newSpot.id = this.editSpotData.id;
+          this.viewer.removeHotSpot(this.editSpotData.spot.id);
           let spotIndex = this.panoSource.sceneArr[sceneIndex].spots.findIndex(
-            (spot) => spot.id == newSpot.id
+            (spot) => spot.id == this.editSpotData.spot.id
           );
-          this.panoSource.sceneArr[sceneIndex].spots[spotIndex] = newSpot;
-          // this.showSpot(newSpot);
-          // let foundIndex = this.pano.scenes[
-          //   this.currentScene
-          // ].hotSpots.findIndex((x) => x.id == this.editSpotData.id);
-          // this.pano.scenes[this.currentScene].hotSpots[foundIndex] = newSpot;
-          //+++ update Spot
+          this.panoSource.sceneArr[sceneIndex].spots[
+            spotIndex
+          ] = this.editSpotData.spot;
+          console.log(
+            "sdsd",
+            this.panoSource.sceneArr[sceneIndex].spots[spotIndex]
+          );
         } else {
           //create new
-          newSpot.id = nanoid();
-          this.panoSource.sceneArr[sceneIndex].spots.push(newSpot);
+          this.editSpotData.spot.id = nanoid();
+          this.panoSource.sceneArr[sceneIndex].spots.push(
+            this.editSpotData.spot
+          );
         }
-        this.loadLayer(newSpot.layer);
+        this.loadLayer(this.editSpotData.spot.layer);
         this.editSpotData.dialog = false;
         this.updateLayerList();
         this.savePano();
@@ -465,14 +445,7 @@ export default {
       if (this.user.admin) {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
-          this.editSpotData.id = spot.id;
-          this.editSpotData.style = addSpot.style;
-          this.editSpotData.text = addSpot.text;
-          this.editSpotData.layer = addSpot.layer;
-          this.editSpotData.pitch = addSpot.pitch;
-          this.editSpotData.yaw = addSpot.yaw;
-          this.editSpotData.sceneId = addSpot.sceneId;
-          this.editSpotData.link = addSpot.link;
+          this.editSpotData.spot = spot;
           this.editSpotData.dialog = true;
         };
       } else {
@@ -480,13 +453,8 @@ export default {
           case "detail":
             addSpot.type = "info";
             addSpot.clickHandlerFunc = () => {
-              this.editSpotData.id = addSpot.id;
-              this.editSpotData.style = addSpot.style;
-              this.editSpotData.text = addSpot.text;
-              this.editSpotData.layer = addSpot.layer;
-              this.editSpotData.pitch = addSpot.pitch;
-              this.editSpotData.yaw = addSpot.yaw;
-              this.editSpotData.dialog = true;
+              this.showSpotDetail.spot = spot;
+              this.showSpotDetail.dialog = true;
             };
             break;
           case "link":
