@@ -94,7 +94,7 @@
           <v-btn
             color="primary"
             text
-            @click="editScene"
+            @click="saveScene"
             :disabled="!editSceneData.editValid"
           >
             OK
@@ -229,7 +229,7 @@ export default {
   },
   methods: {
     async initPano() {
-      if (this.pano.sceneArr) {
+      if (this.pano.sceneArr && this.pano.sceneArr.length > 0) {
         this.pano.scenes = {};
         await Promise.all(
           this.pano.sceneArr.map(async (scene, index) => {
@@ -242,31 +242,26 @@ export default {
             );
           })
         );
-        this.reloadViewer();
+        // this.reloadViewer();
+        this.currentScene = this.pano.sceneArr[0].id;
+        this.pano.default = {
+          firstScene: this.currentScene,
+          autoLoad: true,
+        };
+        this.viewer = window.pannellum.viewer(this.$el, this.pano);
+        this.updateLayers();
       }
     },
-    reloadViewer() {
-      this.currentScene = Object.keys(this.pano.scenes)[0];
-      this.pano.default = {
-        firstScene: this.currentScene,
-        autoLoad: true,
-      };
-      this.viewer = window.pannellum.viewer(this.$el, this.pano);
-      this.updateLayers();
-    },
+
     loadScene(sceneID) {
-      console.log("load sceneID", sceneID);
       this.currentScene = sceneID;
       this.updateLayers();
       this.viewer.loadScene(sceneID);
     },
     initEditScene(sceneID) {
       if (!sceneID) {
-        this.editSceneData.sceneID = nanoid();
+        this.editSceneData.sceneID = null;
         this.editSceneData.title = null;
-        if (!this.pano.scenes) {
-          this.pano.scenes = {};
-        }
       } else {
         this.editSceneData.sceneID = sceneID;
         this.editSceneData.title = this.pano.scenes[
@@ -276,22 +271,52 @@ export default {
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
     },
-    editScene() {
+    async saveScene() {
       if (this.$refs.editimgform.validate()) {
-        if (!this.pano.scenes[this.editSceneData.sceneID]) {
-          this.pano.scenes[this.editSceneData.sceneID] = {};
+        if (this.editSceneData.sceneID) {
+          //edit scene
+          //   if (this.editSceneData.imgToUpload) {
+          //   let fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
+          //   this.pano.scenes[
+          //     this.editSceneData.sceneID
+          //   ].s3Update = this.editSceneData.imgToUpload;
+          // }
+          //   if (scene.img) {
+          //   Storage.remove(this.pano.id + "/" + scene.img);
+          // }
+        } else {
+          let sceneID = nanoid();
+          let imgLink = (
+            await Storage.put(
+              this.pano.id + "/" + sceneID,
+              this.editSceneData.imgToUpload,
+              {
+                contentType: this.editSceneData.imgToUpload.type,
+                metadata: {
+                  user: this.user.email,
+                  pano: this.pano.id,
+                  type: "scene",
+                },
+              }
+            )
+          ).key;
+          //add scene
+          this.viewer.addScene(sceneID, {
+            title: this.editSceneData.title,
+            panorama: await Storage.get(imgLink),
+          });
+          //add sceneArr
+          if (!this.pano.sceneArr) {
+            this.pano.sceneArr = [];
+          }
+          this.pano.sceneArr.push({
+            id: sceneID,
+            title: this.editSceneData.title,
+            img: imgLink.split("/")[1],
+          });
+          // this.loadScene(sceneID);
         }
-        if (this.editSceneData.imgToUpload) {
-          var fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
-          this.pano.scenes[this.editSceneData.sceneID].panorama = fileURL;
-          this.pano.scenes[
-            this.editSceneData.sceneID
-          ].s3Update = this.editSceneData.imgToUpload;
-        }
-        this.pano.scenes[
-          this.editSceneData.sceneID
-        ].title = this.editSceneData.title;
-        this.reloadViewer();
+        // this.reloadViewer();
         this.editSceneData.dialog = false;
       }
     },
@@ -301,7 +326,6 @@ export default {
       this.editSpotData.dialog = true;
       this.editSpotData.pitch = coords[0];
       this.editSpotData.yaw = coords[1];
-
       this.viewer.off("mousedown", this.mouseDownHandler);
       // let pitch = this.viewer.getPitch();
       // let yaw = this.viewer.getYaw();
@@ -333,22 +357,26 @@ export default {
         if (this.editSpotData.style == "link") {
           newSpot.URL = this.editSpotData.URL;
         }
-
         if (this.editSpotData.id) {
           //edit existing
-          newSpot.id = this.editSpotData.id;
-          let foundIndex = this.pano.scenes[
-            this.currentScene
-          ].hotSpots.findIndex((x) => x.id == this.editSpotData.id);
-          this.pano.scenes[this.currentScene].hotSpots[foundIndex] = newSpot;
+          // newSpot.id = this.editSpotData.id;
+          // let foundIndex = this.pano.scenes[
+          //   this.currentScene
+          // ].hotSpots.findIndex((x) => x.id == this.editSpotData.id);
+          // this.pano.scenes[this.currentScene].hotSpots[foundIndex] = newSpot;
           //+++ update Spot
         } else {
           //create new
           newSpot.id = nanoid();
-          this.pano.scenes[this.currentScene].spots.push(newSpot);
-          newSpot.type = "info";
-          //+++change current layer
-          this.viewer.addHotSpot(newSpot);
+          let sceneIndex = this.pano.sceneArr.findIndex(
+            (scene) => scene.id == this.currentScene
+          );
+          this.pano.sceneArr[sceneIndex].spots.push(newSpot);
+          if (newSpot.layer !== this.currentLayer) {
+            this.loadLayer(newSpot.layer);
+          } else {
+            this.viewer.addHotSpot(newSpot);
+          }
           this.editSpotData.dialog = false;
         }
         this.updateLayers();
@@ -357,52 +385,15 @@ export default {
 
     async savePano() {
       let updatePanoData = this.pano;
-
-      updatePanoData.sceneArr = [];
-      for (const [sceneID, scene] of Object.entries(updatePanoData.scenes)) {
-        scene.id = sceneID;
-        if (scene.s3Update) {
-          if (scene.img) {
-            Storage.remove(this.pano.id + "/" + scene.img);
-          }
-          let imgId = nanoid();
-          scene.img = (
-            await Storage.put(this.pano.id + "/" + imgId, scene.s3Update, {
-              contentType: scene.s3Update.type,
-              metadata: {
-                user: this.user.email,
-                pano: this.pano.id,
-                type: "scene",
-              },
-            })
-          ).key.split("/")[1];
-          URL.revokeObjectURL(scene.panorama);
-          delete scene.s3Update;
-        }
-        scene.spots = [];
-        scene.hotSpots.forEach((hotSpot) => {
-          delete hotSpot.type;
-          delete hotSpot.div;
-          scene.spots.push(hotSpot);
-        });
-        delete scene.panorama;
-        delete scene.index;
-        delete scene.hotSpots;
-        updatePanoData.sceneArr.push(scene);
-      }
-
       delete updatePanoData.scenes;
       delete updatePanoData.default;
-
-      console.log("updatePanoData", updatePanoData);
       await API.graphql({
         query: updatePano,
         variables: {
           input: updatePanoData,
         },
       });
-
-      this.$router.go();
+      // this.$router.go();
     },
     updateLayers() {
       let layerList = [];
@@ -435,7 +426,6 @@ export default {
       if (this.currentLayer !== layer) {
         if (this.currentLayer) {
           //removeHotSpot
-
           let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
             (hotSpot) => hotSpot.id
           );
