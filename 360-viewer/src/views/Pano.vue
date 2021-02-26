@@ -97,7 +97,7 @@
             @click="saveScene"
             :disabled="!editSceneData.editValid"
           >
-            OK
+            Save
           </v-btn>
           <v-btn color="grey" text @click="editSceneData.dialog = false">
             Cancel
@@ -159,7 +159,7 @@
             @click="saveSpot"
             :disabled="!editSpotData.editValid"
           >
-            OK
+            Save
           </v-btn>
           <v-btn color="grey" text @click="editSpotData.dialog = false">
             Cancel
@@ -183,7 +183,8 @@ export default {
   name: "Pano",
   data: function () {
     return {
-      pano: null,
+      pano: {},
+      panoSource: null,
       viewer: null,
       currentScene: null,
       layers: [],
@@ -201,9 +202,10 @@ export default {
         pitch: null,
         yaw: null,
         style: null,
-        layer: null,
         text: null,
         URL: null,
+        contents: null,
+        comments: null,
       },
       spotStyles: [
         { text: "Product Detail", value: "detail" },
@@ -218,8 +220,8 @@ export default {
   mounted() {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
-        this.pano = data.data.getPano;
-        if (this.pano) {
+        this.panoSource = data.data.getPano;
+        if (this.panoSource) {
           this.initPano();
         } else {
           this.$router.push({ path: "/panolist" });
@@ -229,33 +231,35 @@ export default {
   },
   methods: {
     async initPano() {
-      if (this.pano.sceneArr && this.pano.sceneArr.length > 0) {
+      this.pano = {
+        title: this.panoSource.title,
+      };
+      if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano.scenes = {};
+        console.log("this.panoSource", this.panoSource);
         await Promise.all(
-          this.pano.sceneArr.map(async (scene, index) => {
+          this.panoSource.sceneArr.map(async (scene) => {
             this.pano.scenes[scene.id] = {};
-            this.pano.scenes[scene.id].index = index;
             this.pano.scenes[scene.id].title = scene.title;
-            this.pano.scenes[scene.id].img = scene.img;
             this.pano.scenes[scene.id].panorama = await Storage.get(
-              this.pano.id + "/" + scene.img
+              this.panoSource.id + "/" + scene.img
             );
           })
         );
-        // this.reloadViewer();
-        this.currentScene = this.pano.sceneArr[0].id;
+        this.currentScene = this.panoSource.sceneArr[0].id;
         this.pano.default = {
           firstScene: this.currentScene,
           autoLoad: true,
         };
+
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
-        this.updateLayers();
+        this.updateLayerList();
       }
     },
 
     loadScene(sceneID) {
       this.currentScene = sceneID;
-      this.updateLayers();
+      this.updateLayerList();
       this.viewer.loadScene(sceneID);
     },
     initEditScene(sceneID) {
@@ -273,8 +277,48 @@ export default {
     },
     async saveScene() {
       if (this.$refs.editimgform.validate()) {
+        let sceneID = this.editSceneData.sceneID
+          ? this.editSceneData.sceneID
+          : nanoid();
+        let s3link = null;
+
+        if (this.editSceneData.imgToUpload) {
+          let imgID = nanoid();
+
+          s3link = (
+            await Storage.put(
+              this.panoSource.id + "/" + imgID,
+              this.editSceneData.imgToUpload,
+              {
+                contentType: this.editSceneData.imgToUpload.type,
+                metadata: {
+                  user: this.user.email,
+                  pano: this.panoSource.id,
+                  type: "scene",
+                },
+              }
+            )
+          ).key;
+        }
         if (this.editSceneData.sceneID) {
-          //edit scene
+          //edit scene title
+          this.pano.scenes[sceneID].title = this.editSceneData.title;
+          //edit sceneArr title
+          let sceneIndex = this.panoSource.sceneArr.findIndex(
+            (scene) => scene.id == sceneID
+          );
+          this.panoSource.sceneArr[sceneIndex].title = this.editSceneData.title;
+          if (s3link) {
+            //edit sceneArr img
+            Storage.remove(
+              this.panoSource.id +
+                "/" +
+                this.panoSource.sceneArr[sceneIndex].img
+            );
+            this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
+            //edit scene panorama
+            this.pano.scenes[sceneID].panorama = await Storage.get(s3link);
+          }
           //   if (this.editSceneData.imgToUpload) {
           //   let fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
           //   this.pano.scenes[
@@ -285,38 +329,23 @@ export default {
           //   Storage.remove(this.pano.id + "/" + scene.img);
           // }
         } else {
-          let sceneID = nanoid();
-          let imgLink = (
-            await Storage.put(
-              this.pano.id + "/" + sceneID,
-              this.editSceneData.imgToUpload,
-              {
-                contentType: this.editSceneData.imgToUpload.type,
-                metadata: {
-                  user: this.user.email,
-                  pano: this.pano.id,
-                  type: "scene",
-                },
-              }
-            )
-          ).key;
           //add scene
           this.viewer.addScene(sceneID, {
             title: this.editSceneData.title,
-            panorama: await Storage.get(imgLink),
+            panorama: await Storage.get(s3link),
           });
           //add sceneArr
-          if (!this.pano.sceneArr) {
-            this.pano.sceneArr = [];
+          if (!this.panoSource.sceneArr) {
+            this.panoSource.sceneArr = [];
           }
-          this.pano.sceneArr.push({
+          this.panoSource.sceneArr.push({
             id: sceneID,
             title: this.editSceneData.title,
-            img: imgLink.split("/")[1],
+            img: s3link.split("/")[1],
           });
-          // this.loadScene(sceneID);
         }
-        // this.reloadViewer();
+        this.savePano();
+        this.viewer.loadScene(sceneID);
         this.editSceneData.dialog = false;
       }
     },
@@ -344,8 +373,11 @@ export default {
     },
     saveSpot() {
       if (this.$refs.editspotform.validate()) {
-        if (!this.pano.scenes[this.currentScene].spots) {
-          this.pano.scenes[this.currentScene].spots = [];
+        let sceneIndex = this.panoSource.sceneArr.findIndex(
+          (scene) => scene.id == this.currentScene
+        );
+        if (!this.panoSource.sceneArr[sceneIndex].spots) {
+          this.panoSource.sceneArr[sceneIndex].spots = [];
         }
         let newSpot = {
           pitch: this.editSpotData.pitch,
@@ -368,44 +400,36 @@ export default {
         } else {
           //create new
           newSpot.id = nanoid();
-          let sceneIndex = this.pano.sceneArr.findIndex(
-            (scene) => scene.id == this.currentScene
-          );
-          this.pano.sceneArr[sceneIndex].spots.push(newSpot);
-          if (newSpot.layer !== this.currentLayer) {
-            this.loadLayer(newSpot.layer);
-          } else {
-            this.viewer.addHotSpot(newSpot);
-          }
+          this.panoSource.sceneArr[sceneIndex].spots.push(newSpot);
+
+          this.loadLayer(newSpot.layer);
           this.editSpotData.dialog = false;
         }
-        this.updateLayers();
+        this.updateLayerList();
+        this.savePano();
       }
     },
 
     async savePano() {
-      let updatePanoData = this.pano;
-      delete updatePanoData.scenes;
-      delete updatePanoData.default;
+      console.log("savePano", this.panoSource);
       await API.graphql({
         query: updatePano,
         variables: {
-          input: updatePanoData,
+          input: this.panoSource,
         },
       });
       // this.$router.go();
     },
-    updateLayers() {
+    updateLayerList() {
       let layerList = [];
-      let sceneIndex = this.pano.sceneArr.findIndex(
+      let sceneIndex = this.panoSource.sceneArr.findIndex(
         (scene) => scene.id == this.currentScene
       );
       if (
-        this.currentScene &&
-        this.pano.sceneArr[sceneIndex].spots &&
-        this.pano.sceneArr[sceneIndex].spots.length > 0
+        this.panoSource.sceneArr[sceneIndex].spots &&
+        this.panoSource.sceneArr[sceneIndex].spots.length > 0
       ) {
-        this.pano.sceneArr[sceneIndex].spots.forEach((spot) => {
+        this.panoSource.sceneArr[sceneIndex].spots.forEach((spot) => {
           if (!layerList.includes(spot.layer)) {
             layerList.push(spot.layer);
           }
@@ -423,27 +447,49 @@ export default {
       }
     },
     loadLayer(layer) {
-      if (this.currentLayer !== layer) {
-        if (this.currentLayer) {
-          //removeHotSpot
-          let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
-            (hotSpot) => hotSpot.id
-          );
-          hotSpotsID.forEach((hotSpotID) => {
-            this.viewer.removeHotSpot(hotSpotID);
-          });
-        }
-        let sceneIndex = this.pano.sceneArr.findIndex(
-          (scene) => scene.id == this.currentScene
+      if (this.currentLayer) {
+        //removeHotSpots
+        let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
+          (hotSpot) => hotSpot.id
         );
-        this.pano.sceneArr[sceneIndex].spots.forEach((spot) => {
-          if (spot.layer == layer) {
-            spot.type = "info";
-            this.viewer.addHotSpot(spot);
-          }
+        hotSpotsID.forEach((hotSpotID) => {
+          this.viewer.removeHotSpot(hotSpotID);
         });
-        this.currentLayer = layer;
       }
+      let sceneIndex = this.panoSource.sceneArr.findIndex(
+        (scene) => scene.id == this.currentScene
+      );
+      this.panoSource.sceneArr[sceneIndex].spots.forEach((spot) => {
+        if (spot.layer == layer) {
+          let addSpot = JSON.parse(JSON.stringify(spot));
+
+          switch (addSpot.style) {
+            case "detail":
+              addSpot.type = "info";
+              addSpot.clickHandlerFunc = () => {
+                this.editSpotData.id = addSpot.id;
+                this.editSpotData.style = addSpot.style;
+                this.editSpotData.text = addSpot.text;
+                this.editSpotData.layer = addSpot.layer;
+                this.editSpotData.pitch = addSpot.pitch;
+                this.editSpotData.yaw = addSpot.yaw;
+                this.editSpotData.dialog = true;
+              };
+              break;
+            case "link":
+              addSpot.type = "info";
+              break;
+            case "scene":
+              addSpot.type = "scene";
+              break;
+            default:
+              addSpot.type = "info";
+          }
+
+          this.viewer.addHotSpot(addSpot);
+        }
+      });
+      this.currentLayer = layer;
     },
   },
   computed: {
