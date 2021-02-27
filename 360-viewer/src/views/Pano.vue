@@ -244,9 +244,16 @@ export default {
     },
 
     loadScene(sceneID) {
+      // remove current spots
+      this.removeCurrentSpots();
+      this.viewer.loadScene(sceneID);
       this.currentScene = sceneID;
       this.updateLayerList();
-      this.viewer.loadScene(sceneID);
+      if (this.layers.includes(this.currentLayer)) {
+        this.loadLayer(this.currentLayer);
+      } else {
+        this.currentLayer = null;
+      }
     },
     initEditScene(sceneID) {
       if (!sceneID) {
@@ -470,8 +477,8 @@ export default {
       }
       this.viewer.addHotSpot(addSpot);
     },
-    loadLayer(layer) {
-      if (this.currentLayer) {
+    removeCurrentSpots() {
+      if (this.currentLayer && this.pano.scenes[this.currentScene].hotSpots) {
         //removeHotSpots
         let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
           (hotSpot) => hotSpot.id
@@ -480,6 +487,9 @@ export default {
           this.viewer.removeHotSpot(hotSpotID);
         });
       }
+    },
+    loadLayer(layer) {
+      this.removeCurrentSpots();
       let sceneIndex = this.panoSource.sceneArr.findIndex(
         (scene) => scene.id == this.currentScene
       );
