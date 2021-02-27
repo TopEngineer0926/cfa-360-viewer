@@ -165,7 +165,7 @@ import "pannellum";
 import "pannellum/build/pannellum.css";
 import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getPano } from "../graphql/queries";
+import { getPano, getSpot } from "../graphql/queries";
 import { updatePano } from "../graphql/mutations";
 import { nanoid } from "nanoid";
 
@@ -196,7 +196,7 @@ export default {
       },
       spotStyles: [
         { text: "Product Detail", value: "detail" },
-        { text: "Hyperlink", value: "link" },
+        // { text: "Hyperlink", value: "link" },
         { text: "Change Pano Image", value: "scene" },
       ],
       sceneSelectList: [],
@@ -514,6 +514,14 @@ export default {
             value: sceneId,
           });
         }
+      }
+    },
+    "editSpotData.spot.style": async function (val) {
+      if (val == "detail" && this.editSpotData.spot.id) {
+        console.log(val);
+        await API.graphql(
+          graphqlOperation(getSpot, { id: this.editSpotData.spot.id })
+        );
       }
     },
   },
