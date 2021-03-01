@@ -23,6 +23,12 @@ export const getPano = /* GraphQL */ `
           link
           sceneID
           layer
+          contents {
+            type
+            name
+            thumbnail
+            link
+          }
         }
       }
       createdAt

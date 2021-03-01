@@ -40,7 +40,7 @@ type SpotObject {
 type SpotContent {
   type: String
   name: String
-  content: String
+  thumbnail: String
   link: String
 }
 

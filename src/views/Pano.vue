@@ -104,6 +104,7 @@
     >
       <v-card>
         <v-card-title class="headline">Edit Tag</v-card-title>
+
         <v-card-text>
           <v-form
             ref="editspotform"
@@ -140,6 +141,9 @@
               label="Pano Image List"
             ></v-select>
           </v-form>
+          <div v-if="editSpotData.spot.style == 'detail'">
+            {{ editSpotData.contents }}
+          </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -165,7 +169,7 @@ import "pannellum";
 import "pannellum/build/pannellum.css";
 import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getPano, getSpot } from "../graphql/queries";
+import { getPano } from "../graphql/queries";
 import { updatePano } from "../graphql/mutations";
 import { nanoid } from "nanoid";
 
@@ -177,6 +181,7 @@ export default {
       panoSource: null,
       viewer: null,
       currentScene: null,
+      currentSceneIndex: null,
       layers: [],
       editSceneData: {
         dialog: false,
@@ -189,6 +194,7 @@ export default {
         dialog: false,
         editValid: false,
         spot: null,
+        contents: null,
       },
       showSpotDetail: {
         dialog: false,
@@ -233,6 +239,7 @@ export default {
           })
         );
         this.currentScene = this.panoSource.sceneArr[0].id;
+        this.currentSceneIndex = 0;
         this.pano.default = {
           firstScene: this.currentScene,
           autoLoad: true,
@@ -248,6 +255,10 @@ export default {
       this.removeCurrentSpots();
       this.viewer.loadScene(sceneID);
       this.currentScene = sceneID;
+      this.currentSceneIndex = this.panoSource.sceneArr.findIndex(
+        (scene) => scene.id == this.currentScene
+      );
+
       this.updateLayerList();
       if (this.layers.includes(this.currentLayer)) {
         this.loadLayer(this.currentLayer);
@@ -297,18 +308,22 @@ export default {
           //edit scene title
           this.pano.scenes[sceneID].title = this.editSceneData.title;
           //edit sceneArr title
-          let sceneIndex = this.panoSource.sceneArr.findIndex(
-            (scene) => scene.id == sceneID
-          );
-          this.panoSource.sceneArr[sceneIndex].title = this.editSceneData.title;
+          // let sceneIndex = this.panoSource.sceneArr.findIndex(
+          //   (scene) => scene.id == sceneID
+          // );
+          this.panoSource.sceneArr[
+            this.currentSceneIndex
+          ].title = this.editSceneData.title;
           if (s3link) {
             //edit sceneArr img
             Storage.remove(
               this.panoSource.id +
                 "/" +
-                this.panoSource.sceneArr[sceneIndex].img
+                this.panoSource.sceneArr[this.currentSceneIndex].img
             );
-            this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
+            this.panoSource.sceneArr[this.currentSceneIndex].img = s3link.split(
+              "/"
+            )[1];
             //edit scene panorama
             this.pano.scenes[sceneID].panorama = await Storage.get(s3link);
           }
@@ -388,27 +403,23 @@ export default {
         let sceneIndex = this.panoSource.sceneArr.findIndex(
           (scene) => scene.id == this.currentScene
         );
-        if (!this.panoSource.sceneArr[sceneIndex].spots) {
-          this.panoSource.sceneArr[sceneIndex].spots = [];
+        if (!this.panoSource.sceneArr[this.currentSceneIndex].spots) {
+          this.panoSource.sceneArr[this.currentSceneIndex].spots = [];
         }
 
         if (this.editSpotData.spot.id) {
           //edit existing
           this.viewer.removeHotSpot(this.editSpotData.spot.id);
-          let spotIndex = this.panoSource.sceneArr[sceneIndex].spots.findIndex(
-            (spot) => spot.id == this.editSpotData.spot.id
-          );
-          this.panoSource.sceneArr[sceneIndex].spots[
+          let spotIndex = this.panoSource.sceneArr[
+            this.currentSceneIndex
+          ].spots.findIndex((spot) => spot.id == this.editSpotData.spot.id);
+          this.panoSource.sceneArr[this.currentSceneIndex].spots[
             spotIndex
           ] = this.editSpotData.spot;
-          console.log(
-            "sdsd",
-            this.panoSource.sceneArr[sceneIndex].spots[spotIndex]
-          );
         } else {
           //create new
           this.editSpotData.spot.id = nanoid();
-          this.panoSource.sceneArr[sceneIndex].spots.push(
+          this.panoSource.sceneArr[this.currentSceneIndex].spots.push(
             this.editSpotData.spot
           );
         }
@@ -431,28 +442,38 @@ export default {
     },
     updateLayerList() {
       let layerList = [];
-      let sceneIndex = this.panoSource.sceneArr.findIndex(
-        (scene) => scene.id == this.currentScene
-      );
+      // let sceneIndex = this.panoSource.sceneArr.findIndex(
+      //   (scene) => scene.id == this.currentScene
+      // );
       if (
-        this.panoSource.sceneArr[sceneIndex].spots &&
-        this.panoSource.sceneArr[sceneIndex].spots.length > 0
+        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
+        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
       ) {
-        this.panoSource.sceneArr[sceneIndex].spots.forEach((spot) => {
-          if (!layerList.includes(spot.layer)) {
-            layerList.push(spot.layer);
+        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
+          (spot) => {
+            if (!layerList.includes(spot.layer)) {
+              layerList.push(spot.layer);
+            }
           }
-        });
+        );
       }
       this.layers = layerList;
     },
 
-    showSpot(spot) {
+    showSpot(spot, spotIndex) {
       let addSpot = JSON.parse(JSON.stringify(spot));
       if (this.user.admin) {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
           this.editSpotData.spot = spot;
+          this.editSpotData.contents = this.panoSource.sceneArr[
+            this.currentSceneIndex
+          ].spots[spotIndex].contents;
+          console.log("spotIndex", spotIndex);
+          console.log(
+            "this.editSpotData.contents",
+            this.panoSource.sceneArr[this.currentSceneIndex].spots[spotIndex]
+          );
           this.editSpotData.dialog = true;
         };
       } else {
@@ -493,9 +514,9 @@ export default {
       let sceneIndex = this.panoSource.sceneArr.findIndex(
         (scene) => scene.id == this.currentScene
       );
-      this.panoSource.sceneArr[sceneIndex].spots.forEach((spot) => {
+      this.panoSource.sceneArr[sceneIndex].spots.forEach((spot, spotIndex) => {
         if (spot.layer == layer) {
-          this.showSpot(spot);
+          this.showSpot(spot, spotIndex);
         }
       });
       this.currentLayer = layer;
@@ -520,14 +541,14 @@ export default {
         // }
       }
     },
-    "editSpotData.spot.style": async function (val) {
-      if (val == "detail" && this.editSpotData.spot.id) {
-        console.log(val);
-        await API.graphql(
-          graphqlOperation(getSpot, { id: this.editSpotData.spot.id })
-        );
-      }
-    },
+    // "editSpotData.spot.style": async function (val) {
+    //   if (val == "detail" && this.editSpotData.spot.id) {
+    //     console.log(val);
+    //     await API.graphql(
+    //       graphqlOperation(getSpot, { id: this.editSpotData.spot.id })
+    //     );
+    //   }
+    // },
   },
 };
 </script>
