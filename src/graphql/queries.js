@@ -56,63 +56,12 @@ export const listPanos = /* GraphQL */ `
     }
   }
 `;
-export const getSpot = /* GraphQL */ `
-  query GetSpot($id: ID!) {
-    getSpot(id: $id) {
-      id
-      contents {
-        name
-        type
-        content
-        link
-      }
-      createdAt
-      updatedAt
-      comments {
-        items {
-          id
-          owner
-          spotID
-          msg
-          createdAt
-          updatedAt
-        }
-        nextToken
-      }
-    }
-  }
-`;
-export const listSpots = /* GraphQL */ `
-  query ListSpots(
-    $filter: ModelSpotFilterInput
-    $limit: Int
-    $nextToken: String
-  ) {
-    listSpots(filter: $filter, limit: $limit, nextToken: $nextToken) {
-      items {
-        id
-        contents {
-          name
-          type
-          content
-          link
-        }
-        createdAt
-        updatedAt
-        comments {
-          nextToken
-        }
-      }
-      nextToken
-    }
-  }
-`;
 export const getComment = /* GraphQL */ `
   query GetComment($id: ID!) {
     getComment(id: $id) {
       id
-      owner
       spotID
+      owner
       msg
       createdAt
       updatedAt
@@ -128,8 +77,8 @@ export const listComments = /* GraphQL */ `
     listComments(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        owner
         spotID
+        owner
         msg
         createdAt
         updatedAt

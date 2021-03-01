@@ -88,90 +88,12 @@ export const onDeletePano = /* GraphQL */ `
     }
   }
 `;
-export const onCreateSpot = /* GraphQL */ `
-  subscription OnCreateSpot {
-    onCreateSpot {
-      id
-      contents {
-        name
-        type
-        content
-        link
-      }
-      createdAt
-      updatedAt
-      comments {
-        items {
-          id
-          owner
-          spotID
-          msg
-          createdAt
-          updatedAt
-        }
-        nextToken
-      }
-    }
-  }
-`;
-export const onUpdateSpot = /* GraphQL */ `
-  subscription OnUpdateSpot {
-    onUpdateSpot {
-      id
-      contents {
-        name
-        type
-        content
-        link
-      }
-      createdAt
-      updatedAt
-      comments {
-        items {
-          id
-          owner
-          spotID
-          msg
-          createdAt
-          updatedAt
-        }
-        nextToken
-      }
-    }
-  }
-`;
-export const onDeleteSpot = /* GraphQL */ `
-  subscription OnDeleteSpot {
-    onDeleteSpot {
-      id
-      contents {
-        name
-        type
-        content
-        link
-      }
-      createdAt
-      updatedAt
-      comments {
-        items {
-          id
-          owner
-          spotID
-          msg
-          createdAt
-          updatedAt
-        }
-        nextToken
-      }
-    }
-  }
-`;
 export const onCreateComment = /* GraphQL */ `
   subscription OnCreateComment {
     onCreateComment {
       id
-      owner
       spotID
+      owner
       msg
       createdAt
       updatedAt
@@ -182,8 +104,8 @@ export const onUpdateComment = /* GraphQL */ `
   subscription OnUpdateComment {
     onUpdateComment {
       id
-      owner
       spotID
+      owner
       msg
       createdAt
       updatedAt
@@ -194,8 +116,8 @@ export const onDeleteComment = /* GraphQL */ `
   subscription OnDeleteComment {
     onDeleteComment {
       id
-      owner
       spotID
+      owner
       msg
       createdAt
       updatedAt

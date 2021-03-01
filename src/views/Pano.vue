@@ -507,6 +507,7 @@ export default {
   watch: {
     "editSpotData.dialog": function (val) {
       if (val) {
+        //update scene list
         this.sceneSelectList = [];
         for (const sceneId in this.pano.scenes) {
           this.sceneSelectList.push({
@@ -514,6 +515,9 @@ export default {
             value: sceneId,
           });
         }
+        //update detail
+        // if (this.editSpotData.spot && this.editSpotData.spot.style=='detail'){
+        // }
       }
     },
     "editSpotData.spot.style": async function (val) {
