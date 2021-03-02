@@ -477,6 +477,7 @@ export default {
       let spotIndex = this.panoSource.sceneArr[
         this.currentSceneIndex
       ].spots.findIndex((spot) => spot.id == this.editSpotData.spot.id);
+      console.log("spotIndex", spotIndex);
       if (spotIndex >= 0) {
         //+delete contents
         let thisContents = this.panoSource.sceneArr[this.currentSceneIndex]
@@ -488,11 +489,11 @@ export default {
             }
           });
         }
+
         this.panoSource.sceneArr[
           this.currentSceneIndex
-        ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.splice(
-          spotIndex,
-          1
+        ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.filter(
+          (spot) => spot.id !== this.editSpotData.spot.id
         );
 
         this.updateLayerList();
