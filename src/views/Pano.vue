@@ -2,7 +2,7 @@
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
       <div class="default-slot mb-12">
-        <div v-for="(layer, layerIndex) in layers" :key="layerIndex">
+        <!-- <div v-for="(layer, layerIndex) in layers" :key="layerIndex">
           <v-btn
             text
             @click="loadLayer(layer)"
@@ -11,7 +11,7 @@
           >
             {{ layer }}
           </v-btn>
-        </div>
+        </div> -->
 
         <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
           <v-btn
@@ -38,9 +38,6 @@
           small
         >
           Add Image
-        </v-btn>
-        <v-btn v-if="user.admin" text @click="savePano()" class="ml-2" small>
-          Save Project
         </v-btn>
       </div>
     </div>
@@ -122,12 +119,12 @@
               :rules="[(v) => !!v || 'Tag Name is required']"
               label="Tag Name"
             ></v-text-field>
-            <v-text-field
+            <!-- <v-text-field
               v-model="editSpotData.spot.layer"
               label="Layer"
               require
               :rules="[(v) => !!v || 'Layer is required']"
-            ></v-text-field>
+            ></v-text-field> -->
 
             <v-text-field
               v-if="editSpotData.spot.style == 'link'"
@@ -142,7 +139,42 @@
             ></v-select>
           </v-form>
           <div v-if="editSpotData.spot.style == 'detail'">
-            {{ editSpotData.contents }}
+            <div
+              v-for="(content, contentIndex) in editSpotData.spot.contents"
+              :key="contentIndex"
+            >
+              <div v-if="!content.delete">
+                <s3file
+                  v-if="!content.delete"
+                  :file="content"
+                  :panoID="panoSource.id"
+                ></s3file>
+                <v-row>
+                  <v-text-field
+                    v-model="content.name"
+                    label="File Name"
+                  ></v-text-field>
+                  <v-btn icon @click="deleteContent(content)" class="ml-4"
+                    ><v-icon>mdi-delete-outline </v-icon>
+                  </v-btn>
+                </v-row>
+              </div>
+            </div>
+            <v-divider class="ma-8"></v-divider>
+            <div class="d-flex justify-space-between mb-6">
+              <v-file-input
+                v-model="editSpotData.newContent.file"
+                label="Select File"
+              ></v-file-input>
+
+              <v-text-field
+                class="ml-4"
+                v-model="editSpotData.newContent.name"
+                label="Display Name"
+              ></v-text-field>
+            </div>
+
+            <v-btn block @click="addNewContent">Add Content</v-btn>
           </div>
         </v-card-text>
         <v-card-actions>
@@ -155,9 +187,8 @@
           >
             Save
           </v-btn>
-          <v-btn color="grey" text @click="editSpotData.dialog = false">
-            Cancel
-          </v-btn>
+          <v-btn color="grey" text @click="cancelSpot"> Cancel </v-btn>
+          <v-btn color="grey" text @click="deleteSpot"> Delete </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -175,6 +206,9 @@ import { nanoid } from "nanoid";
 
 export default {
   name: "Pano",
+  components: {
+    s3file: () => import("../components/S3file"),
+  },
   data: function () {
     return {
       pano: null,
@@ -194,7 +228,12 @@ export default {
         dialog: false,
         editValid: false,
         spot: null,
-        contents: null,
+        newContent: {
+          type: null,
+          name: null,
+          thumbnail: null,
+          file: null,
+        },
       },
       showSpotDetail: {
         dialog: false,
@@ -260,11 +299,16 @@ export default {
       );
 
       this.updateLayerList();
-      if (this.layers.includes(this.currentLayer)) {
-        this.loadLayer(this.currentLayer);
+      if (this.layers.includes("default")) {
+        this.loadLayer("default");
       } else {
         this.currentLayer = null;
       }
+      // if (this.layers.includes(this.currentLayer)) {
+      //   this.loadLayer(this.currentLayer);
+      // } else {
+      //   this.currentLayer = null;
+      // }
     },
     initEditScene(sceneID) {
       if (!sceneID) {
@@ -368,6 +412,7 @@ export default {
         }
         this.savePano();
         this.editSceneData.dialog = false;
+        this.loadScene(sceneID);
       }
     },
     mouseDownHandler(event) {
@@ -380,6 +425,13 @@ export default {
           pitch: coords[0],
           yaw: coords[1],
           style: "detail",
+          layer: "default",
+        },
+        newContent: {
+          type: null,
+          name: null,
+          thumbnail: null,
+          file: null,
         },
       };
       this.viewer.off("mousedown", this.mouseDownHandler);
@@ -398,6 +450,52 @@ export default {
     addTagConfig() {
       this.viewer.on("mousedown", this.mouseDownHandler);
     },
+    cancelSpot() {
+      if (this.editSpotData.spot.contents) {
+        this.editSpotData.spot.contents = this.editSpotData.spot.contents.filter(
+          (content) => !content.s3Upload
+        );
+        this.editSpotData.spot.contents.forEach((content) => {
+          if (content.delete) {
+            delete content.delete;
+          }
+        });
+      }
+      this.editSpotData.dialog = false;
+    },
+    deleteSpot() {
+      this.viewer.removeHotSpot(this.editSpotData.spot.id);
+      let spotIndex = this.panoSource.sceneArr[
+        this.currentSceneIndex
+      ].spots.findIndex((spot) => spot.id == this.editSpotData.spot.id);
+      if (spotIndex >= 0) {
+        //+delete contents
+        let thisContents = this.panoSource.sceneArr[this.currentSceneIndex]
+          .spots[spotIndex].contents;
+        if (thisContents && thisContents.length > 0) {
+          thisContents.forEach((content) => {
+            if (content.link && !content.s3Upload) {
+              Storage.remove(this.panoSource.id + "/" + content.link);
+            }
+          });
+        }
+        this.panoSource.sceneArr[
+          this.currentSceneIndex
+        ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.splice(
+          spotIndex,
+          1
+        );
+
+        this.updateLayerList();
+        this.savePano();
+      }
+      this.editSpotData.dialog = false;
+    },
+    deleteContent(content) {
+      content.delete = true;
+      this.$forceUpdate();
+    },
+
     saveSpot() {
       if (this.$refs.editspotform.validate()) {
         let sceneIndex = this.panoSource.sceneArr.findIndex(
@@ -431,6 +529,78 @@ export default {
     },
 
     async savePano() {
+      async function asyncForEach(array, callback) {
+        for (let index = 0; index < array.length; index++) {
+          await callback(array[index], index, array);
+        }
+      }
+      await asyncForEach(this.panoSource.sceneArr, async (scene) => {
+        if (scene.spots) {
+          await asyncForEach(scene.spots, async (spot) => {
+            if (spot.contents) {
+              await asyncForEach(spot.contents, async (content) => {
+                if (content.delete) {
+                  if (content.link && !content.s3Upload) {
+                    Storage.remove(this.panoSource.id + "/" + content.link);
+                  }
+                } else {
+                  if (content.s3Upload) {
+                    if (content.link) {
+                      Storage.remove(this.panoSource.id + "/" + content.link);
+                    }
+                    let fileID = nanoid();
+                    content.link = (
+                      await Storage.put(
+                        this.panoSource.id + "/" + fileID,
+                        this.editSpotData.newContent.file,
+                        {
+                          contentType: this.editSpotData.newContent.file.type,
+                          metadata: {
+                            user: this.user.email,
+                            type: "spotDetail",
+                            spotID: this.editSpotData.spot.id,
+                          },
+                        }
+                      )
+                    ).key.split("/")[1];
+                    delete content.s3Upload;
+                  }
+                }
+              });
+              spot.contents = spot.contents.filter(
+                (content) => !content.delete
+              );
+            }
+          });
+        }
+      });
+
+      // this.panoSource.sceneArr.forEach((scene) => {
+      //   scene.spots.forEach((spot) => {
+      //     if (spot.contents) {
+      //       spot.contents.forEach(async (content) => {
+      //         if (content.s3Upload) {
+      //           content.link = (
+      //             await Storage.put(
+      //               this.panoSource.id + "/" + nanoid(),
+      //               this.editSpotData.newContent.file,
+      //               {
+      //                 contentType: this.editSpotData.newContent.file,
+      //                 metadata: {
+      //                   user: this.user.email,
+      //                   type: "spotDetail",
+      //                   spotID: this.editSpotData.spot.id,
+      //                 },
+      //               }
+      //             )
+      //           ).key.split("/")[1];
+
+      //           delete content.s3Upload;
+      //         }
+      //       });
+      //     }
+      //   });
+      // });
       console.log("savePano", this.panoSource);
       await API.graphql({
         query: updatePano,
@@ -466,14 +636,7 @@ export default {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
           this.editSpotData.spot = spot;
-          this.editSpotData.contents = this.panoSource.sceneArr[
-            this.currentSceneIndex
-          ].spots[spotIndex].contents;
-          console.log("spotIndex", spotIndex);
-          console.log(
-            "this.editSpotData.contents",
-            this.panoSource.sceneArr[this.currentSceneIndex].spots[spotIndex]
-          );
+
           this.editSpotData.dialog = true;
         };
       } else {
@@ -511,15 +674,28 @@ export default {
     },
     loadLayer(layer) {
       this.removeCurrentSpots();
-      let sceneIndex = this.panoSource.sceneArr.findIndex(
-        (scene) => scene.id == this.currentScene
-      );
-      this.panoSource.sceneArr[sceneIndex].spots.forEach((spot, spotIndex) => {
-        if (spot.layer == layer) {
-          this.showSpot(spot, spotIndex);
+      this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
+        (spot, spotIndex) => {
+          if (spot.layer == layer) {
+            this.showSpot(spot, spotIndex);
+          }
         }
-      });
+      );
       this.currentLayer = layer;
+    },
+    async addNewContent() {
+      let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
+      if (!this.editSpotData.spot.contents) {
+        this.editSpotData.spot.contents = [];
+      }
+      this.editSpotData.spot.contents.push({
+        // type: "type",
+        name: this.editSpotData.newContent.name,
+        // thumbnail: "String",
+        link: fileURL,
+        s3Upload: this.editSpotData.newContent.file,
+      });
+      this.$forceUpdate();
     },
   },
   computed: {
