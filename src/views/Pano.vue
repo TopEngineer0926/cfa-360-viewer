@@ -1,7 +1,7 @@
 <template>
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
-      <div class="default-slot mb-12">
+      <div class="default-slot mb-4">
         <!-- <div v-for="(layer, layerIndex) in layers" :key="layerIndex">
           <v-btn
             text
@@ -12,33 +12,41 @@
             {{ layer }}
           </v-btn>
         </div> -->
-
-        <div v-for="(scene, sceneID) in pano.scenes" :key="sceneID">
+        <v-row justify="center" align="center">
           <v-btn
-            @click="loadScene(sceneID)"
-            class="ml-2 my-1"
+            v-if="user.admin"
+            text
+            @click="addTagConfig"
+            class="ml-2"
             small
-            :class="{ primary: sceneID == currentScene }"
           >
-            {{ scene.title }}</v-btn
-          >
-          <v-btn v-if="user.admin" icon @click="initEditScene(sceneID)">
-            <v-icon>mdi-pencil-outline</v-icon></v-btn
-          >
-        </div>
-        <v-btn v-if="user.admin" text @click="addTagConfig" class="ml-2" small>
-          Add Tag
-        </v-btn>
+            Add Tag
+          </v-btn>
 
-        <v-btn
-          v-if="user.admin"
-          text
-          @click="initEditScene(null)"
-          class="ml-2"
-          small
-        >
-          Add Image
-        </v-btn>
+          <v-btn
+            v-if="user.admin"
+            text
+            @click="initEditScene(null)"
+            class="ml-2"
+            small
+          >
+            Add Image
+          </v-btn>
+          <v-chip-group mandatory>
+            <v-chip
+              v-for="(scene, sceneID) in pano.scenes"
+              :key="sceneID"
+              :class="{ primary: sceneID == currentScene }"
+              @click="loadScene(sceneID)"
+            >
+              {{ scene.title }}
+
+              <v-avatar v-if="user.admin" right @click="initEditScene(sceneID)">
+                <v-icon>mdi-pencil-outline</v-icon>
+              </v-avatar>
+            </v-chip>
+          </v-chip-group>
+        </v-row>
       </div>
     </div>
 
@@ -733,11 +741,14 @@ export default {
   white-space: pre-line;
 }
 
-.pnlm-panorama-info {
+/* .pnlm-panorama-info {
   bottom: 10px;
   left: 10px;
   background-color: rgba(0, 0, 0, 0) !important;
   text-transform: capitalize;
+} */
+.pnlm-panorama-info {
+  display: none !important;
 }
 </style>
 
@@ -763,6 +774,6 @@ export default {
   right: 0;
   bottom: 0;
   z-index: 2;
-  width: 250px;
+  /* width: 500px; */
 }
 </style>
