@@ -294,6 +294,7 @@ export default {
 
         this.updateLayerList();
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
+        this.loadLayer("default");
       }
     },
 

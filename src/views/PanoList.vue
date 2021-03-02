@@ -27,6 +27,9 @@
               class="white--text align-end grey"
             >
               <v-card-title v-text="pano.title"></v-card-title>
+              <v-card-subtitle class="white--text">
+                Type:{{ pano.ptype }} Size:{{ pano.psize }}
+              </v-card-subtitle>
             </v-img>
 
             <!-- <v-card-text> {{ pano.title }}</v-card-text> -->
@@ -129,23 +132,26 @@ export default {
   },
   computed: mapState(["user"]),
   created() {
-    API.graphql(graphqlOperation(listPanos)).then(async (data) => {
-      let panosRes = data.data.listPanos.items;
-      //Get thumbnail URL
-      await Promise.all(
-        panosRes.map(async (pano) => {
-          if (pano.thumbnail) {
-            pano.thumbnailUrl = await Storage.get(
-              pano.id + "/" + pano.thumbnail
-            );
-          }
-          return pano;
-        })
-      );
-      this.panos = panosRes;
-    });
+    this.loadPanos();
   },
   methods: {
+    loadPanos() {
+      API.graphql(graphqlOperation(listPanos)).then(async (data) => {
+        let panosRes = data.data.listPanos.items;
+        //Get thumbnail URL
+        await Promise.all(
+          panosRes.map(async (pano) => {
+            if (pano.thumbnail) {
+              pano.thumbnailUrl = await Storage.get(
+                pano.id + "/" + pano.thumbnail
+              );
+            }
+            return pano;
+          })
+        );
+        this.panos = panosRes;
+      });
+    },
     async createPanoFunc() {
       try {
         let newPanoId = await API.graphql(
@@ -276,8 +282,8 @@ export default {
             input: newPano,
           },
         });
+        this.loadPanos();
         this.editPano.dialog = false;
-        this.$router.go();
       }
     },
   },
