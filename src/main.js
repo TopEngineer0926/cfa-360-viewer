@@ -12,6 +12,9 @@ Amplify.configure(awsconfig);
 
 Vue.config.productionTip = false;
 
+import VueYoutube from 'vue-youtube'
+Vue.use(VueYoutube)
+
 new Vue({
   router,
   store,

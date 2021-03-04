@@ -168,15 +168,15 @@
               :key="contentIndex"
             >
               <div v-if="!content.delete">
-                <s3file
+                <ContentDisplay
                   v-if="!content.delete"
-                  :file="content"
+                  :content="content"
                   :panoID="panoSource.id"
-                ></s3file>
+                ></ContentDisplay>
                 <v-row>
                   <v-text-field
                     v-model="content.name"
-                    label="File Name"
+                    label="Display Name"
                   ></v-text-field>
                   <v-btn icon @click="deleteContent(content)" class="ml-4"
                     ><v-icon>mdi-delete-outline </v-icon>
@@ -195,8 +195,9 @@
               ></v-col>
               <v-col>
                 <v-text-field
-                  label="Link Url"
-                  v-if="editSpotData.newContent.type == 'link'"
+                  label="video Id"
+                  v-model="editSpotData.newContent.link"
+                  v-if="editSpotData.newContent.type == 'youtube'"
                 ></v-text-field>
                 <v-file-input
                   v-else
@@ -243,7 +244,7 @@ import { nanoid } from "nanoid";
 export default {
   name: "Pano",
   components: {
-    s3file: () => import("../components/S3file"),
+    ContentDisplay: () => import("../components/ContentDisplay"),
   },
   data: function () {
     return {
@@ -266,7 +267,7 @@ export default {
         editValid: false,
         spot: null,
         newContent: {
-          type: "file",
+          type: "img",
           name: null,
           thumbnail: null,
           file: null,
@@ -283,8 +284,9 @@ export default {
         { text: "Change Pano Image", value: "scene" },
       ],
       contentTypes: [
-        { text: "File", value: "file" },
-        { text: "Link", value: "link" },
+        { text: "Image", value: "img" },
+        { text: "PDF", value: "pdf" },
+        { text: "Youtube", value: "youtube" },
       ],
       sceneSelectList: [],
       currentLayer: null,
@@ -491,7 +493,7 @@ export default {
           layer: "default",
         },
         newContent: {
-          type: "file",
+          type: "img",
           name: null,
           thumbnail: null,
           file: null,
@@ -502,7 +504,6 @@ export default {
       // let pitch = this.viewer.getPitch();
       // let yaw = this.viewer.getYaw();
       // let hfov = this.viewer.getHfov();
-      // console.log("pitch, yaw, hfov", pitch, yaw, hfov);
 
       // newSpot.clickHandlerFunc = () => {
       //   this.specsDialog.newComment = null;
@@ -520,7 +521,7 @@ export default {
         editValid: false,
         spot: null,
         newContent: {
-          type: "file",
+          type: "img",
           name: null,
           thumbnail: null,
           file: null,
@@ -533,7 +534,7 @@ export default {
       let spotIndex = this.panoSource.sceneArr[
         this.currentSceneIndex
       ].spots.findIndex((spot) => spot.id == this.editSpotData.spot.id);
-      console.log("spotIndex", spotIndex);
+
       if (spotIndex >= 0) {
         //delete contents
         let thisContents = this.panoSource.sceneArr[this.currentSceneIndex]
@@ -632,7 +633,7 @@ export default {
     },
 
     savePano() {
-      console.log("savePano", this.panoSource);
+      console.log("save", this.panoSource);
       API.graphql({
         query: updatePano,
         variables: {
@@ -724,37 +725,41 @@ export default {
       if (!this.editSpotData.spot.contents) {
         this.editSpotData.spot.contents = [];
       }
-      let fileType = this.editSpotData.newContent.link.type;
 
-      if (fileType.includes("image")) {
+      if (this.editSpotData.newContent.type == "youtube") {
         this.editSpotData.spot.contents.push({
-          type: "img",
+          type: this.editSpotData.newContent.type,
           name: this.editSpotData.newContent.name,
           link: this.editSpotData.newContent.link,
-          // thumbnail: "String",
-          s3Upload: true,
-        });
-      } else if (fileType.includes("pdf")) {
-        //+++generate thumbnail
-        this.editSpotData.spot.contents.push({
-          type: "pdf",
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-          // thumbnail: "String",
-          s3Upload: true,
         });
       } else {
         this.editSpotData.spot.contents.push({
-          type: "file",
+          type: this.editSpotData.newContent.type,
           name: this.editSpotData.newContent.name,
           link: this.editSpotData.newContent.link,
           // thumbnail: "String",
           s3Upload: true,
         });
       }
+      // let fileType = this.editSpotData.newContent.link.type;
+
+      // if (fileType.includes("image")) {
+      //   this.editSpotData.spot.contents.push({
+      //     type: "img",
+      //     name: this.editSpotData.newContent.name,
+      //     link: this.editSpotData.newContent.link,
+      //     // thumbnail: "String",
+      //     s3Upload: true,
+      //   });
+      // }
+
+      // else if (fileType.includes("pdf")) {
+      //   //+++generate thumbnail
+
+      // }
 
       this.editSpotData.newContent = {
-        type: "file",
+        type: "img",
         name: null,
         thumbnail: null,
         file: null,
@@ -784,7 +789,7 @@ export default {
     },
     // "editSpotData.spot.style": async function (val) {
     //   if (val == "detail" && this.editSpotData.spot.id) {
-    //     console.log(val);
+
     //     await API.graphql(
     //       graphqlOperation(getSpot, { id: this.editSpotData.spot.id })
     //     );
