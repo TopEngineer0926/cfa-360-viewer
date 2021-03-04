@@ -1,5 +1,6 @@
 <template>
   <div v-if="url">
+    {{ file }}
     <v-img :src="url" height="200" max-width="500" contain>
       <!-- <v-card-title v-if="data.name" v-text="data.name"></v-card-title> -->
     </v-img>

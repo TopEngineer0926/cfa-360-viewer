@@ -65,7 +65,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Edit Image</v-card-title>
+        <v-card-title class="headline">Edit Panorama Image</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"
@@ -185,19 +185,32 @@
               </div>
             </div>
             <v-divider class="ma-8"></v-divider>
-            <div class="d-flex justify-space-between mb-6">
-              <v-file-input
-                v-model="editSpotData.newContent.file"
-                label="Select File"
-              ></v-file-input>
+            <v-row>
+              <v-col>
+                <v-text-field
+                  label="Link Url"
+                  v-if="editSpotData.newContent.type == 'link'"
+                ></v-text-field>
+                <v-file-input
+                  v-else
+                  v-model="editSpotData.newContent.file"
+                  label="Select File"
+                ></v-file-input>
+              </v-col>
+              <v-col>
+                <v-select
+                  v-model="editSpotData.newContent.type"
+                  :items="contentTypes"
+                  label="Type"
+                  class="ml-4"
+                ></v-select
+              ></v-col>
+            </v-row>
 
-              <v-text-field
-                class="ml-4"
-                v-model="editSpotData.newContent.name"
-                label="Display Name"
-              ></v-text-field>
-            </div>
-
+            <v-text-field
+              v-model="editSpotData.newContent.name"
+              label="Display Name"
+            ></v-text-field>
             <v-btn block @click="addNewContent">Add Content</v-btn>
           </div>
         </v-card-text>
@@ -254,10 +267,11 @@ export default {
         editValid: false,
         spot: null,
         newContent: {
-          type: null,
+          type: "file",
           name: null,
           thumbnail: null,
           file: null,
+          link: null,
         },
       },
       showSpotDetail: {
@@ -268,6 +282,10 @@ export default {
         { text: "Product Detail", value: "detail" },
         // { text: "Hyperlink", value: "link" },
         { text: "Change Pano Image", value: "scene" },
+      ],
+      contentTypes: [
+        { text: "File", value: "file" },
+        { text: "Link", value: "link" },
       ],
       sceneSelectList: [],
       currentLayer: null,
@@ -475,10 +493,11 @@ export default {
           layer: "default",
         },
         newContent: {
-          type: null,
+          type: "file",
           name: null,
           thumbnail: null,
           file: null,
+          link: null,
         },
       };
       this.viewer.off("mousedown", this.mouseDownHandler);
@@ -498,17 +517,18 @@ export default {
       this.viewer.on("mousedown", this.mouseDownHandler);
     },
     cancelSpot() {
-      if (this.editSpotData.spot.contents) {
-        this.editSpotData.spot.contents = this.editSpotData.spot.contents.filter(
-          (content) => !content.s3Upload
-        );
-        this.editSpotData.spot.contents.forEach((content) => {
-          if (content.delete) {
-            delete content.delete;
-          }
-        });
-      }
-      this.editSpotData.dialog = false;
+      this.editSpotData = {
+        dialog: false,
+        editValid: false,
+        spot: null,
+        newContent: {
+          type: "file",
+          name: null,
+          thumbnail: null,
+          file: null,
+          link: null,
+        },
+      };
     },
     deleteSpot() {
       this.viewer.removeHotSpot(this.editSpotData.spot.id);
@@ -543,14 +563,53 @@ export default {
       content.delete = true;
       this.$forceUpdate();
     },
-
-    saveSpot() {
+    async saveSpot() {
       if (this.$refs.editspotform.validate()) {
-        let sceneIndex = this.panoSource.sceneArr.findIndex(
-          (scene) => scene.id == this.currentScene
-        );
         if (!this.panoSource.sceneArr[this.currentSceneIndex].spots) {
           this.panoSource.sceneArr[this.currentSceneIndex].spots = [];
+        }
+
+        async function asyncForEach(array, callback) {
+          for (let index = 0; index < array.length; index++) {
+            await callback(array[index], index, array);
+          }
+        }
+
+        if (this.editSpotData.spot.contents) {
+          await asyncForEach(
+            this.editSpotData.spot.contents,
+            async (content) => {
+              if (content.delete) {
+                if (content.link && !content.s3Upload) {
+                  Storage.remove(this.panoSource.id + "/" + content.link);
+                }
+              } else {
+                if (content.s3Upload) {
+                  if (content.link) {
+                    Storage.remove(this.panoSource.id + "/" + content.link);
+                  }
+                  content.link = (
+                    await Storage.put(
+                      this.panoSource.id + "/" + nanoid(),
+                      content.s3Upload,
+                      {
+                        contentType: content.s3Upload.type,
+                        metadata: {
+                          user: this.user.email,
+                          type: "spotDetail",
+                        },
+                      }
+                    )
+                  ).key.split("/")[1];
+                  console.log("upload", content.s3Upload.type);
+                  delete content.s3Upload;
+                }
+              }
+            }
+          );
+          this.editSpotData.spot.contents = this.editSpotData.spot.contents.filter(
+            (content) => !content.delete
+          );
         }
 
         if (this.editSpotData.spot.id) {
@@ -576,52 +635,53 @@ export default {
       }
     },
 
-    async savePano() {
-      async function asyncForEach(array, callback) {
-        for (let index = 0; index < array.length; index++) {
-          await callback(array[index], index, array);
-        }
-      }
-      await asyncForEach(this.panoSource.sceneArr, async (scene) => {
-        if (scene.spots) {
-          await asyncForEach(scene.spots, async (spot) => {
-            if (spot.contents) {
-              await asyncForEach(spot.contents, async (content) => {
-                if (content.delete) {
-                  if (content.link && !content.s3Upload) {
-                    Storage.remove(this.panoSource.id + "/" + content.link);
-                  }
-                } else {
-                  if (content.s3Upload) {
-                    if (content.link) {
-                      Storage.remove(this.panoSource.id + "/" + content.link);
-                    }
-                    let fileID = nanoid();
-                    content.link = (
-                      await Storage.put(
-                        this.panoSource.id + "/" + fileID,
-                        this.editSpotData.newContent.file,
-                        {
-                          contentType: this.editSpotData.newContent.file.type,
-                          metadata: {
-                            user: this.user.email,
-                            type: "spotDetail",
-                            spotID: this.editSpotData.spot.id,
-                          },
-                        }
-                      )
-                    ).key.split("/")[1];
-                    delete content.s3Upload;
-                  }
-                }
-              });
-              spot.contents = spot.contents.filter(
-                (content) => !content.delete
-              );
-            }
-          });
-        }
-      });
+    savePano() {
+      // async function asyncForEach(array, callback) {
+      //   for (let index = 0; index < array.length; index++) {
+      //     await callback(array[index], index, array);
+      //   }
+      // }
+      // await asyncForEach(this.panoSource.sceneArr, async (scene) => {
+      //   if (scene.spots) {
+      //     await asyncForEach(scene.spots, async (spot) => {
+      //       if (spot.contents) {
+      //         await asyncForEach(spot.contents, async (content) => {
+      //           if (content.delete) {
+      //             if (content.link && !content.s3Upload) {
+      //               Storage.remove(this.panoSource.id + "/" + content.link);
+      //             }
+      //           } else {
+      //             if (content.s3Upload) {
+      //               if (content.link) {
+      //                 Storage.remove(this.panoSource.id + "/" + content.link);
+      //               }
+      //               let fileID = nanoid();
+      //               content.link = (
+      //                 await Storage.put(
+      //                   this.panoSource.id + "/" + fileID,
+      //                   content.s3Upload,
+      //                   {
+      //                     contentType: content.s3Upload.type,
+      //                     metadata: {
+      //                       user: this.user.email,
+      //                       type: "spotDetail",
+      //                       spotID: spot.id,
+      //                     },
+      //                   }
+      //                 )
+      //               ).key.split("/")[1];
+      //               console.log("upload", content.s3Upload.type);
+      //               delete content.s3Upload;
+      //             }
+      //           }
+      //         });
+      //         spot.contents = spot.contents.filter(
+      //           (content) => !content.delete
+      //         );
+      //       }
+      //     });
+      //   }
+      // });
 
       // this.panoSource.sceneArr.forEach((scene) => {
       //   scene.spots.forEach((spot) => {
@@ -650,7 +710,7 @@ export default {
       //   });
       // });
       console.log("savePano", this.panoSource);
-      await API.graphql({
+      API.graphql({
         query: updatePano,
         variables: {
           input: this.panoSource,
@@ -683,7 +743,7 @@ export default {
       if (this.user.admin) {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
-          this.editSpotData.spot = spot;
+          this.editSpotData.spot = JSON.parse(JSON.stringify(spot));
           this.editSpotData.dialog = true;
         };
       } else {
@@ -737,18 +797,29 @@ export default {
       this.currentLayer = layer;
     },
     async addNewContent() {
-      // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
+      let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
       if (!this.editSpotData.spot.contents) {
         this.editSpotData.spot.contents = [];
       }
 
+      if (this.editSpotData.newContent.file.type.split("/")[0] == "image") {
+        this.editSpotData.newContent.type = "img";
+      }
+
       this.editSpotData.spot.contents.push({
-        // type: "type",
+        type: this.editSpotData.newContent.type,
         name: this.editSpotData.newContent.name,
         // thumbnail: "String",
         link: fileURL,
         s3Upload: this.editSpotData.newContent.file,
       });
+      this.editSpotData.newContent = {
+        type: "file",
+        name: null,
+        thumbnail: null,
+        file: null,
+        link: null,
+      };
       this.$forceUpdate();
     },
   },
