@@ -30,18 +30,22 @@
             class="ml-2"
             small
           >
-            Add Image
+            Add Panorama Image
           </v-btn>
           <v-chip-group mandatory>
             <v-chip
-              v-for="(scene, sceneID) in pano.scenes"
-              :key="sceneID"
-              :class="{ primary: sceneID == currentScene }"
-              @click="loadScene(sceneID)"
+              v-for="(scene, sceneIndex) in panoSource.sceneArr"
+              :key="sceneIndex"
+              :class="{ primary: sceneIndex == currentSceneIndex }"
+              @click="loadScene(scene.id)"
             >
               {{ scene.title }}
 
-              <v-avatar v-if="user.admin" right @click="initEditScene(sceneID)">
+              <v-avatar
+                v-if="user.admin"
+                right
+                @click="initEditScene(scene.id)"
+              >
                 <v-icon>mdi-pencil-outline</v-icon>
               </v-avatar>
             </v-chip>
@@ -97,6 +101,14 @@
           <v-btn color="grey" text @click="editSceneData.dialog = false">
             Cancel
           </v-btn>
+          <v-btn
+            v-if="panoSource.sceneArr && panoSource.sceneArr.length > 0"
+            color="grey"
+            text
+            @click="deleteScene"
+          >
+            Delete
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -147,6 +159,10 @@
             ></v-select>
           </v-form>
           <div v-if="editSpotData.spot.style == 'detail'">
+            <v-textarea
+              v-model="editSpotData.spot.about"
+              label="Description"
+            ></v-textarea>
             <div
               v-for="(content, contentIndex) in editSpotData.spot.contents"
               :key="contentIndex"
@@ -229,6 +245,7 @@ export default {
         dialog: false,
         editValid: false,
         sceneID: null,
+        sceneIndex: null,
         title: null,
         imgToUpload: null,
       },
@@ -322,8 +339,12 @@ export default {
     initEditScene(sceneID) {
       if (!sceneID) {
         this.editSceneData.sceneID = null;
+        this.editSceneData.sceneIndex = null;
         this.editSceneData.title = null;
       } else {
+        this.editSceneData.sceneIndex = this.panoSource.sceneArr.findIndex(
+          (scene) => scene.id == sceneID
+        );
         this.editSceneData.sceneID = sceneID;
         this.editSceneData.title = this.pano.scenes[
           this.editSceneData.sceneID
@@ -331,6 +352,23 @@ export default {
       }
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
+    },
+    deleteScene() {
+      Storage.remove(
+        this.panoSource.id +
+          "/" +
+          this.panoSource.sceneArr[this.editSceneData.sceneIndex].img
+      );
+      //+++remove content
+      this.panoSource.sceneArr.splice(this.editSceneData.sceneIndex, 1);
+      this.viewer.removeScene(this.editSceneData.sceneID);
+      this.savePano();
+      this.editSceneData.dialog = false;
+      if (this.panoSource.sceneArr.length > 0) {
+        this.loadScene(this.panoSource.sceneArr[0].id);
+      } else {
+        this.$router.push({ path: "/panolist" });
+      }
     },
     async saveScene() {
       if (this.$refs.editimgform.validate()) {
@@ -640,13 +678,12 @@ export default {
       this.layers = layerList;
     },
 
-    showSpot(spot, spotIndex) {
+    showSpot(spot) {
       let addSpot = JSON.parse(JSON.stringify(spot));
       if (this.user.admin) {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
           this.editSpotData.spot = spot;
-
           this.editSpotData.dialog = true;
         };
       } else {
@@ -684,20 +721,27 @@ export default {
     },
     loadLayer(layer) {
       this.removeCurrentSpots();
-      this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
-        (spot, spotIndex) => {
-          if (spot.layer == layer) {
-            this.showSpot(spot, spotIndex);
+      if (
+        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
+        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
+      ) {
+        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
+          (spot, spotIndex) => {
+            if (spot.layer == layer) {
+              this.showSpot(spot);
+            }
           }
-        }
-      );
+        );
+      }
+
       this.currentLayer = layer;
     },
     async addNewContent() {
-      let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
+      // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
       if (!this.editSpotData.spot.contents) {
         this.editSpotData.spot.contents = [];
       }
+
       this.editSpotData.spot.contents.push({
         // type: "type",
         name: this.editSpotData.newContent.name,

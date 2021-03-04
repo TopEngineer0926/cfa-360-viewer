@@ -23,6 +23,7 @@ export const onCreatePano = /* GraphQL */ `
           link
           sceneID
           layer
+          about
         }
       }
       createdAt
@@ -52,6 +53,7 @@ export const onUpdatePano = /* GraphQL */ `
           link
           sceneID
           layer
+          about
         }
       }
       createdAt
@@ -81,6 +83,7 @@ export const onDeletePano = /* GraphQL */ `
           link
           sceneID
           layer
+          about
         }
       }
       createdAt
