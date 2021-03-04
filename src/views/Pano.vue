@@ -187,24 +187,23 @@
             <v-divider class="ma-8"></v-divider>
             <v-row>
               <v-col>
+                <v-select
+                  v-model="editSpotData.newContent.type"
+                  :items="contentTypes"
+                  label="Type"
+                ></v-select
+              ></v-col>
+              <v-col>
                 <v-text-field
                   label="Link Url"
                   v-if="editSpotData.newContent.type == 'link'"
                 ></v-text-field>
                 <v-file-input
                   v-else
-                  v-model="editSpotData.newContent.file"
+                  v-model="editSpotData.newContent.link"
                   label="Select File"
                 ></v-file-input>
               </v-col>
-              <v-col>
-                <v-select
-                  v-model="editSpotData.newContent.type"
-                  :items="contentTypes"
-                  label="Type"
-                  class="ml-4"
-                ></v-select
-              ></v-col>
             </v-row>
 
             <v-text-field
@@ -482,7 +481,6 @@ export default {
     },
     mouseDownHandler(event) {
       let coords = this.viewer.mouseEventToCoords(event);
-
       this.editSpotData = {
         dialog: true,
         editValid: false,
@@ -537,7 +535,7 @@ export default {
       ].spots.findIndex((spot) => spot.id == this.editSpotData.spot.id);
       console.log("spotIndex", spotIndex);
       if (spotIndex >= 0) {
-        //+delete contents
+        //delete contents
         let thisContents = this.panoSource.sceneArr[this.currentSceneIndex]
           .spots[spotIndex].contents;
         if (thisContents && thisContents.length > 0) {
@@ -547,13 +545,11 @@ export default {
             }
           });
         }
-
         this.panoSource.sceneArr[
           this.currentSceneIndex
         ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.filter(
           (spot) => spot.id !== this.editSpotData.spot.id
         );
-
         this.updateLayerList();
         this.savePano();
       }
@@ -584,16 +580,16 @@ export default {
                   Storage.remove(this.panoSource.id + "/" + content.link);
                 }
               } else {
-                if (content.s3Upload) {
+                if (content.type !== "link" && content.s3Upload) {
                   if (content.link) {
                     Storage.remove(this.panoSource.id + "/" + content.link);
                   }
                   content.link = (
                     await Storage.put(
                       this.panoSource.id + "/" + nanoid(),
-                      content.s3Upload,
+                      content.link,
                       {
-                        contentType: content.s3Upload.type,
+                        contentType: content.link.type,
                         metadata: {
                           user: this.user.email,
                           type: "spotDetail",
@@ -601,7 +597,7 @@ export default {
                       }
                     )
                   ).key.split("/")[1];
-                  console.log("upload", content.s3Upload.type);
+
                   delete content.s3Upload;
                 }
               }
@@ -636,79 +632,6 @@ export default {
     },
 
     savePano() {
-      // async function asyncForEach(array, callback) {
-      //   for (let index = 0; index < array.length; index++) {
-      //     await callback(array[index], index, array);
-      //   }
-      // }
-      // await asyncForEach(this.panoSource.sceneArr, async (scene) => {
-      //   if (scene.spots) {
-      //     await asyncForEach(scene.spots, async (spot) => {
-      //       if (spot.contents) {
-      //         await asyncForEach(spot.contents, async (content) => {
-      //           if (content.delete) {
-      //             if (content.link && !content.s3Upload) {
-      //               Storage.remove(this.panoSource.id + "/" + content.link);
-      //             }
-      //           } else {
-      //             if (content.s3Upload) {
-      //               if (content.link) {
-      //                 Storage.remove(this.panoSource.id + "/" + content.link);
-      //               }
-      //               let fileID = nanoid();
-      //               content.link = (
-      //                 await Storage.put(
-      //                   this.panoSource.id + "/" + fileID,
-      //                   content.s3Upload,
-      //                   {
-      //                     contentType: content.s3Upload.type,
-      //                     metadata: {
-      //                       user: this.user.email,
-      //                       type: "spotDetail",
-      //                       spotID: spot.id,
-      //                     },
-      //                   }
-      //                 )
-      //               ).key.split("/")[1];
-      //               console.log("upload", content.s3Upload.type);
-      //               delete content.s3Upload;
-      //             }
-      //           }
-      //         });
-      //         spot.contents = spot.contents.filter(
-      //           (content) => !content.delete
-      //         );
-      //       }
-      //     });
-      //   }
-      // });
-
-      // this.panoSource.sceneArr.forEach((scene) => {
-      //   scene.spots.forEach((spot) => {
-      //     if (spot.contents) {
-      //       spot.contents.forEach(async (content) => {
-      //         if (content.s3Upload) {
-      //           content.link = (
-      //             await Storage.put(
-      //               this.panoSource.id + "/" + nanoid(),
-      //               this.editSpotData.newContent.file,
-      //               {
-      //                 contentType: this.editSpotData.newContent.file,
-      //                 metadata: {
-      //                   user: this.user.email,
-      //                   type: "spotDetail",
-      //                   spotID: this.editSpotData.spot.id,
-      //                 },
-      //               }
-      //             )
-      //           ).key.split("/")[1];
-
-      //           delete content.s3Upload;
-      //         }
-      //       });
-      //     }
-      //   });
-      // });
       console.log("savePano", this.panoSource);
       API.graphql({
         query: updatePano,
@@ -797,22 +720,39 @@ export default {
       this.currentLayer = layer;
     },
     async addNewContent() {
-      let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
+      // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
       if (!this.editSpotData.spot.contents) {
         this.editSpotData.spot.contents = [];
       }
+      let fileType = this.editSpotData.newContent.link.type;
 
-      if (this.editSpotData.newContent.file.type.split("/")[0] == "image") {
-        this.editSpotData.newContent.type = "img";
+      if (fileType.includes("image")) {
+        this.editSpotData.spot.contents.push({
+          type: "img",
+          name: this.editSpotData.newContent.name,
+          link: this.editSpotData.newContent.link,
+          // thumbnail: "String",
+          s3Upload: true,
+        });
+      } else if (fileType.includes("pdf")) {
+        //+++generate thumbnail
+        this.editSpotData.spot.contents.push({
+          type: "pdf",
+          name: this.editSpotData.newContent.name,
+          link: this.editSpotData.newContent.link,
+          // thumbnail: "String",
+          s3Upload: true,
+        });
+      } else {
+        this.editSpotData.spot.contents.push({
+          type: "file",
+          name: this.editSpotData.newContent.name,
+          link: this.editSpotData.newContent.link,
+          // thumbnail: "String",
+          s3Upload: true,
+        });
       }
 
-      this.editSpotData.spot.contents.push({
-        type: this.editSpotData.newContent.type,
-        name: this.editSpotData.newContent.name,
-        // thumbnail: "String",
-        link: fileURL,
-        s3Upload: this.editSpotData.newContent.file,
-      });
       this.editSpotData.newContent = {
         type: "file",
         name: null,
