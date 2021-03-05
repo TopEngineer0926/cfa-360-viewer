@@ -823,6 +823,7 @@ export default {
           })
         )
       ).data.commentsBySpotID.items;
+      this.$forceUpdate();
     },
     async addNewComment() {
       let newCommentData = {

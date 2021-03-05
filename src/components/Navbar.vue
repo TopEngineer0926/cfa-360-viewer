@@ -1,6 +1,11 @@
 <template>
   <v-app-bar app flat color="white">
-    <v-img :src="require('@/assets/360logo.svg')" max-width="60" class="mb-2" />
+    <v-img
+      :src="require('@/assets/360logo.svg')"
+      max-width="60"
+      class="mb-2"
+      @click="$router.push('/panolist').catch((err) => {})"
+    />
 
     <v-btn
       text
@@ -9,12 +14,12 @@
       >Gallery</v-btn
     >
 
-    <v-btn
+    <!-- <v-btn
       v-if="user.admin"
       text
       @click="$router.push('/admin').catch((err) => {})"
       >Admin</v-btn
-    >
+    > -->
     <v-spacer />
     <v-icon v-if="user.admin" color="primary" class="mr-2">
       mdi-alpha-a-box-outline
