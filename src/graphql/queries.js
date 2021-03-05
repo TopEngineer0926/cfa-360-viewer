@@ -27,7 +27,7 @@ export const getPano = /* GraphQL */ `
             type
             name
             thumbnail
-            link 
+            link
           }
           about
         }
@@ -55,6 +55,23 @@ export const listPanos = /* GraphQL */ `
           id
           title
           img
+          spots {
+            id
+            pitch
+            yaw
+            style
+            text
+            link
+            sceneID
+            layer
+            contents {
+              type
+              name
+              thumbnail
+              link
+            }
+            about
+          }
         }
         createdAt
         updatedAt
@@ -69,6 +86,7 @@ export const getComment = /* GraphQL */ `
       id
       spotID
       owner
+      name
       msg
       createdAt
       updatedAt
@@ -86,6 +104,37 @@ export const listComments = /* GraphQL */ `
         id
         spotID
         owner
+        name
+        msg
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const commentsBySpotId = /* GraphQL */ `
+  query CommentsBySpotId(
+    $spotID: ID
+    $updatedAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelCommentFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    commentsBySpotID(
+      spotID: $spotID
+      updatedAt: $updatedAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        spotID
+        owner
+        name
         msg
         createdAt
         updatedAt

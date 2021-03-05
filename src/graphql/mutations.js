@@ -26,6 +26,12 @@ export const createPano = /* GraphQL */ `
           link
           sceneID
           layer
+          contents {
+            type
+            name
+            thumbnail
+            link
+          }
           about
         }
       }
@@ -59,6 +65,12 @@ export const updatePano = /* GraphQL */ `
           link
           sceneID
           layer
+          contents {
+            type
+            name
+            thumbnail
+            link
+          }
           about
         }
       }
@@ -92,6 +104,12 @@ export const deletePano = /* GraphQL */ `
           link
           sceneID
           layer
+          contents {
+            type
+            name
+            thumbnail
+            link
+          }
           about
         }
       }
@@ -109,6 +127,7 @@ export const createComment = /* GraphQL */ `
       id
       spotID
       owner
+      name
       msg
       createdAt
       updatedAt
@@ -124,6 +143,7 @@ export const updateComment = /* GraphQL */ `
       id
       spotID
       owner
+      name
       msg
       createdAt
       updatedAt
@@ -139,6 +159,7 @@ export const deleteComment = /* GraphQL */ `
       id
       spotID
       owner
+      name
       msg
       createdAt
       updatedAt

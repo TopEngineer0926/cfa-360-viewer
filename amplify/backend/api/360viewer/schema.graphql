@@ -1,11 +1,10 @@
-type Pano
-  @model
-  @auth(
-    rules: [
-      { allow: private, operations: [read] }
-      { allow: groups, groups: ["360Admin"] }
-    ]
-  ) {
+type Pano @model {
+  # @auth(
+  #   rules: [
+  #     { allow: private, operations: [read] }
+  #     { allow: groups, groups: ["360Admin"] }
+  #   ]
+  # )
   id: ID!
   title: String!
   thumbnail: String
@@ -13,8 +12,8 @@ type Pano
   ptype: String
   psize: String
   sceneArr: [SceneObject]
-  createdAt: String
-  updatedAt: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
 }
 
 type SceneObject {
@@ -47,18 +46,23 @@ type SpotContent {
 
 type Comment
   @model
-  @auth(
-    rules: [
-      { allow: owner }
-      { allow: private, operations: [read] }
-      { allow: groups, groups: ["360Admin"] }
-    ]
+  @key(
+    name: "BySpotID"
+    fields: ["spotID", "updatedAt"]
+    queryField: "commentsBySpotID"
   ) {
-  # @key(name: "bySpot", fields: ["spotID", "createdAt"])
+  # @auth(
+  #   rules: [
+  #     { allow: owner }
+  #     { allow: private, operations: [read] }
+  #     { allow: groups, groups: ["360Admin"] }
+  #   ]
+  # )
   id: ID!
   spotID: ID!
   owner: ID
+  name: String
   msg: String
-  createdAt: String
-  updatedAt: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
 }

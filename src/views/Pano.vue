@@ -12,19 +12,9 @@
             {{ layer }}
           </v-btn>
         </div> -->
-        <v-row justify="center" align="center">
+        <v-row v-if="user.admin" justify="center" align="center">
           <v-btn
-            v-if="user.admin"
-            text
-            @click="addTagConfig"
-            class="ml-2"
-            small
-          >
-            Add Tag
-          </v-btn>
-
-          <v-btn
-            v-if="user.admin"
+            v-if="admin"
             text
             @click="initEditScene(null)"
             class="ml-2"
@@ -32,6 +22,15 @@
           >
             Add Panorama Image
           </v-btn>
+          <v-btn v-if="admin" text @click="addTagConfig" class="ml-2" small>
+            Add Tag
+          </v-btn>
+          <v-switch
+            v-model="admin"
+            :label="admin ? 'Admin' : 'User'"
+          ></v-switch>
+        </v-row>
+        <v-row justify="center" align="center">
           <v-chip-group mandatory>
             <v-chip
               v-for="(scene, sceneIndex) in panoSource.sceneArr"
@@ -41,11 +40,7 @@
             >
               {{ scene.title }}
 
-              <v-avatar
-                v-if="user.admin"
-                right
-                @click="initEditScene(scene.id)"
-              >
+              <v-avatar v-if="admin" right @click="initEditScene(scene.id)">
                 <v-icon>mdi-pencil-outline</v-icon>
               </v-avatar>
             </v-chip>
@@ -120,10 +115,13 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Edit Tag</v-card-title>
-
+        <v-card-title v-if="admin" class="headline">Edit Tag</v-card-title>
+        <v-card-title v-else class="headline">
+          {{ editSpotData.spot.text }}</v-card-title
+        >
         <v-card-text>
           <v-form
+            v-if="admin"
             ref="editspotform"
             v-model="editSpotData.editValid"
             lazy-validation
@@ -140,6 +138,7 @@
               label="Tag Name"
             ></v-text-field>
             <!-- <v-text-field
+             
               v-model="editSpotData.spot.layer"
               label="Layer"
               require
@@ -162,6 +161,9 @@
             <v-textarea
               v-model="editSpotData.spot.about"
               label="Description"
+              auto-grow
+              :rows="1"
+              :readonly="!admin"
             ></v-textarea>
             <div
               v-for="(content, contentIndex) in editSpotData.spot.contents"
@@ -173,50 +175,84 @@
                   :content="content"
                   :panoID="panoSource.id"
                 ></ContentDisplay>
-                <v-row>
+                <v-row class="mt-2" align="center" justify="center">
                   <v-text-field
                     v-model="content.name"
-                    label="Display Name"
+                    :readonly="!admin"
+                    label="Content Name"
                   ></v-text-field>
-                  <v-btn icon @click="deleteContent(content)" class="ml-4"
+                  <v-btn
+                    v-if="admin"
+                    icon
+                    @click="deleteContent(content)"
+                    class="ml-4"
                     ><v-icon>mdi-delete-outline </v-icon>
                   </v-btn>
                 </v-row>
               </div>
             </div>
-            <v-divider class="ma-8"></v-divider>
-            <v-row>
-              <v-col>
-                <v-select
-                  v-model="editSpotData.newContent.type"
-                  :items="contentTypes"
-                  label="Type"
-                ></v-select
-              ></v-col>
-              <v-col>
-                <v-text-field
-                  label="video Id"
-                  v-model="editSpotData.newContent.link"
-                  v-if="editSpotData.newContent.type == 'youtube'"
-                ></v-text-field>
-                <v-file-input
-                  v-else
-                  v-model="editSpotData.newContent.link"
-                  label="Select File"
-                ></v-file-input>
-              </v-col>
-            </v-row>
+            <div v-if="admin">
+              <v-divider class="ma-8"></v-divider>
+              <v-row>
+                <v-col>
+                  <v-select
+                    v-model="editSpotData.newContent.type"
+                    :items="contentTypes"
+                    label="Type"
+                  ></v-select
+                ></v-col>
+                <v-col>
+                  <v-text-field
+                    label="video Id"
+                    v-model="editSpotData.newContent.link"
+                    v-if="editSpotData.newContent.type == 'youtube'"
+                  ></v-text-field>
+                  <v-file-input
+                    v-else
+                    v-model="editSpotData.newContent.link"
+                    label="Select File"
+                  ></v-file-input>
+                </v-col>
+              </v-row>
 
-            <v-text-field
-              v-model="editSpotData.newContent.name"
-              label="Display Name"
-            ></v-text-field>
-            <v-btn block @click="addNewContent">Add Content</v-btn>
+              <v-text-field
+                v-model="editSpotData.newContent.name"
+                label="Content Name"
+              ></v-text-field>
+              <v-btn block @click="addNewContent">Add Content</v-btn>
+            </div>
+            <div v-else>
+              <div v-if="editSpotData.comments">
+                <div
+                  v-for="(comment, index) in this.editSpotData.comments"
+                  :key="index"
+                >
+                  <v-row class="mt-4">
+                    <h3>{{ comment.msg }}</h3> </v-row
+                  ><v-row justify="space-between">
+                    {{ comment.name }}
+                    <div class="text-end">
+                      {{ new Date(comment.updatedAt).toLocaleString() }}
+                    </div>
+                  </v-row>
+                  <v-row> <v-divider></v-divider></v-row>
+                </div>
+              </div>
+              <v-textarea
+                v-model="editSpotData.newComment"
+                label="New Comment"
+                auto-grow
+                :rows="1"
+                class="mt-6"
+              ></v-textarea>
+              <v-btn block @click="addNewComment">Add Comment</v-btn>
+            </div>
           </div>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
+            v-if="admin"
             color="primary"
             text
             @click="saveSpot"
@@ -224,8 +260,13 @@
           >
             Save
           </v-btn>
-          <v-btn color="grey" text @click="cancelSpot"> Cancel </v-btn>
-          <v-btn color="grey" text @click="deleteSpot"> Delete </v-btn>
+          <v-btn v-if="admin" color="grey" text @click="cancelSpot">
+            Cancel
+          </v-btn>
+          <v-btn v-else color="grey" text @click="cancelSpot"> OK </v-btn>
+          <v-btn v-if="admin" color="grey" text @click="deleteSpot">
+            Delete
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -237,8 +278,8 @@ import "pannellum";
 import "pannellum/build/pannellum.css";
 import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getPano } from "../graphql/queries";
-import { updatePano } from "../graphql/mutations";
+import { getPano, commentsBySpotId } from "../graphql/queries";
+import { updatePano, createComment } from "../graphql/mutations";
 import { nanoid } from "nanoid";
 
 export default {
@@ -248,6 +289,7 @@ export default {
   },
   data: function () {
     return {
+      admin: null,
       pano: null,
       panoSource: null,
       viewer: null,
@@ -266,6 +308,8 @@ export default {
         dialog: false,
         editValid: false,
         spot: null,
+        comments: null,
+        newComment: null,
         newContent: {
           type: "img",
           name: null,
@@ -274,10 +318,10 @@ export default {
           link: null,
         },
       },
-      showSpotDetail: {
-        dialog: false,
-        spot: null,
-      },
+      // showSpotDetail: {
+      //   dialog: false,
+      //   spot: null,
+      // },
       spotStyles: [
         { text: "Product Detail", value: "detail" },
         // { text: "Hyperlink", value: "link" },
@@ -294,6 +338,7 @@ export default {
   },
 
   mounted() {
+    this.admin = this.user.admin;
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
         this.panoSource = data.data.getPano;
@@ -664,7 +709,7 @@ export default {
 
     showSpot(spot) {
       let addSpot = JSON.parse(JSON.stringify(spot));
-      if (this.user.admin) {
+      if (this.admin) {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
           this.editSpotData.spot = JSON.parse(JSON.stringify(spot));
@@ -675,8 +720,9 @@ export default {
           case "detail":
             addSpot.type = "info";
             addSpot.clickHandlerFunc = () => {
-              this.showSpotDetail.spot = spot;
-              this.showSpotDetail.dialog = true;
+              this.editSpotData.spot = spot;
+              this.editSpotData.dialog = true;
+              this.getComments();
             };
             break;
           case "link":
@@ -767,6 +813,33 @@ export default {
       };
       this.$forceUpdate();
     },
+    async getComments() {
+      this.editSpotData.comments = (
+        await API.graphql(
+          graphqlOperation(commentsBySpotId, {
+            spotID: this.editSpotData.spot.id,
+            sortDirection: "DESC",
+            // limit: 10,
+          })
+        )
+      ).data.commentsBySpotID.items;
+    },
+    async addNewComment() {
+      let newCommentData = {
+        spotID: this.editSpotData.spot.id,
+        name: this.user.name,
+        msg: this.editSpotData.newComment,
+      };
+
+      await API.graphql(
+        graphqlOperation(createComment, {
+          input: newCommentData,
+        })
+      );
+
+      this.getComments();
+      this.editSpotData.newComment = null;
+    },
   },
   computed: {
     ...mapState(["user"]),
@@ -787,14 +860,12 @@ export default {
         // }
       }
     },
-    // "editSpotData.spot.style": async function (val) {
-    //   if (val == "detail" && this.editSpotData.spot.id) {
 
-    //     await API.graphql(
-    //       graphqlOperation(getSpot, { id: this.editSpotData.spot.id })
-    //     );
-    //   }
-    // },
+    admin: function () {
+      if (this.currentScene) {
+        this.loadScene(this.currentScene);
+      }
+    },
   },
 };
 </script>
