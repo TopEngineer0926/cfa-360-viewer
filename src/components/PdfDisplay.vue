@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="solid-border">
     <pdf :src="src" :page="currentPage"></pdf>
     <div class="d-flex justify-center">
       <v-btn text disabled>{{ currentPage }} / {{ pageCount }}</v-btn>
@@ -46,3 +46,9 @@ export default {
   },
 };
 </script>
+<style scoped>
+.solid-border {
+  border-style: solid;
+  border-width: thin;
+}
+</style>

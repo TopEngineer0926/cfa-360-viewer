@@ -222,22 +222,29 @@
               <v-btn block @click="addNewContent">Add Content</v-btn>
             </div>
             <div v-else>
-              <div v-if="editSpotData.comments">
+              <div v-if="editSpotData.comments" class="mt-12">
+                <h2 class="text-center">Comments</h2>
                 <div
                   v-for="(comment, index) in this.editSpotData.comments"
                   :key="index"
                 >
                   <v-row class="mt-4">
-                    <h3>{{ comment.msg }}</h3> </v-row
+                    <v-col>
+                      <h3>{{ comment.msg }}</h3></v-col
+                    > </v-row
                   ><v-row justify="space-between">
-                    {{ comment.name }}
-                    <div class="text-end">
-                      {{ new Date(comment.updatedAt).toLocaleString() }}
-                    </div>
+                    <v-col> {{ comment.name }}</v-col>
+                    <v-col class="text-end">
+                      {{ new Date(comment.updatedAt).toLocaleString() }}</v-col
+                    >
                   </v-row>
                   <v-row> <v-divider></v-divider></v-row>
                 </div>
               </div>
+              <div v-else class="mt-12">
+                <h2 class="text-center">No Comments</h2>
+              </div>
+
               <v-textarea
                 v-model="editSpotData.newComment"
                 label="New Comment"
