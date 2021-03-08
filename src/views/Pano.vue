@@ -738,6 +738,9 @@ export default {
             break;
           case "scene":
             addSpot.type = "scene";
+            addSpot.clickHandlerFunc = () => {
+              this.loadScene(addSpot.sceneID);
+            };
             break;
           default:
             addSpot.type = "info";
