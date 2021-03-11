@@ -61,20 +61,18 @@
                 <v-list-item-title>{{ scene.title }}</v-list-item-title>
               </v-list-item-content>
             </template>
-            <v-list-item
-              v-for="(spot, spotIndex) in scene.spots"
-              :key="spotIndex"
-              link
-              @click="loadSpot(sceneIndex, spotIndex)"
-            >
-              <v-list-item-title
+            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex">
+              <v-list-item
+                link
+                @click="loadSpot(sceneIndex, spotIndex)"
                 v-if="spot.style == 'detail'"
-                v-text="spot.text"
-              ></v-list-item-title>
-              <v-list-item-icon v-if="spot.style == 'detail'">
-                <v-icon>mdi-tag-outline</v-icon>
-              </v-list-item-icon>
-            </v-list-item>
+              >
+                <v-list-item-title v-text="spot.text"></v-list-item-title>
+                <v-list-item-icon>
+                  <v-icon>mdi-tag-outline</v-icon>
+                </v-list-item-icon>
+              </v-list-item>
+            </div>
           </v-list-group>
         </v-list>
       </v-col>
