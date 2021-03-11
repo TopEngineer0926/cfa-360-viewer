@@ -39,7 +39,7 @@
           <v-btn icon @click="deletePanoConfirm(index)" class="ml-4"
             ><v-icon>mdi-delete-outline </v-icon>
           </v-btn>
-          <v-btn
+          <!-- <v-btn
             icon
             @click="
               editPano.dialog = true;
@@ -50,7 +50,7 @@
             "
           >
             <v-icon>mdi-pencil-outline</v-icon>
-          </v-btn>
+          </v-btn> -->
 
           <v-btn icon @click="$router.push('/admin/' + pano.id)">
             <v-icon>mdi-cog-outline</v-icon>

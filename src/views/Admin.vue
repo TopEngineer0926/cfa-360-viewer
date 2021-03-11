@@ -2,17 +2,10 @@
   <v-container v-if="panoSource">
     <v-row>
       <v-col cols="4">
-        <v-img
-          :src="
-            panoSource.thumbnail
-              ? getImgUrl(panoSource.thumbnail)
-              : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
-          "
-          height="200"
-          max-width="500"
-          class="white--text align-end grey"
-        >
-        </v-img>
+        <S3ImgDisplay
+          :src="panoSource.thumbnail"
+          :panoID="panoSource.id"
+        ></S3ImgDisplay>
       </v-col>
 
       <v-col cols="8">
@@ -21,19 +14,28 @@
           require
           :rules="[(v) => !!v || 'Title is required']"
           label="Title"
+          @change="savePano"
         ></v-text-field>
         <v-text-field
           v-model="panoSource.ptype"
           require
           :rules="[(v) => !!v || 'Type is required']"
           label="Type"
+          @change="savePano"
         ></v-text-field>
         <v-text-field
           v-model="panoSource.psize"
           require
           :rules="[(v) => !!v || 'Size is required']"
           label="Size"
+          @change="savePano"
         ></v-text-field>
+        <v-file-input
+          v-model="thumbnailToUpload"
+          accept="image/*"
+          label="Upload thumbnail"
+          @change="uploadThumbnail"
+        ></v-file-input>
       </v-col>
     </v-row>
     <v-row>
@@ -75,6 +77,7 @@
                 require
                 :rules="[(v) => !!v || 'Title is required']"
                 label="Tag Title"
+                @change="savePano"
               ></v-text-field>
             </v-row>
             <v-row align="center" justify="center">
@@ -83,6 +86,7 @@
                 label="Description"
                 auto-grow
                 :rows="1"
+                @change="savePano"
               ></v-textarea
             ></v-row>
             <div v-if="spot.contents && spot.contents.length > 0">
@@ -104,10 +108,11 @@
                   <v-text-field
                     v-model="content.name"
                     label="Content Name"
+                    @change="savePano"
                   ></v-text-field>
                   <v-btn
                     icon
-                    @click="deleteContentIndex(spot, contentIndex)"
+                    @click="deleteContentIndex(contentIndex)"
                     class="ml-4"
                     ><v-icon>mdi-delete-outline </v-icon>
                   </v-btn>
@@ -131,7 +136,7 @@
                 ></v-text-field>
                 <v-file-input
                   v-else
-                  v-model="newContent.link"
+                  v-model="newContent.file"
                   label="Select File"
                 ></v-file-input>
               </v-col>
@@ -144,7 +149,7 @@
               <v-btn block @click="addNewContent">Add Content</v-btn></v-row
             >
 
-            <div v-if="comments" class="mt-12">
+            <div v-if="comments && comments.length > 0" class="mt-12">
               <h2 class="text-center">Comments</h2>
               <div v-for="(comment, index) in comments" :key="index">
                 <v-row class="mt-4">
@@ -177,14 +182,17 @@ import { API, graphqlOperation, Storage } from "aws-amplify";
 import { getPano, commentsBySpotId } from "../graphql/queries";
 import { updatePano } from "../graphql/mutations";
 import { nanoid } from "nanoid";
+import Compressor from "compressorjs";
 
 export default {
   name: "Admin",
   components: {
     ContentDisplay: () => import("../components/ContentDisplay"),
+    S3ImgDisplay: () => import("../components/S3ImgDisplay"),
   },
   data: function () {
     return {
+      savePanoTimer: null,
       panoSource: null,
       spot: null,
       comments: null,
@@ -202,7 +210,9 @@ export default {
         name: null,
         thumbnail: null,
         link: null,
+        file: null,
       },
+      thumbnailToUpload: null,
     };
   },
   created: function () {
@@ -222,8 +232,45 @@ export default {
     );
   },
   methods: {
-    deleteContentIndex(spot, contentIndex) {
-      spot.contents.splice(contentIndex, 1);
+    async uploadThumbnail() {
+      if (this.thumbnailToUpload) {
+        //delete org img
+        if (this.panoSource.thumbnail) {
+          Storage.remove(this.panoSource.id + "/" + this.panoSource.thumbnail);
+        }
+
+        //Compressor
+        let compressedThumbnail = await new Promise((resolve, reject) => {
+          new Compressor(this.thumbnailToUpload, {
+            quality: 0.7,
+            maxHeight: 512,
+            maxWidth: 512,
+            success: resolve,
+            error: reject,
+          });
+        });
+
+        this.panoSource.thumbnail = (
+          await Storage.put(
+            this.panoSource.id + "/" + nanoid(),
+            compressedThumbnail,
+            {
+              contentType: compressedThumbnail.type,
+              metadata: {
+                user: this.user.email,
+                type: "thumbnail",
+              },
+            }
+          )
+        ).key.split("/")[1];
+
+        this.savePano();
+        this.thumbnailToUpload = null;
+      }
+    },
+
+    deleteContentIndex(contentIndex) {
+      this.spot.contents.splice(contentIndex, 1);
       this.savePano();
       //   this.$forceUpdate();
     },
@@ -273,6 +320,10 @@ export default {
         ).key.split("/")[1];
       }
       delete this.newContent.file;
+      if (!this.spot.contents) {
+        this.spot.contents = [];
+      }
+      this.spot.contents.push(this.newContent);
       this.savePano();
       this.newContent = {
         type: "img",
@@ -291,5 +342,16 @@ export default {
   computed: {
     ...mapState(["user"]),
   },
+  // watch: {
+  //   panoSource: function () {
+  //     if (this.savePanoTimer) {
+  //       clearTimeout(this.savePanoTimer);
+  //       this.savePanoTimer = null;
+  //     }
+  //     this.savePanoTimer = setTimeout(() => {
+  //       this.savePano;
+  //     }, 1000);
+  //   },
+  // },
 };
 </script>

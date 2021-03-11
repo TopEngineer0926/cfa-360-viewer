@@ -222,7 +222,10 @@
               <v-btn block @click="addNewContent">Add Content</v-btn>
             </div>
             <div v-else>
-              <div v-if="editSpotData.comments" class="mt-12">
+              <div
+                v-if="editSpotData.comments && editSpotData.comments.length > 0"
+                class="mt-12"
+              >
                 <h2 class="text-center">Comments</h2>
                 <div
                   v-for="(comment, index) in this.editSpotData.comments"
