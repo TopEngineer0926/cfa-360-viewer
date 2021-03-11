@@ -67,8 +67,11 @@
               link
               @click="loadSpot(sceneIndex, spotIndex)"
             >
-              <v-list-item-title v-text="spot.text"></v-list-item-title>
-              <v-list-item-icon>
+              <v-list-item-title
+                v-if="spot.style == 'detail'"
+                v-text="spot.text"
+              ></v-list-item-title>
+              <v-list-item-icon v-if="spot.style == 'detail'">
                 <v-icon>mdi-tag-outline</v-icon>
               </v-list-item-icon>
             </v-list-item>
