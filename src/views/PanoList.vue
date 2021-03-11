@@ -163,7 +163,7 @@ export default {
             input: { title: "New Project" },
           })
         );
-        this.$router.push({ path: "/pano/" + newPanoId.data.createPano.id });
+        this.$router.push({ path: "/admin/" + newPanoId.data.createPano.id });
       } catch (error) {
         console.error("createPano", error);
       }

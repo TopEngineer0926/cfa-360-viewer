@@ -1,5 +1,6 @@
 <template>
   <v-container v-if="panoSource">
+    <h2 class="text-center mb-6">Admin Project Editor</h2>
     <v-row>
       <v-col cols="4">
         <S3ImgDisplay
@@ -40,6 +41,13 @@
     </v-row>
     <v-row>
       <v-col cols="4">
+        <h3
+          v-if="panoSource.sceneArr && panoSource.sceneArr.length > 0"
+          class="text-center"
+        >
+          Spot Selector
+        </h3>
+
         <v-list>
           <v-list-group
             v-for="(scene, sceneIndex) in panoSource.sceneArr"
@@ -69,6 +77,7 @@
       </v-col>
 
       <v-col v-if="spot" cols="8">
+        <h3 class="text-center">Spot Detail</h3>
         <v-card flat>
           <v-card-text>
             <v-row align="center" justify="center">
