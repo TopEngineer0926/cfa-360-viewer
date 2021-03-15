@@ -11,6 +11,7 @@
 </template>
 
 <script>
+import { API } from "aws-amplify";
 import { AuthState, onAuthUIStateChange } from "@aws-amplify/ui-components";
 import { mapState } from "vuex";
 
@@ -21,12 +22,24 @@ export default {
     onAuthUIStateChange((nextAuthState, authData) => {
       if (nextAuthState === AuthState.SignedIn) {
         this.$store.commit("SET_USER_DATA", authData);
+        this.getAuth(authData.attributes.sub);
         this.$router.push({ path: "/panolist" });
       }
       if (!authData) {
         this.$store.commit("SET_USER_NULL");
       }
     });
+  },
+
+  methods: {
+    async getAuth(id) {
+      const items = await API.get("indexapi", "/index/auth", {
+        queryStringParameters: {
+          id: id,
+        },
+      });
+      console.log("items", items);
+    },
   },
   beforeDestroy() {
     return onAuthUIStateChange;

@@ -1,0 +1,38 @@
+{
+    "paths": [
+        {
+            "name": "/index",
+            "lambdaFunction": "indexfunction",
+            "privacy": {
+                "private": true,
+                "auth": [
+                    "/GET"
+                ]
+            },
+            "policyResourceName": "/index"
+        }
+    ],
+    "resourceName": "indexapi",
+    "apiName": "indexapi",
+    "functionArns": [
+        {
+            "lambdaFunction": "indexfunction"
+        }
+    ],
+    "privacy": {
+        "auth": 1,
+        "unauth": 0,
+        "authRoleName": "amplify-360viewer-dev-202327-authRole",
+        "unAuthRoleName": "amplify-360viewer-dev-202327-unauthRole"
+    },
+    "dependsOn": [
+        {
+            "category": "function",
+            "resourceName": "indexfunction",
+            "attributes": [
+                "Name",
+                "Arn"
+            ]
+        }
+    ]
+}
