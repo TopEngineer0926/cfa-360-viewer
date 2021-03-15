@@ -207,8 +207,16 @@
                     v-model="editSpotData.newContent.link"
                     v-if="editSpotData.newContent.type == 'youtube'"
                   ></v-text-field>
+                  <v-text-field
+                    v-else-if="editSpotData.newContent.type == 'link'"
+                    label="URL"
+                    v-model="editSpotData.newContent.link"
+                  ></v-text-field>
                   <v-file-input
-                    v-else
+                    v-else-if="
+                      editSpotData.newContent.type == 'pdf' ||
+                      editSpotData.newContent.type == 'img'
+                    "
                     v-model="editSpotData.newContent.link"
                     label="Select File"
                   ></v-file-input>
@@ -341,6 +349,7 @@ export default {
         { text: "Image", value: "img" },
         { text: "PDF", value: "pdf" },
         { text: "Youtube", value: "youtube" },
+        { text: "Hyperlink", value: "link" },
       ],
       sceneSelectList: [],
       currentLayer: null,
@@ -791,19 +800,22 @@ export default {
         this.editSpotData.spot.contents = [];
       }
 
-      if (this.editSpotData.newContent.type == "youtube") {
-        this.editSpotData.spot.contents.push({
-          type: this.editSpotData.newContent.type,
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-        });
-      } else {
+      if (
+        this.editSpotData.newContent.type == "pdf" ||
+        this.editSpotData.newContent.type == "img"
+      ) {
         this.editSpotData.spot.contents.push({
           type: this.editSpotData.newContent.type,
           name: this.editSpotData.newContent.name,
           link: this.editSpotData.newContent.link,
           // thumbnail: "String",
           s3Upload: true,
+        });
+      } else {
+        this.editSpotData.spot.contents.push({
+          type: this.editSpotData.newContent.type,
+          name: this.editSpotData.newContent.name,
+          link: this.editSpotData.newContent.link,
         });
       }
       // let fileType = this.editSpotData.newContent.link.type;
