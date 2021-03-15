@@ -46,9 +46,11 @@ const router = new VueRouter({
 router.beforeResolve((to, from, next) => {
   if (to.matched.some(record => record.meta.requiresAuth)) {
     Auth.currentAuthenticatedUser()
-      .then((authData) => {
+      .then(async (authData) => {
         // console.log('welcome', authData);
-        if (!store.state.user) { store.commit("SET_USER_DATA", authData) }
+        if (!store.state.user) {
+          await store.dispatch("login", authData);
+        }
         next();
       })
       .catch(() => {
