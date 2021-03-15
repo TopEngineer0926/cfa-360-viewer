@@ -175,7 +175,7 @@
                   :content="content"
                   :panoID="panoSource.id"
                 ></ContentDisplay>
-                <v-row class="mt-2" align="center" justify="center">
+                <v-row class="mt-2 ml-0" align="center" justify="center">
                   <v-text-field
                     v-model="content.name"
                     :readonly="!admin"
@@ -556,6 +556,9 @@ export default {
         },
       };
       this.viewer.off("mousedown", this.mouseDownHandler);
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "");
       // let pitch = this.viewer.getPitch();
       // let yaw = this.viewer.getYaw();
       // let hfov = this.viewer.getHfov();
@@ -568,6 +571,9 @@ export default {
       // };
     },
     addTagConfig() {
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "crosshair", "important");
       this.viewer.on("mousedown", this.mouseDownHandler);
     },
     cancelSpot() {
@@ -884,6 +890,10 @@ export default {
 };
 </script>
 <style>
+/* .pnlm-grab {
+  cursor: crosshair !important;
+} */
+
 .panoTip {
   white-space: pre-line;
 }
