@@ -843,6 +843,16 @@ export default {
           // thumbnail: "String",
           s3Upload: true,
         });
+      } else if (this.editSpotData.newContent.type == "link") {
+        if (!this.editSpotData.newContent.link.includes("http")) {
+          this.editSpotData.newContent.link =
+            "http://" + this.editSpotData.newContent.link;
+        }
+        this.editSpotData.spot.contents.push({
+          type: this.editSpotData.newContent.type,
+          name: this.editSpotData.newContent.name,
+          link: this.editSpotData.newContent.link,
+        });
       } else {
         this.editSpotData.spot.contents.push({
           type: this.editSpotData.newContent.type,
