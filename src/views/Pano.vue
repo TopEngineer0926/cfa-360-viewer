@@ -138,12 +138,18 @@
               label="Tag Name"
             ></v-text-field>
             <!-- <v-text-field
-             
               v-model="editSpotData.spot.layer"
               label="Layer"
               require
               :rules="[(v) => !!v || 'Layer is required']"
             ></v-text-field> -->
+            <v-select
+              v-model="editSpotData.spot.layer"
+              :items="layerNames"
+              label="Layer"
+              require
+              :rules="[(v) => !!v || 'Layer is required']"
+            ></v-select>
 
             <v-text-field
               v-if="editSpotData.spot.style == 'link'"
@@ -351,6 +357,13 @@ export default {
         { text: "Youtube", value: "youtube" },
         { text: "Hyperlink", value: "link" },
       ],
+      layerNames: [
+        { text: "Square", value: "square" },
+        { text: "Triangle", value: "triangle" },
+        { text: "Cross", value: "cross" },
+        { text: "Circle", value: "circle" },
+        { text: "Dot", value: "dot" },
+      ],
       sceneSelectList: [],
       currentLayer: null,
     };
@@ -394,7 +407,19 @@ export default {
 
         this.updateLayerList();
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
-        this.loadLayer("default");
+        this.loadAllLayers();
+      }
+    },
+    loadAllLayers() {
+      if (
+        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
+        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
+      ) {
+        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
+          (spot) => {
+            this.showSpot(spot);
+          }
+        );
       }
     },
 
@@ -408,11 +433,16 @@ export default {
       );
 
       this.updateLayerList();
-      if (this.layers.includes("default")) {
-        this.loadLayer("default");
-      } else {
-        this.currentLayer = null;
-      }
+      this.loadAllLayers();
+      // this.layers.forEach((layer) => {
+      //   this.loadLayer(layer);
+      // });
+
+      // if (this.layers.includes("default")) {
+      //   this.loadLayer("default");
+      // } else {
+      //   this.currentLayer = null;
+      // }
       // if (this.layers.includes(this.currentLayer)) {
       //   this.loadLayer(this.currentLayer);
       // } else {
@@ -554,7 +584,7 @@ export default {
           pitch: coords[0],
           yaw: coords[1],
           style: "detail",
-          layer: "default",
+          layer: null,
         },
         newContent: {
           type: "img",
@@ -764,6 +794,8 @@ export default {
             addSpot.type = "info";
         }
       }
+
+      addSpot.cssClass = addSpot.layer + "-hotspot";
       this.viewer.addHotSpot(addSpot);
     },
     removeCurrentSpots() {
@@ -906,6 +938,41 @@ export default {
   cursor: crosshair !important;
 } */
 
+.square-hotspot {
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M39 6H9C7.34315 6 6 7.34315 6 9V39C6 40.6569 7.34315 42 9 42H39C40.6569 42 42 40.6569 42 39V9C42 7.34315 40.6569 6 39 6Z' stroke='%23e51636' stroke-width='3'/%3E%3C/svg%3E");
+  background-size: 30px 30px;
+}
+
+.triangle-hotspot {
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M22.2692 6.98965C23.0395 5.65908 24.9605 5.65908 25.7309 6.98965L44.262 38.9979C45.0339 40.3313 44.0718 42 42.5311 42H5.4689C3.92823 42 2.96611 40.3313 3.73804 38.9979L22.2692 6.98965Z' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-size: 30px 30px;
+}
+
+.cross-hotspot {
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M30 4H18V18H4V30H18V44H30V30H44V18H30V4Z' fill='none' stroke='%23e51636' stroke-width='3' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-size: 30px 30px;
+}
+
+.circle-hotspot {
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M31 7V24V7Z' fill='none'/%3E%3Cpath d='M31 7V24' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16.636 6.63605L30.7781 20.7782L16.636 6.63605Z' fill='none'/%3E%3Cpath d='M16.636 6.63605L30.7781 20.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7 17H24H7Z' fill='none'/%3E%3Cpath d='M7 17H24' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M20.364 17.636L6.22188 31.7782L20.364 17.636Z' fill='none'/%3E%3Cpath d='M20.364 17.636L6.22188 31.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17 25V42V25Z' fill='none'/%3E%3Cpath d='M17 25V42' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17.636 27.636L31.7781 41.7782L17.636 27.636Z' fill='none'/%3E%3Cpath d='M17.636 27.636L31.7781 41.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M24 31L42 31L24 31Z' fill='none'/%3E%3Cpath d='M24 31L42 31' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M42.364 16.636L28.2219 30.7782L42.364 16.636Z' fill='none'/%3E%3Cpath d='M42.364 16.636L28.2219 30.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath d='M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z' fill='none' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-size: 30px 30px;
+}
+
+.dot-hotspot {
+  width: 30px;
+  height: 30px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M24 33C28.9706 33 33 28.9706 33 24C33 19.0294 28.9706 15 24 15C19.0294 15 15 19.0294 15 24C15 28.9706 19.0294 33 24 33Z' fill='%23e51636' stroke='%23e51636' stroke-width='3'/%3E%3C/svg%3E");
+  background-size: 30px 30px;
+}
+
 .panoTip {
   white-space: pre-line;
 }
@@ -915,7 +982,8 @@ export default {
   left: 10px;
   background-color: rgba(0, 0, 0, 0) !important;
   text-transform: capitalize;
-} */
+}
+*/
 .pnlm-panorama-info {
   display: none !important;
 }
