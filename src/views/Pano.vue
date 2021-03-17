@@ -725,7 +725,9 @@ export default {
             this.editSpotData.spot
           );
         }
-        this.loadLayer(this.editSpotData.spot.layer);
+        // this.loadLayer(this.editSpotData.spot.layer);
+        this.removeCurrentSpots();
+        this.loadAllLayers();
         this.editSpotData.dialog = false;
         this.updateLayerList();
         this.savePano();
@@ -794,12 +796,14 @@ export default {
             addSpot.type = "info";
         }
       }
+      if (addSpot.layer) {
+        addSpot.cssClass = addSpot.layer + "-hotspot";
+      }
 
-      addSpot.cssClass = addSpot.layer + "-hotspot";
       this.viewer.addHotSpot(addSpot);
     },
     removeCurrentSpots() {
-      if (this.currentLayer && this.pano.scenes[this.currentScene].hotSpots) {
+      if (this.pano.scenes[this.currentScene].hotSpots) {
         //removeHotSpots
         let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
           (hotSpot) => hotSpot.id
