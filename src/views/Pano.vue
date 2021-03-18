@@ -20,7 +20,7 @@
             class="ml-2"
             small
           >
-            Add Panorama Image
+            Add Scene
           </v-btn>
           <v-btn v-if="admin" text @click="addTagConfig" class="ml-2" small>
             Add Tag
@@ -60,7 +60,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Edit Panorama Image</v-card-title>
+        <v-card-title class="headline">Edit Scene</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"

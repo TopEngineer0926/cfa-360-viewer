@@ -45,7 +45,7 @@
           v-if="panoSource.sceneArr && panoSource.sceneArr.length > 0"
           class="text-center"
         >
-          Spot Selector
+          Tag Selector
         </h3>
 
         <v-list>
@@ -78,7 +78,7 @@
       </v-col>
 
       <v-col v-if="spot" cols="8">
-        <h3 class="text-center">Spot Detail</h3>
+        <h3 class="text-center">Tag Detail</h3>
         <v-card flat>
           <v-card-text>
             <v-row align="center" justify="center">
