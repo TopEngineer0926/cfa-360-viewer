@@ -35,6 +35,10 @@ export const createPano = /* GraphQL */ `
           about
         }
       }
+      layers {
+        id
+        name
+      }
       createdAt
       updatedAt
     }
@@ -74,6 +78,10 @@ export const updatePano = /* GraphQL */ `
           about
         }
       }
+      layers {
+        id
+        name
+      }
       createdAt
       updatedAt
     }
@@ -112,6 +120,10 @@ export const deletePano = /* GraphQL */ `
           }
           about
         }
+      }
+      layers {
+        id
+        name
       }
       createdAt
       updatedAt

@@ -32,6 +32,10 @@ export const getPano = /* GraphQL */ `
           about
         }
       }
+      layers {
+        id
+        name
+      }
       createdAt
       updatedAt
     }
@@ -72,6 +76,10 @@ export const listPanos = /* GraphQL */ `
             }
             about
           }
+        }
+        layers {
+          id
+          name
         }
         createdAt
         updatedAt

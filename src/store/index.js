@@ -23,19 +23,33 @@ export default new Vuex.Store({
       return await Auth.signOut();
     },
     login({ commit }, data) {
-      return new Promise(async (resolve, reject) => {
-        let indexAuthData = await API.get("indexapi", "/index/auth", {
-          queryStringParameters: {
-            id: data.attributes.sub,
-          },
-        });
-        commit("SET_USER_DATA", {
-          name: data.attributes.name,
-          email: data.attributes.email,
-          admin: indexAuthData.success.permission == 'CFA Admin',
-        });
-        resolve();
+
+      // return new Promise(async (resolve, reject) => {
+      //   let indexAuthData = await API.get("indexapi", "/index/auth", {
+      //     queryStringParameters: {
+      //       id: data.attributes.sub,
+      //     },
+      //   });
+      //   commit("SET_USER_DATA", {
+      //     name: data.attributes.name,
+      //     email: data.attributes.email,
+      //     admin: indexAuthData.success.permission == 'CFA Admin',
+      //   });
+      //   resolve();
+      // });
+      let ifAdmin = false;
+      try {
+        if (data.signInUserSession.accessToken.payload["cognito:groups"].includes('360Admin')) { ifAdmin = true }
+      }
+      catch { ifAdmin = false }
+
+      commit("SET_USER_DATA", {
+        name: data.attributes.name,
+        email: data.attributes.email,
+        admin: ifAdmin
       });
+
+
     },
 
   },

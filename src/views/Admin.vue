@@ -1,6 +1,6 @@
 <template>
   <v-container v-if="panoSource">
-    <h2 class="text-center mb-6">Admin Project Editor</h2>
+    <h2 class="text-center mb-6">Project Editor</h2>
     <v-row>
       <v-col cols="4">
         <S3ImgDisplay
@@ -183,6 +183,11 @@
       </v-col>
       <v-col v-else cols="8"></v-col>
     </v-row>
+    <v-row justify="center" class="ma-8">
+      <v-btn @click="$router.push('/panolist').catch((err) => {})"
+        >Return</v-btn
+      ></v-row
+    >
   </v-container>
 </template>
 

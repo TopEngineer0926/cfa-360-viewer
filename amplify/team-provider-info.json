@@ -30,7 +30,7 @@
       "function": {
         "indexfunction": {
           "deploymentBucketName": "amplify-360viewer-dev-202327-deployment",
-          "s3Key": "amplify-builds/indexfunction-6931476833686a456978-build.zip"
+          "s3Key": "amplify-builds/indexfunction-68505454324b30624f2f-build.zip"
         }
       }
     }

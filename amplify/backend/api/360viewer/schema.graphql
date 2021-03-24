@@ -12,8 +12,14 @@ type Pano @model {
   ptype: String
   psize: String
   sceneArr: [SceneObject]
+  layers: [LayerObject]
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
+}
+
+type LayerObject {
+  id: ID
+  name: String
 }
 
 type SceneObject {

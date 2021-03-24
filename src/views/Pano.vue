@@ -2,16 +2,27 @@
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
       <div class="default-slot mb-4">
-        <!-- <div v-for="(layer, layerIndex) in layers" :key="layerIndex">
-          <v-btn
-            text
-            @click="loadLayer(layer)"
-            small
-            :class="{ primary: layer == currentLayer }"
+        <v-item-group
+          v-model="selectedLayersIndex"
+          multiple
+          @change="loadLayers"
+        >
+          <v-item
+            v-for="(layer, i) in layers"
+            :key="i"
+            v-slot="{ active, toggle }"
           >
-            {{ layer }}
-          </v-btn>
-        </div> -->
+            <v-chip
+              active-class="primary"
+              class="ma-2"
+              :input-value="active"
+              @click="toggle"
+            >
+              {{ layer }}
+            </v-chip>
+          </v-item>
+        </v-item-group>
+
         <v-row v-if="user.admin" justify="center" align="center">
           <v-btn
             v-if="admin"
@@ -365,7 +376,8 @@ export default {
         { text: "Dot", value: "dot" },
       ],
       sceneSelectList: [],
-      currentLayer: null,
+
+      selectedLayersIndex: [],
     };
   },
 
@@ -434,20 +446,6 @@ export default {
 
       this.updateLayerList();
       this.loadAllLayers();
-      // this.layers.forEach((layer) => {
-      //   this.loadLayer(layer);
-      // });
-
-      // if (this.layers.includes("default")) {
-      //   this.loadLayer("default");
-      // } else {
-      //   this.currentLayer = null;
-      // }
-      // if (this.layers.includes(this.currentLayer)) {
-      //   this.loadLayer(this.currentLayer);
-      // } else {
-      //   this.currentLayer = null;
-      // }
     },
     initEditScene(sceneID) {
       if (!sceneID) {
@@ -725,9 +723,9 @@ export default {
             this.editSpotData.spot
           );
         }
-        // this.loadLayer(this.editSpotData.spot.layer);
+
         this.removeCurrentSpots();
-        this.loadAllLayers();
+        this.loadLayers();
         this.editSpotData.dialog = false;
         this.updateLayerList();
         this.savePano();
@@ -813,22 +811,23 @@ export default {
         });
       }
     },
-    loadLayer(layer) {
+    loadLayers() {
       this.removeCurrentSpots();
+      let selectedLayersName = this.selectedLayersIndex.map(
+        (index) => this.layers[index]
+      );
       if (
         this.panoSource.sceneArr[this.currentSceneIndex].spots &&
         this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
       ) {
         this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
           (spot, spotIndex) => {
-            if (spot.layer == layer) {
+            if (selectedLayersName.includes(spot.layer)) {
               this.showSpot(spot);
             }
           }
         );
       }
-
-      this.currentLayer = layer;
     },
     async addNewContent() {
       // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
