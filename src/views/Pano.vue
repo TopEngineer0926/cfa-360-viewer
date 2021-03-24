@@ -48,7 +48,7 @@
           </v-item-group>
         </v-row>
         <v-row justify="center" align="center">
-          <v-chip-group mandatory>
+          <v-chip-group mandatory v-model="currentSceneIndex">
             <v-chip
               v-for="(scene, sceneIndex) in panoSource.sceneArr"
               :key="sceneIndex"
@@ -159,7 +159,6 @@
               require
               :rules="[(v) => !!v || 'Layer is required']"
             ></v-text-field> -->
-            {{ editSpotData.spot.layer }}
             <v-select
               v-model="editSpotData.spot.layer"
               :items="panoSource.layers"
@@ -436,9 +435,9 @@ export default {
       this.removeCurrentSpots();
       this.viewer.loadScene(sceneID);
       this.currentScene = sceneID;
-      this.currentSceneIndex = this.panoSource.sceneArr.findIndex(
-        (scene) => scene.id == this.currentScene
-      );
+      // this.currentSceneIndex = this.panoSource.sceneArr.findIndex(
+      //   (scene) => scene.id == this.currentScene
+      // );
       this.loadLayers();
     },
     initEditScene(sceneID) {
@@ -451,8 +450,8 @@ export default {
           (scene) => scene.id == sceneID
         );
         this.editSceneData.sceneID = sceneID;
-        this.editSceneData.title = this.pano.scenes[
-          this.editSceneData.sceneID
+        this.editSceneData.title = this.panoSource.sceneArr[
+          this.editSceneData.sceneIndex
         ].title;
       }
       this.editSceneData.imgToUpload = null;
@@ -501,37 +500,30 @@ export default {
           ).key;
         }
         if (this.editSceneData.sceneID) {
+          let sceneIndex = this.panoSource.sceneArr.findIndex(
+            (scene) => scene.id == sceneID
+          );
+
           //edit scene title
           this.pano.scenes[sceneID].title = this.editSceneData.title;
+
           //edit sceneArr title
-          // let sceneIndex = this.panoSource.sceneArr.findIndex(
-          //   (scene) => scene.id == sceneID
-          // );
-          this.panoSource.sceneArr[
-            this.currentSceneIndex
-          ].title = this.editSceneData.title;
+          this.panoSource.sceneArr[sceneIndex].title = this.editSceneData.title;
+
           if (s3link) {
             //edit sceneArr img
             Storage.remove(
               this.panoSource.id +
                 "/" +
-                this.panoSource.sceneArr[this.currentSceneIndex].img
+                this.panoSource.sceneArr[sceneIndex].img
             );
-            this.panoSource.sceneArr[this.currentSceneIndex].img = s3link.split(
-              "/"
-            )[1];
+            this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
             //edit scene panorama
             this.pano.scenes[sceneID].panorama = await Storage.get(s3link);
+            if (this.currentSceneIndex == sceneIndex) {
+              this.loadScene(sceneID);
+            }
           }
-          //   if (this.editSceneData.imgToUpload) {
-          //   let fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
-          //   this.pano.scenes[
-          //     this.editSceneData.sceneID
-          //   ].s3Update = this.editSceneData.imgToUpload;
-          // }
-          //   if (scene.img) {
-          //   Storage.remove(this.pano.id + "/" + scene.img);
-          // }
         } else {
           if (!this.pano) {
             // first scene
@@ -564,7 +556,6 @@ export default {
         }
         this.savePano();
         this.editSceneData.dialog = false;
-        this.loadScene(sceneID);
       }
       //  this.$forceUpdate();
     },
@@ -614,6 +605,7 @@ export default {
         name: "Layer" + nanoid(3),
         icon: "cross",
       });
+      this.savePano();
     },
     cancelSpot() {
       this.editSpotData = {
