@@ -20,6 +20,7 @@ type Pano @model {
 type LayerObject {
   id: ID
   name: String
+  icon: String
 }
 
 type SceneObject {

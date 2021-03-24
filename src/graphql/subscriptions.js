@@ -35,6 +35,7 @@ export const onCreatePano = /* GraphQL */ `
       layers {
         id
         name
+        icon
       }
       createdAt
       updatedAt
@@ -75,6 +76,7 @@ export const onUpdatePano = /* GraphQL */ `
       layers {
         id
         name
+        icon
       }
       createdAt
       updatedAt
@@ -115,6 +117,7 @@ export const onDeletePano = /* GraphQL */ `
       layers {
         id
         name
+        icon
       }
       createdAt
       updatedAt

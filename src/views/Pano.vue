@@ -2,27 +2,6 @@
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
       <div class="default-slot mb-4">
-        <v-item-group
-          v-model="selectedLayersIndex"
-          multiple
-          @change="loadLayers"
-        >
-          <v-item
-            v-for="(layer, i) in layers"
-            :key="i"
-            v-slot="{ active, toggle }"
-          >
-            <v-chip
-              active-class="primary"
-              class="ma-2"
-              :input-value="active"
-              @click="toggle"
-            >
-              {{ layer }}
-            </v-chip>
-          </v-item>
-        </v-item-group>
-
         <v-row v-if="user.admin" justify="center" align="center">
           <v-btn
             v-if="admin"
@@ -33,6 +12,8 @@
           >
             Add Scene
           </v-btn>
+          <v-btn v-if="admin" text small @click="addLayer()">add layer</v-btn>
+
           <v-btn v-if="admin" text @click="addTagConfig" class="ml-2" small>
             Add Tag
           </v-btn>
@@ -42,18 +23,42 @@
           ></v-switch>
         </v-row>
         <v-row justify="center" align="center">
+          <v-item-group
+            v-model="selectedLayersIndex"
+            multiple
+            @change="loadLayers"
+          >
+            <v-item
+              v-for="(layer, i) in panoSource.layers"
+              :key="i"
+              v-slot="{ active, toggle }"
+            >
+              <v-chip
+                active-class="primary"
+                class="ma-2"
+                :input-value="active"
+                @click="toggle"
+              >
+                {{ layer.name }}
+                <v-avatar v-if="admin" right>
+                  <v-icon>mdi-pencil-outline</v-icon>
+                </v-avatar>
+              </v-chip>
+            </v-item>
+          </v-item-group>
+        </v-row>
+        <v-row justify="center" align="center">
           <v-chip-group mandatory>
             <v-chip
               v-for="(scene, sceneIndex) in panoSource.sceneArr"
               :key="sceneIndex"
               :class="{ primary: sceneIndex == currentSceneIndex }"
               @click="loadScene(scene.id)"
+              :close="admin"
+              close-icon="mdi-pencil-outline"
+              @click:close="initEditScene(scene.id)"
             >
               {{ scene.title }}
-
-              <v-avatar v-if="admin" right @click="initEditScene(scene.id)">
-                <v-icon>mdi-pencil-outline</v-icon>
-              </v-avatar>
             </v-chip>
           </v-chip-group>
         </v-row>
@@ -154,9 +159,12 @@
               require
               :rules="[(v) => !!v || 'Layer is required']"
             ></v-text-field> -->
+            {{ editSpotData.spot.layer }}
             <v-select
               v-model="editSpotData.spot.layer"
-              :items="layerNames"
+              :items="panoSource.layers"
+              item-text="name"
+              item-value="id"
               label="Layer"
               require
               :rules="[(v) => !!v || 'Layer is required']"
@@ -170,7 +178,7 @@
             <v-select
               v-if="editSpotData.spot.style == 'scene'"
               v-model="editSpotData.spot.sceneID"
-              :items="sceneSelectList"
+              :items="allScenes"
               label="Pano Image List"
             ></v-select>
           </v-form>
@@ -353,10 +361,11 @@ export default {
           link: null,
         },
       },
-      // showSpotDetail: {
-      //   dialog: false,
-      //   spot: null,
-      // },
+      editLayerData: {
+        dialog: false,
+        layer: null,
+      },
+
       spotStyles: [
         { text: "Product Detail", value: "detail" },
         // { text: "Hyperlink", value: "link" },
@@ -368,14 +377,8 @@ export default {
         { text: "Youtube", value: "youtube" },
         { text: "Hyperlink", value: "link" },
       ],
-      layerNames: [
-        { text: "Square", value: "square" },
-        { text: "Triangle", value: "triangle" },
-        { text: "Cross", value: "cross" },
-        { text: "Circle", value: "circle" },
-        { text: "Dot", value: "dot" },
-      ],
-      sceneSelectList: [],
+
+      allScenes: [],
 
       selectedLayersIndex: [],
     };
@@ -386,6 +389,9 @@ export default {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
         this.panoSource = data.data.getPano;
+        if (!this.panoSource.layers) {
+          this.panoSource.layers = [];
+        }
         if (this.panoSource) {
           this.initPano();
         } else {
@@ -417,21 +423,11 @@ export default {
           autoLoad: true,
         };
 
-        this.updateLayerList();
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
-        this.loadAllLayers();
-      }
-    },
-    loadAllLayers() {
-      if (
-        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
-      ) {
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
-          (spot) => {
-            this.showSpot(spot);
-          }
+        this.selectedLayersIndex = Array.from(
+          Array(this.panoSource.layers.length).keys()
         );
+        this.loadLayers();
       }
     },
 
@@ -443,9 +439,7 @@ export default {
       this.currentSceneIndex = this.panoSource.sceneArr.findIndex(
         (scene) => scene.id == this.currentScene
       );
-
-      this.updateLayerList();
-      this.loadAllLayers();
+      this.loadLayers();
     },
     initEditScene(sceneID) {
       if (!sceneID) {
@@ -572,6 +566,7 @@ export default {
         this.editSceneData.dialog = false;
         this.loadScene(sceneID);
       }
+      //  this.$forceUpdate();
     },
     mouseDownHandler(event) {
       let coords = this.viewer.mouseEventToCoords(event);
@@ -613,6 +608,13 @@ export default {
         .style.setProperty("cursor", "crosshair", "important");
       this.viewer.on("mousedown", this.mouseDownHandler);
     },
+    addLayer() {
+      this.panoSource.layers.push({
+        id: nanoid(6),
+        name: "Layer" + nanoid(3),
+        icon: "cross",
+      });
+    },
     cancelSpot() {
       this.editSpotData = {
         dialog: false,
@@ -649,7 +651,7 @@ export default {
         ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.filter(
           (spot) => spot.id !== this.editSpotData.spot.id
         );
-        this.updateLayerList();
+
         this.savePano();
       }
       this.editSpotData.dialog = false;
@@ -727,7 +729,7 @@ export default {
         this.removeCurrentSpots();
         this.loadLayers();
         this.editSpotData.dialog = false;
-        this.updateLayerList();
+
         this.savePano();
       }
     },
@@ -741,25 +743,6 @@ export default {
         },
       });
       // this.$router.go();
-    },
-    updateLayerList() {
-      let layerList = [];
-      // let sceneIndex = this.panoSource.sceneArr.findIndex(
-      //   (scene) => scene.id == this.currentScene
-      // );
-      if (
-        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
-      ) {
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
-          (spot) => {
-            if (!layerList.includes(spot.layer)) {
-              layerList.push(spot.layer);
-            }
-          }
-        );
-      }
-      this.layers = layerList;
     },
 
     showSpot(spot) {
@@ -795,7 +778,11 @@ export default {
         }
       }
       if (addSpot.layer) {
-        addSpot.cssClass = addSpot.layer + "-hotspot";
+        let layer = this.panoSource.layers.find(
+          (layer) => layer.id == addSpot.layer
+        );
+
+        addSpot.cssClass = layer ? layer.icon + "-hotspot" : null;
       }
 
       this.viewer.addHotSpot(addSpot);
@@ -813,16 +800,20 @@ export default {
     },
     loadLayers() {
       this.removeCurrentSpots();
-      let selectedLayersName = this.selectedLayersIndex.map(
-        (index) => this.layers[index]
+      let selectedLayersID = this.selectedLayersIndex.map(
+        (index) => this.panoSource.layers[index].id
       );
+      let allLayersID = this.panoSource.layers.map((layer) => layer.id);
       if (
         this.panoSource.sceneArr[this.currentSceneIndex].spots &&
         this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
       ) {
         this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
           (spot, spotIndex) => {
-            if (selectedLayersName.includes(spot.layer)) {
+            if (
+              selectedLayersID.includes(spot.layer) ||
+              !allLayersID.includes(spot.layer)
+            ) {
               this.showSpot(spot);
             }
           }
@@ -925,16 +916,13 @@ export default {
     "editSpotData.dialog": function (val) {
       if (val) {
         //update scene list
-        this.sceneSelectList = [];
+        this.allScenes = [];
         for (const sceneId in this.pano.scenes) {
-          this.sceneSelectList.push({
+          this.allScenes.push({
             text: this.pano.scenes[sceneId].title,
             value: sceneId,
           });
         }
-        //update detail
-        // if (this.editSpotData.spot && this.editSpotData.spot.style=='detail'){
-        // }
       }
     },
 

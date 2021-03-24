@@ -35,6 +35,7 @@ export const getPano = /* GraphQL */ `
       layers {
         id
         name
+        icon
       }
       createdAt
       updatedAt
@@ -80,6 +81,7 @@ export const listPanos = /* GraphQL */ `
         layers {
           id
           name
+          icon
         }
         createdAt
         updatedAt
