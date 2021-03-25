@@ -23,36 +23,29 @@
           ></v-switch>
         </v-row>
         <v-row justify="center" align="center">
-          <v-item-group
-            v-model="selectedLayersIndex"
+          <v-chip-group
             multiple
+            v-model="selectedLayersIndex"
             @change="loadLayers"
           >
-            <v-item
-              v-for="(layer, i) in panoSource.layers"
-              :key="i"
-              v-slot="{ active, toggle }"
+            <v-chip
+              v-for="(layer, layerIndex) in panoSource.layers"
+              :key="layerIndex"
+              active-class="primary"
+              :close="admin"
+              close-icon="mdi-pencil-outline"
+              @click:close="initEditLayer(layerIndex)"
             >
-              <v-chip
-                active-class="primary"
-                class="ma-2"
-                :input-value="active"
-                @click="toggle"
-              >
-                {{ layer.name }}
-                <v-avatar v-if="admin" right>
-                  <v-icon>mdi-pencil-outline</v-icon>
-                </v-avatar>
-              </v-chip>
-            </v-item>
-          </v-item-group>
+              {{ layer.name }}
+            </v-chip>
+          </v-chip-group>
         </v-row>
         <v-row justify="center" align="center">
           <v-chip-group mandatory v-model="currentSceneIndex">
             <v-chip
               v-for="(scene, sceneIndex) in panoSource.sceneArr"
               :key="sceneIndex"
-              :class="{ primary: sceneIndex == currentSceneIndex }"
+              active-class="primary"
               @click="loadScene(scene.id)"
               :close="admin"
               close-icon="mdi-pencil-outline"
@@ -125,6 +118,53 @@
     </v-dialog>
 
     <v-dialog
+      v-if="editLayerData.dialog"
+      v-model="editLayerData.dialog"
+      persistent
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline">Edit Layer</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="editLayerData.layer.name"
+            require
+            :rules="[(v) => !!v || 'Name is required']"
+            label="Layer Name"
+          ></v-text-field>
+          <v-select
+            v-model="editLayerData.layer.icon"
+            :items="iconStyles"
+            label="Layer Icon"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="
+              loadLayers();
+              savePano();
+              editLayerData.dialog = false;
+            "
+          >
+            Confirm
+          </v-btn>
+
+          <v-btn
+            v-if="panoSource.layers && panoSource.layers.length > 0"
+            color="grey"
+            text
+            @click="deleteLayer()"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
       v-if="editSpotData.dialog"
       v-model="editSpotData.dialog"
       persistent
@@ -189,6 +229,7 @@
               :rows="1"
               :readonly="!admin"
             ></v-textarea>
+            <v-divider class="ma-8"></v-divider>
             <div
               v-for="(content, contentIndex) in editSpotData.spot.contents"
               :key="contentIndex"
@@ -362,6 +403,7 @@ export default {
       },
       editLayerData: {
         dialog: false,
+        layerIndex: null,
         layer: null,
       },
 
@@ -376,7 +418,7 @@ export default {
         { text: "Youtube", value: "youtube" },
         { text: "Hyperlink", value: "link" },
       ],
-
+      iconStyles: ["dot", "circle", "cross", "triangle", "square"],
       allScenes: [],
 
       selectedLayersIndex: [],
@@ -440,6 +482,17 @@ export default {
       // );
       this.loadLayers();
     },
+    initEditLayer(layerIndex) {
+      this.editLayerData.layerIndex = layerIndex;
+      this.editLayerData.layer = this.panoSource.layers[layerIndex];
+      this.editLayerData.dialog = true;
+    },
+    deleteLayer() {
+      this.panoSource.layers.splice(this.editLayerData.layerIndex, 1);
+      this.savePano();
+      this.editLayerData.dialog = false;
+    },
+
     initEditScene(sceneID) {
       if (!sceneID) {
         this.editSceneData.sceneID = null;
