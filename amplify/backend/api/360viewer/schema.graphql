@@ -7,6 +7,7 @@ type Pano @model {
   # )
   id: ID!
   title: String!
+  category: String
   thumbnail: String
   pabout: String
   ptype: String

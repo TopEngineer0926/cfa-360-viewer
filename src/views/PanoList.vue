@@ -8,54 +8,53 @@
 
     <div v-if="panos" class="d-flex flex-wrap justify-center">
       <div v-for="(pano, index) in panos" :key="index">
-        <v-hover v-slot="{ hover }">
+        <v-hover v-slot="{ hover }" class="ma-6">
           <v-card
             :elevation="hover ? 12 : 2"
-            class="ma-6"
             width="500"
             height="200"
             @click="$router.push('/pano/' + pano.id)"
           >
-            <v-img
-              :src="
-                pano.thumbnail
-                  ? pano.thumbnailUrl
-                  : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
-              "
-              height="200"
-              max-width="500"
-              class="white--text align-end grey"
-            >
-              <v-card-title v-text="pano.title"></v-card-title>
-              <v-card-subtitle class="white--text">
-                Type:{{ pano.ptype }} Size:{{ pano.psize }}
-              </v-card-subtitle>
-            </v-img>
+            <v-list-item three-line>
+              <v-list-item-content>
+                <div class="overline mb-4">
+                  {{ pano.category ? pano.category : "Category" }}
+                </div>
+                <v-list-item-title class="headline mb-1">
+                  {{ pano.title }}
+                </v-list-item-title>
+                <v-list-item-subtitle> {{ pano.ptype }}</v-list-item-subtitle>
+                <v-list-item-subtitle> {{ pano.psize }}</v-list-item-subtitle>
+              </v-list-item-content>
 
-            <!-- <v-card-text> {{ pano.title }}</v-card-text> -->
+              <v-list-item-avatar tile height="120" width="200" color="grey">
+                <v-img
+                  :src="
+                    pano.thumbnail
+                      ? pano.thumbnailUrl
+                      : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
+                  "
+                >
+                </v-img>
+              </v-list-item-avatar>
+            </v-list-item>
+
+            <v-card-actions v-if="user.admin">
+              <v-spacer />
+              <v-btn
+                icon
+                @click.stop="$router.push('/admin/' + pano.id)"
+                class="mr-14"
+              >
+                <v-icon>mdi-cog-outline</v-icon>
+              </v-btn>
+              <v-btn icon @click.stop="deletePanoConfirm(index)"
+                ><v-icon>mdi-delete-outline </v-icon>
+              </v-btn>
+              <v-spacer />
+            </v-card-actions>
           </v-card>
         </v-hover>
-        <div v-if="user.admin" class="mb-6">
-          <v-btn icon @click="deletePanoConfirm(index)" class="ml-4"
-            ><v-icon>mdi-delete-outline </v-icon>
-          </v-btn>
-          <!-- <v-btn
-            icon
-            @click="
-              editPano.dialog = true;
-              editPano.index = index;
-              editPano.title = pano.title;
-              editPano.ptype = pano.ptype;
-              editPano.psize = pano.psize;
-            "
-          >
-            <v-icon>mdi-pencil-outline</v-icon>
-          </v-btn> -->
-
-          <v-btn icon @click="$router.push('/admin/' + pano.id)">
-            <v-icon>mdi-cog-outline</v-icon>
-          </v-btn>
-        </div>
       </div>
     </div>
     <v-dialog

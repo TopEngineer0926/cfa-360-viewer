@@ -6,6 +6,7 @@ export const onCreatePano = /* GraphQL */ `
     onCreatePano {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -47,6 +48,7 @@ export const onUpdatePano = /* GraphQL */ `
     onUpdatePano {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -88,6 +90,7 @@ export const onDeletePano = /* GraphQL */ `
     onDeletePano {
       id
       title
+      category
       thumbnail
       pabout
       ptype

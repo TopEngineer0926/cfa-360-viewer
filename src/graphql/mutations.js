@@ -9,6 +9,7 @@ export const createPano = /* GraphQL */ `
     createPano(input: $input, condition: $condition) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -53,6 +54,7 @@ export const updatePano = /* GraphQL */ `
     updatePano(input: $input, condition: $condition) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -97,6 +99,7 @@ export const deletePano = /* GraphQL */ `
     deletePano(input: $input, condition: $condition) {
       id
       title
+      category
       thumbnail
       pabout
       ptype

@@ -6,6 +6,7 @@ export const getPano = /* GraphQL */ `
     getPano(id: $id) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -52,6 +53,7 @@ export const listPanos = /* GraphQL */ `
       items {
         id
         title
+        category
         thumbnail
         pabout
         ptype

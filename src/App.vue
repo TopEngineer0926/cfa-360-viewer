@@ -53,4 +53,11 @@ export default {
     visibility: hidden;
   }
 }
+
+.mdi-chevron-right {
+  color: #e51636 !important;
+}
+.mdi-chevron-left {
+  color: #e51636 !important;
+}
 </style>

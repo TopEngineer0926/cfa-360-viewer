@@ -3,57 +3,66 @@
     <div v-if="pano" class="vue-pannellum">
       <div class="default-slot mb-4">
         <v-row v-if="user.admin" justify="center" align="center">
-          <v-btn
-            v-if="admin"
-            text
-            @click="initEditScene(null)"
-            class="ml-2"
-            small
-          >
+          <v-btn v-if="admin" @click="initEditScene(null)" class="ml-2" small>
             Add Scene
           </v-btn>
-          <v-btn v-if="admin" text small @click="addLayer()">add layer</v-btn>
+          <v-btn v-if="admin" small @click="addLayer()" class="ml-2"
+            >add layer</v-btn
+          >
 
-          <v-btn v-if="admin" text @click="addTagConfig" class="ml-2" small>
+          <v-btn v-if="admin" small @click="addTagConfig" class="ml-2">
             Add Tag
           </v-btn>
-          <v-switch
-            v-model="admin"
-            :label="admin ? 'Admin' : 'User'"
-          ></v-switch>
+
+          <v-btn small @click="admin = !admin" class="ml-2">
+            {{ admin ? "Change to User View" : "Change to Admin View" }}
+          </v-btn>
         </v-row>
         <v-row justify="center" align="center">
-          <v-chip-group
-            multiple
-            v-model="selectedLayersIndex"
-            @change="loadLayers"
+          <v-col cols="1"> Layers </v-col>
+          <v-col cols="10">
+            <v-chip-group
+              multiple
+              show-arrows
+              center-active
+              v-model="selectedLayersIndex"
+              @change="loadLayers"
+            >
+              <v-chip
+                v-for="(layer, layerIndex) in panoSource.layers"
+                :key="layerIndex"
+                active-class="primary"
+                :close="admin"
+                close-icon="mdi-pencil-outline"
+                @click:close="initEditLayer(layerIndex)"
+              >
+                {{ layer.name }}
+              </v-chip>
+            </v-chip-group>
+          </v-col>
+        </v-row>
+        <v-row justify="center" align="center">
+          <v-col cols="1"> Scenes </v-col>
+          <v-col cols="10">
+            <v-chip-group
+              mandatory
+              v-model="currentSceneIndex"
+              center-active
+              show-arrows
+            >
+              <v-chip
+                v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                :key="sceneIndex"
+                active-class="primary"
+                @click="loadScene(scene.id)"
+                :close="admin"
+                close-icon="mdi-pencil-outline"
+                @click:close="initEditScene(scene.id)"
+              >
+                {{ scene.title }}
+              </v-chip>
+            </v-chip-group></v-col
           >
-            <v-chip
-              v-for="(layer, layerIndex) in panoSource.layers"
-              :key="layerIndex"
-              active-class="primary"
-              :close="admin"
-              close-icon="mdi-pencil-outline"
-              @click:close="initEditLayer(layerIndex)"
-            >
-              {{ layer.name }}
-            </v-chip>
-          </v-chip-group>
-        </v-row>
-        <v-row justify="center" align="center">
-          <v-chip-group mandatory v-model="currentSceneIndex">
-            <v-chip
-              v-for="(scene, sceneIndex) in panoSource.sceneArr"
-              :key="sceneIndex"
-              active-class="primary"
-              @click="loadScene(scene.id)"
-              :close="admin"
-              close-icon="mdi-pencil-outline"
-              @click:close="initEditScene(scene.id)"
-            >
-              {{ scene.title }}
-            </v-chip>
-          </v-chip-group>
         </v-row>
       </div>
     </div>
@@ -655,7 +664,7 @@ export default {
     addLayer() {
       this.panoSource.layers.push({
         id: nanoid(6),
-        name: "Layer" + nanoid(3),
+        name: "New Layer",
         icon: "cross",
       });
       this.savePano();
