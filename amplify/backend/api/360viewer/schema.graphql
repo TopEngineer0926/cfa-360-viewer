@@ -74,3 +74,21 @@ type Comment
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
+
+type EditStatus
+  @model
+  @auth(rules: [{ allow: owner }])
+  @key(
+    name: "editStatusByPano"
+    fields: ["panoID", "createdAt"]
+    queryField: "editStatusByPano"
+  ) {
+  id: ID
+  panoID: ID
+  owner: ID
+  name: String
+  email: String
+  ttl: AWSTimestamp
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}

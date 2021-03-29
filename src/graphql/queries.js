@@ -155,3 +155,69 @@ export const commentsBySpotId = /* GraphQL */ `
     }
   }
 `;
+export const getEditStatus = /* GraphQL */ `
+  query GetEditStatus($id: ID!) {
+    getEditStatus(id: $id) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listEditStatuss = /* GraphQL */ `
+  query ListEditStatuss(
+    $filter: ModelEditStatusFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listEditStatuss(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        panoID
+        owner
+        name
+        email
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const editStatusByPano = /* GraphQL */ `
+  query EditStatusByPano(
+    $panoID: ID
+    $createdAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelEditStatusFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    editStatusByPano(
+      panoID: $panoID
+      createdAt: $createdAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        panoID
+        owner
+        name
+        email
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;

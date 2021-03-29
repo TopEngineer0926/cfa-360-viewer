@@ -370,8 +370,16 @@ import "pannellum";
 import "pannellum/build/pannellum.css";
 import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getPano, commentsBySpotId } from "../graphql/queries";
-import { updatePano, createComment } from "../graphql/mutations";
+import {
+  getPano,
+  commentsBySpotId,
+  editStatusByPano,
+} from "../graphql/queries";
+import {
+  updatePano,
+  createComment,
+  createEditStatus,
+} from "../graphql/mutations";
 import { nanoid } from "nanoid";
 
 export default {
@@ -431,11 +439,36 @@ export default {
       allScenes: [],
 
       selectedLayersIndex: [],
+      editStatusInterval: null,
     };
   },
 
   mounted() {
     this.admin = this.user.admin;
+
+    if (this.user.admin) {
+      API.graphql(
+        graphqlOperation(editStatusByPano, {
+          panoID: this.$route.params.id,
+          sortDirection: "DESC",
+        })
+      ).then((res) => {
+        let items = res.data.editStatusByPano.items;
+
+        if (
+          items &&
+          items[0].email !== this.user.email &&
+          new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
+        ) {
+          console.log(items[0].name + " is editing." + items[0].email);
+        } else {
+          console.log("You are editing.");
+          this.updateEditStatus();
+          this.updateEditStatusInterval();
+        }
+      });
+    }
+
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
         this.panoSource = data.data.getPano;
@@ -450,7 +483,28 @@ export default {
       }
     );
   },
+  beforeDestroy() {
+    clearInterval(this.editStatusInterval);
+  },
   methods: {
+    updateEditStatusInterval() {
+      this.editStatusInterval = setInterval(() => {
+        this.updateEditStatus();
+      }, 5 * 60 * 1000 - 60);
+    },
+
+    updateEditStatus() {
+      API.graphql(
+        graphqlOperation(createEditStatus, {
+          input: {
+            name: this.user.name,
+            email: this.user.email,
+            panoID: this.$route.params.id,
+            ttl: new Date().getTime() + 24 * 60 * 60 * 1000,
+          },
+        })
+      );
+    },
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {

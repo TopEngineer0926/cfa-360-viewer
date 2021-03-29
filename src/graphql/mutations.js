@@ -184,3 +184,54 @@ export const deleteComment = /* GraphQL */ `
     }
   }
 `;
+export const createEditStatus = /* GraphQL */ `
+  mutation CreateEditStatus(
+    $input: CreateEditStatusInput!
+    $condition: ModelEditStatusConditionInput
+  ) {
+    createEditStatus(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateEditStatus = /* GraphQL */ `
+  mutation UpdateEditStatus(
+    $input: UpdateEditStatusInput!
+    $condition: ModelEditStatusConditionInput
+  ) {
+    updateEditStatus(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteEditStatus = /* GraphQL */ `
+  mutation DeleteEditStatus(
+    $input: DeleteEditStatusInput!
+    $condition: ModelEditStatusConditionInput
+  ) {
+    deleteEditStatus(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;

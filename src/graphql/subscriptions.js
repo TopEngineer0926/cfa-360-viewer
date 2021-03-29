@@ -166,3 +166,45 @@ export const onDeleteComment = /* GraphQL */ `
     }
   }
 `;
+export const onCreateEditStatus = /* GraphQL */ `
+  subscription OnCreateEditStatus($owner: String) {
+    onCreateEditStatus(owner: $owner) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateEditStatus = /* GraphQL */ `
+  subscription OnUpdateEditStatus($owner: String) {
+    onUpdateEditStatus(owner: $owner) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteEditStatus = /* GraphQL */ `
+  subscription OnDeleteEditStatus($owner: String) {
+    onDeleteEditStatus(owner: $owner) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
