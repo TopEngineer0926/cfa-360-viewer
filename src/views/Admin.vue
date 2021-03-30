@@ -317,7 +317,7 @@ export default {
           })
         )
       ).data.commentsBySpotID.items;
-      console.log(this.comments);
+
       this.$forceUpdate();
     },
     savePano() {

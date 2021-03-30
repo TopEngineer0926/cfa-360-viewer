@@ -18,7 +18,11 @@
             {{ admin ? "Change to User View" : "Change to Admin View" }}
           </v-btn>
         </v-row>
-        <v-row justify="center" align="center">
+        <v-row
+          v-if="panoSource.layers && panoSource.layers.length > 0"
+          justify="center"
+          align="center"
+        >
           <v-col cols="1"> Layers </v-col>
           <v-col cols="10">
             <v-chip-group
@@ -457,6 +461,7 @@ export default {
 
         if (
           items &&
+          items.length > 0 &&
           items[0].email !== this.user.email &&
           new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
         ) {
