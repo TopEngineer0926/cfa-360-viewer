@@ -11,6 +11,13 @@
 
       <v-col cols="8">
         <v-text-field
+          v-model="panoSource.category"
+          require
+          :rules="[(v) => !!v || 'Category is required']"
+          label="Category"
+          @change="savePano"
+        ></v-text-field>
+        <v-text-field
           v-model="panoSource.title"
           require
           :rules="[(v) => !!v || 'Title is required']"
@@ -31,6 +38,7 @@
           label="Size"
           @change="savePano"
         ></v-text-field>
+
         <v-file-input
           v-model="thumbnailToUpload"
           accept="image/*"
@@ -47,6 +55,7 @@
         >
           Tag Selector
         </h3>
+        <v-text-field v-model="spotsSearch" label="Search"></v-text-field>
 
         <v-list>
           <v-list-group
@@ -65,7 +74,10 @@
               <v-list-item
                 link
                 @click="loadSpot(sceneIndex, spotIndex)"
-                v-if="spot.style == 'detail'"
+                v-if="
+                  spot.style == 'detail' &&
+                  (spotsSearch == '' || spot.text.includes(spotsSearch))
+                "
               >
                 <v-list-item-title v-text="spot.text"></v-list-item-title>
                 <v-list-item-icon>
@@ -210,6 +222,7 @@ export default {
       savePanoTimer: null,
       panoSource: null,
       spot: null,
+      spotsSearch: "",
       comments: null,
       spotStyles: [
         { text: "Product Detail", value: "detail" },
