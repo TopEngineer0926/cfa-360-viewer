@@ -5,13 +5,18 @@
         >Create</v-btn
       >
     </v-row>
-    <v-select
-      value="All Categorioes"
-      :items="categoryList"
-      label="Solo field"
-      solo
-      @change="filterByCategory"
-    ></v-select>
+    <v-row justify="center" class="my-4">
+      <v-col cols="4">
+        <v-select
+          value="All Categorioes"
+          :items="categoryList"
+          label="Solo field"
+          solo
+          @change="filterByCategory"
+        ></v-select>
+      </v-col>
+    </v-row>
+
     <div v-if="panos" class="d-flex flex-wrap justify-center">
       <div v-for="(pano, index) in panosFilter" :key="index">
         <v-hover v-slot="{ hover }" class="ma-6">

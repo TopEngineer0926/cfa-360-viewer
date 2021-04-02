@@ -231,7 +231,7 @@
               v-if="editSpotData.spot.style == 'scene'"
               v-model="editSpotData.spot.sceneID"
               :items="allScenes"
-              label="Pano Image List"
+              label="Target Scene"
             ></v-select>
           </v-form>
           <div v-if="editSpotData.spot.style == 'detail'">
@@ -271,40 +271,56 @@
             </div>
             <div v-if="admin">
               <v-divider class="ma-8"></v-divider>
-              <v-row>
-                <v-col>
-                  <v-select
-                    v-model="editSpotData.newContent.type"
-                    :items="contentTypes"
-                    label="Type"
-                  ></v-select
-                ></v-col>
-                <v-col>
-                  <v-text-field
-                    label="video Id"
-                    v-model="editSpotData.newContent.link"
-                    v-if="editSpotData.newContent.type == 'youtube'"
-                  ></v-text-field>
-                  <v-text-field
-                    v-else-if="editSpotData.newContent.type == 'link'"
-                    label="URL"
-                    v-model="editSpotData.newContent.link"
-                  ></v-text-field>
-                  <v-file-input
-                    v-else-if="
-                      editSpotData.newContent.type == 'pdf' ||
-                      editSpotData.newContent.type == 'img'
-                    "
-                    v-model="editSpotData.newContent.link"
-                    label="Select File"
-                  ></v-file-input>
-                </v-col>
-              </v-row>
+              <v-form
+                ref="newContentForm"
+                v-model="editSpotData.newContentValid"
+                lazy-validation
+              >
+                <v-row>
+                  <v-col>
+                    <v-select
+                      v-model="editSpotData.newContent.type"
+                      :items="contentTypes"
+                      label="Type"
+                      :rules="[(v) => !!v || 'Type is required']"
+                      required
+                    ></v-select
+                  ></v-col>
+                  <v-col>
+                    <v-text-field
+                      label="video Id"
+                      v-model="editSpotData.newContent.link"
+                      v-if="editSpotData.newContent.type == 'youtube'"
+                      :rules="[(v) => !!v || 'Video ID is required']"
+                      required
+                    ></v-text-field>
+                    <v-text-field
+                      v-else-if="editSpotData.newContent.type == 'link'"
+                      label="URL"
+                      v-model="editSpotData.newContent.link"
+                      :rules="[(v) => !!v || 'URL is required']"
+                      required
+                    ></v-text-field>
+                    <v-file-input
+                      v-else-if="
+                        editSpotData.newContent.type == 'pdf' ||
+                        editSpotData.newContent.type == 'img'
+                      "
+                      v-model="editSpotData.newContent.link"
+                      label="Select File"
+                      :rules="[(v) => !!v || 'File is required']"
+                      required
+                    ></v-file-input>
+                  </v-col>
+                </v-row>
 
-              <v-text-field
-                v-model="editSpotData.newContent.name"
-                label="Content Name"
-              ></v-text-field>
+                <v-text-field
+                  v-model="editSpotData.newContent.name"
+                  label="Content Name"
+                  :rules="[(v) => !!v || 'Name is required']"
+                  required
+                ></v-text-field>
+              </v-form>
               <v-btn block @click="addNewContent">Add Content</v-btn>
             </div>
             <div v-else>
@@ -414,6 +430,7 @@ export default {
         spot: null,
         comments: null,
         newComment: null,
+        newContentValid: true,
         newContent: {
           type: "img",
           name: null,
@@ -431,7 +448,7 @@ export default {
       spotStyles: [
         { text: "Product Detail", value: "detail" },
         // { text: "Hyperlink", value: "link" },
-        { text: "Change Pano Image", value: "scene" },
+        { text: "Change Scene", value: "scene" },
       ],
       contentTypes: [
         { text: "Image", value: "img" },
@@ -934,64 +951,66 @@ export default {
       }
     },
     async addNewContent() {
-      // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
-      if (!this.editSpotData.spot.contents) {
-        this.editSpotData.spot.contents = [];
-      }
-
-      if (
-        this.editSpotData.newContent.type == "pdf" ||
-        this.editSpotData.newContent.type == "img"
-      ) {
-        this.editSpotData.spot.contents.push({
-          type: this.editSpotData.newContent.type,
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-          // thumbnail: "String",
-          s3Upload: true,
-        });
-      } else if (this.editSpotData.newContent.type == "link") {
-        if (!this.editSpotData.newContent.link.includes("http")) {
-          this.editSpotData.newContent.link =
-            "http://" + this.editSpotData.newContent.link;
+      if (this.$refs.newContentForm.validate()) {
+        // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
+        if (!this.editSpotData.spot.contents) {
+          this.editSpotData.spot.contents = [];
         }
-        this.editSpotData.spot.contents.push({
-          type: this.editSpotData.newContent.type,
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-        });
-      } else {
-        this.editSpotData.spot.contents.push({
-          type: this.editSpotData.newContent.type,
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-        });
+
+        if (
+          this.editSpotData.newContent.type == "pdf" ||
+          this.editSpotData.newContent.type == "img"
+        ) {
+          this.editSpotData.spot.contents.push({
+            type: this.editSpotData.newContent.type,
+            name: this.editSpotData.newContent.name,
+            link: this.editSpotData.newContent.link,
+            // thumbnail: "String",
+            s3Upload: true,
+          });
+        } else if (this.editSpotData.newContent.type == "link") {
+          if (!this.editSpotData.newContent.link.includes("http")) {
+            this.editSpotData.newContent.link =
+              "http://" + this.editSpotData.newContent.link;
+          }
+          this.editSpotData.spot.contents.push({
+            type: this.editSpotData.newContent.type,
+            name: this.editSpotData.newContent.name,
+            link: this.editSpotData.newContent.link,
+          });
+        } else {
+          this.editSpotData.spot.contents.push({
+            type: this.editSpotData.newContent.type,
+            name: this.editSpotData.newContent.name,
+            link: this.editSpotData.newContent.link,
+          });
+        }
+        // let fileType = this.editSpotData.newContent.link.type;
+
+        // if (fileType.includes("image")) {
+        //   this.editSpotData.spot.contents.push({
+        //     type: "img",
+        //     name: this.editSpotData.newContent.name,
+        //     link: this.editSpotData.newContent.link,
+        //     // thumbnail: "String",
+        //     s3Upload: true,
+        //   });
+        // }
+
+        // else if (fileType.includes("pdf")) {
+        //   //+++generate thumbnail
+
+        // }
+
+        this.editSpotData.newContent = {
+          type: "img",
+          name: null,
+          thumbnail: null,
+          file: null,
+          link: null,
+        };
+        this.$forceUpdate();
       }
-      // let fileType = this.editSpotData.newContent.link.type;
-
-      // if (fileType.includes("image")) {
-      //   this.editSpotData.spot.contents.push({
-      //     type: "img",
-      //     name: this.editSpotData.newContent.name,
-      //     link: this.editSpotData.newContent.link,
-      //     // thumbnail: "String",
-      //     s3Upload: true,
-      //   });
-      // }
-
-      // else if (fileType.includes("pdf")) {
-      //   //+++generate thumbnail
-
-      // }
-
-      this.editSpotData.newContent = {
-        type: "img",
-        name: null,
-        thumbnail: null,
-        file: null,
-        link: null,
-      };
-      this.$forceUpdate();
     },
     async getComments() {
       this.editSpotData.comments = (
