@@ -6,6 +6,7 @@ export const onCreatePano = /* GraphQL */ `
     onCreatePano {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -31,6 +32,11 @@ export const onCreatePano = /* GraphQL */ `
           }
           about
         }
+      }
+      layers {
+        id
+        name
+        icon
       }
       createdAt
       updatedAt
@@ -42,6 +48,7 @@ export const onUpdatePano = /* GraphQL */ `
     onUpdatePano {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -68,6 +75,11 @@ export const onUpdatePano = /* GraphQL */ `
           about
         }
       }
+      layers {
+        id
+        name
+        icon
+      }
       createdAt
       updatedAt
     }
@@ -78,6 +90,7 @@ export const onDeletePano = /* GraphQL */ `
     onDeletePano {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -103,6 +116,11 @@ export const onDeletePano = /* GraphQL */ `
           }
           about
         }
+      }
+      layers {
+        id
+        name
+        icon
       }
       createdAt
       updatedAt
@@ -143,6 +161,48 @@ export const onDeleteComment = /* GraphQL */ `
       owner
       name
       msg
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateEditStatus = /* GraphQL */ `
+  subscription OnCreateEditStatus($owner: String) {
+    onCreateEditStatus(owner: $owner) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateEditStatus = /* GraphQL */ `
+  subscription OnUpdateEditStatus($owner: String) {
+    onUpdateEditStatus(owner: $owner) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteEditStatus = /* GraphQL */ `
+  subscription OnDeleteEditStatus($owner: String) {
+    onDeleteEditStatus(owner: $owner) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
       createdAt
       updatedAt
     }

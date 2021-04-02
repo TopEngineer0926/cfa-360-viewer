@@ -15,6 +15,9 @@
     <div v-else-if="content.type == 'youtube'">
       <youtube fitParent resize nocookie :video-id="content.link" />
     </div>
+    <div v-else-if="content.type == 'link'">
+      <v-btn text :href="content.link" target="_blank">External Link </v-btn>
+    </div>
     <!-- <div v-if="content.name">{{ content.name }}</div> -->
   </div>
 </template>

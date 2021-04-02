@@ -6,6 +6,7 @@ export const getPano = /* GraphQL */ `
     getPano(id: $id) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -32,6 +33,11 @@ export const getPano = /* GraphQL */ `
           about
         }
       }
+      layers {
+        id
+        name
+        icon
+      }
       createdAt
       updatedAt
     }
@@ -47,6 +53,7 @@ export const listPanos = /* GraphQL */ `
       items {
         id
         title
+        category
         thumbnail
         pabout
         ptype
@@ -72,6 +79,11 @@ export const listPanos = /* GraphQL */ `
             }
             about
           }
+        }
+        layers {
+          id
+          name
+          icon
         }
         createdAt
         updatedAt
@@ -136,6 +148,72 @@ export const commentsBySpotId = /* GraphQL */ `
         owner
         name
         msg
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const getEditStatus = /* GraphQL */ `
+  query GetEditStatus($id: ID!) {
+    getEditStatus(id: $id) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listEditStatuss = /* GraphQL */ `
+  query ListEditStatuss(
+    $filter: ModelEditStatusFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listEditStatuss(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        panoID
+        owner
+        name
+        email
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const editStatusByPano = /* GraphQL */ `
+  query EditStatusByPano(
+    $panoID: ID
+    $createdAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelEditStatusFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    editStatusByPano(
+      panoID: $panoID
+      createdAt: $createdAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        panoID
+        owner
+        name
+        email
+        ttl
         createdAt
         updatedAt
       }

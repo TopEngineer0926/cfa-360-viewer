@@ -36,7 +36,7 @@ export default {
           this.url = await Storage.get(this.panoID + "/" + this.src);
         }
       } catch (error) {
-        console.log("noooo");
+        console.log("Get Img Error");
         this.url = null;
       }
     },

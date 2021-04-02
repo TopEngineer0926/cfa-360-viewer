@@ -2,49 +2,71 @@
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
       <div class="default-slot mb-4">
-        <!-- <div v-for="(layer, layerIndex) in layers" :key="layerIndex">
-          <v-btn
-            text
-            @click="loadLayer(layer)"
-            small
-            :class="{ primary: layer == currentLayer }"
-          >
-            {{ layer }}
-          </v-btn>
-        </div> -->
         <v-row v-if="user.admin" justify="center" align="center">
-          <v-btn
-            v-if="admin"
-            text
-            @click="initEditScene(null)"
-            class="ml-2"
-            small
-          >
-            Add Panorama Image
+          <v-btn v-if="admin" @click="initEditScene(null)" class="ml-2" small>
+            Add Scene
           </v-btn>
-          <v-btn v-if="admin" text @click="addTagConfig" class="ml-2" small>
+          <v-btn v-if="admin" small @click="addLayer()" class="ml-2"
+            >add layer</v-btn
+          >
+
+          <v-btn v-if="admin" small @click="addTagConfig" class="ml-2">
             Add Tag
           </v-btn>
-          <v-switch
-            v-model="admin"
-            :label="admin ? 'Admin' : 'User'"
-          ></v-switch>
+
+          <v-btn small @click="admin = !admin" class="ml-2">
+            {{ admin ? "Change to User View" : "Change to Admin View" }}
+          </v-btn>
+        </v-row>
+        <v-row
+          v-if="panoSource.layers && panoSource.layers.length > 0"
+          justify="center"
+          align="center"
+        >
+          <v-col cols="1"> Layers </v-col>
+          <v-col cols="10">
+            <v-chip-group
+              multiple
+              show-arrows
+              center-active
+              v-model="selectedLayersIndex"
+              @change="loadLayers()"
+            >
+              <v-chip
+                v-for="(layer, layerIndex) in panoSource.layers"
+                :key="layerIndex"
+                active-class="primary"
+                :close="admin"
+                close-icon="mdi-pencil-outline"
+                @click:close="initEditLayer(layerIndex)"
+              >
+                {{ layer.name }}
+              </v-chip>
+            </v-chip-group>
+          </v-col>
         </v-row>
         <v-row justify="center" align="center">
-          <v-chip-group mandatory>
-            <v-chip
-              v-for="(scene, sceneIndex) in panoSource.sceneArr"
-              :key="sceneIndex"
-              :class="{ primary: sceneIndex == currentSceneIndex }"
-              @click="loadScene(scene.id)"
+          <v-col cols="1"> Scenes </v-col>
+          <v-col cols="10">
+            <v-chip-group
+              mandatory
+              v-model="currentSceneIndex"
+              center-active
+              show-arrows
             >
-              {{ scene.title }}
-
-              <v-avatar v-if="admin" right @click="initEditScene(scene.id)">
-                <v-icon>mdi-pencil-outline</v-icon>
-              </v-avatar>
-            </v-chip>
-          </v-chip-group>
+              <v-chip
+                v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                :key="sceneIndex"
+                active-class="primary"
+                @click="loadScene(scene.id)"
+                :close="admin"
+                close-icon="mdi-pencil-outline"
+                @click:close="initEditScene(scene.id)"
+              >
+                {{ scene.title }}
+              </v-chip>
+            </v-chip-group></v-col
+          >
         </v-row>
       </div>
     </div>
@@ -60,7 +82,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Edit Panorama Image</v-card-title>
+        <v-card-title class="headline">Edit Scene</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"
@@ -109,6 +131,53 @@
     </v-dialog>
 
     <v-dialog
+      v-if="editLayerData.dialog"
+      v-model="editLayerData.dialog"
+      persistent
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline">Edit Layer</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="editLayerData.layer.name"
+            require
+            :rules="[(v) => !!v || 'Name is required']"
+            label="Layer Name"
+          ></v-text-field>
+          <v-select
+            v-model="editLayerData.layer.icon"
+            :items="iconStyles"
+            label="Layer Icon"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="
+              loadLayers();
+              savePano();
+              editLayerData.dialog = false;
+            "
+          >
+            Confirm
+          </v-btn>
+
+          <v-btn
+            v-if="panoSource.layers && panoSource.layers.length > 0"
+            color="grey"
+            text
+            @click="deleteLayer()"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
       v-if="editSpotData.dialog"
       v-model="editSpotData.dialog"
       persistent
@@ -138,12 +207,20 @@
               label="Tag Name"
             ></v-text-field>
             <!-- <v-text-field
-             
               v-model="editSpotData.spot.layer"
               label="Layer"
               require
               :rules="[(v) => !!v || 'Layer is required']"
             ></v-text-field> -->
+            <v-select
+              v-model="editSpotData.spot.layer"
+              :items="panoSource.layers"
+              item-text="name"
+              item-value="id"
+              label="Layer"
+              require
+              :rules="[(v) => !!v || 'Layer is required']"
+            ></v-select>
 
             <v-text-field
               v-if="editSpotData.spot.style == 'link'"
@@ -153,8 +230,8 @@
             <v-select
               v-if="editSpotData.spot.style == 'scene'"
               v-model="editSpotData.spot.sceneID"
-              :items="sceneSelectList"
-              label="Pano Image List"
+              :items="allScenes"
+              label="Target Scene"
             ></v-select>
           </v-form>
           <div v-if="editSpotData.spot.style == 'detail'">
@@ -165,6 +242,7 @@
               :rows="1"
               :readonly="!admin"
             ></v-textarea>
+            <v-divider class="ma-8"></v-divider>
             <div
               v-for="(content, contentIndex) in editSpotData.spot.contents"
               :key="contentIndex"
@@ -175,7 +253,7 @@
                   :content="content"
                   :panoID="panoSource.id"
                 ></ContentDisplay>
-                <v-row class="mt-2" align="center" justify="center">
+                <v-row class="mt-2 ml-0" align="center" justify="center">
                   <v-text-field
                     v-model="content.name"
                     :readonly="!admin"
@@ -193,32 +271,56 @@
             </div>
             <div v-if="admin">
               <v-divider class="ma-8"></v-divider>
-              <v-row>
-                <v-col>
-                  <v-select
-                    v-model="editSpotData.newContent.type"
-                    :items="contentTypes"
-                    label="Type"
-                  ></v-select
-                ></v-col>
-                <v-col>
-                  <v-text-field
-                    label="video Id"
-                    v-model="editSpotData.newContent.link"
-                    v-if="editSpotData.newContent.type == 'youtube'"
-                  ></v-text-field>
-                  <v-file-input
-                    v-else
-                    v-model="editSpotData.newContent.link"
-                    label="Select File"
-                  ></v-file-input>
-                </v-col>
-              </v-row>
+              <v-form
+                ref="newContentForm"
+                v-model="editSpotData.newContentValid"
+                lazy-validation
+              >
+                <v-row>
+                  <v-col>
+                    <v-select
+                      v-model="editSpotData.newContent.type"
+                      :items="contentTypes"
+                      label="Type"
+                      :rules="[(v) => !!v || 'Type is required']"
+                      required
+                    ></v-select
+                  ></v-col>
+                  <v-col>
+                    <v-text-field
+                      label="video Id"
+                      v-model="editSpotData.newContent.link"
+                      v-if="editSpotData.newContent.type == 'youtube'"
+                      :rules="[(v) => !!v || 'Video ID is required']"
+                      required
+                    ></v-text-field>
+                    <v-text-field
+                      v-else-if="editSpotData.newContent.type == 'link'"
+                      label="URL"
+                      v-model="editSpotData.newContent.link"
+                      :rules="[(v) => !!v || 'URL is required']"
+                      required
+                    ></v-text-field>
+                    <v-file-input
+                      v-else-if="
+                        editSpotData.newContent.type == 'pdf' ||
+                        editSpotData.newContent.type == 'img'
+                      "
+                      v-model="editSpotData.newContent.link"
+                      label="Select File"
+                      :rules="[(v) => !!v || 'File is required']"
+                      required
+                    ></v-file-input>
+                  </v-col>
+                </v-row>
 
-              <v-text-field
-                v-model="editSpotData.newContent.name"
-                label="Content Name"
-              ></v-text-field>
+                <v-text-field
+                  v-model="editSpotData.newContent.name"
+                  label="Content Name"
+                  :rules="[(v) => !!v || 'Name is required']"
+                  required
+                ></v-text-field>
+              </v-form>
               <v-btn block @click="addNewContent">Add Content</v-btn>
             </div>
             <div v-else>
@@ -288,8 +390,16 @@ import "pannellum";
 import "pannellum/build/pannellum.css";
 import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getPano, commentsBySpotId } from "../graphql/queries";
-import { updatePano, createComment } from "../graphql/mutations";
+import {
+  getPano,
+  commentsBySpotId,
+  editStatusByPano,
+} from "../graphql/queries";
+import {
+  updatePano,
+  createComment,
+  createEditStatus,
+} from "../graphql/mutations";
 import { nanoid } from "nanoid";
 
 export default {
@@ -303,7 +413,6 @@ export default {
       pano: null,
       panoSource: null,
       viewer: null,
-      currentScene: null,
       currentSceneIndex: null,
       layers: [],
       editSceneData: {
@@ -320,6 +429,7 @@ export default {
         spot: null,
         comments: null,
         newComment: null,
+        newContentValid: true,
         newContent: {
           type: "img",
           name: null,
@@ -328,30 +438,64 @@ export default {
           link: null,
         },
       },
-      // showSpotDetail: {
-      //   dialog: false,
-      //   spot: null,
-      // },
+      editLayerData: {
+        dialog: false,
+        layerIndex: null,
+        layer: null,
+      },
+
       spotStyles: [
         { text: "Product Detail", value: "detail" },
         // { text: "Hyperlink", value: "link" },
-        { text: "Change Pano Image", value: "scene" },
+        { text: "Change Scene", value: "scene" },
       ],
       contentTypes: [
         { text: "Image", value: "img" },
         { text: "PDF", value: "pdf" },
         { text: "Youtube", value: "youtube" },
+        { text: "Hyperlink", value: "link" },
       ],
-      sceneSelectList: [],
-      currentLayer: null,
+      iconStyles: ["dot", "circle", "cross", "triangle", "square"],
+      allScenes: [],
+
+      selectedLayersIndex: [],
+      editStatusInterval: null,
     };
   },
 
   mounted() {
     this.admin = this.user.admin;
+
+    if (this.user.admin) {
+      API.graphql(
+        graphqlOperation(editStatusByPano, {
+          panoID: this.$route.params.id,
+          sortDirection: "DESC",
+        })
+      ).then((res) => {
+        let items = res.data.editStatusByPano.items;
+
+        if (
+          items &&
+          items.length > 0 &&
+          items[0].email !== this.user.email &&
+          new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
+        ) {
+          console.log(items[0].name + " is editing." + items[0].email);
+        } else {
+          console.log("You are editing.");
+          this.updateEditStatus();
+          this.updateEditStatusInterval();
+        }
+      });
+    }
+
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
         this.panoSource = data.data.getPano;
+        if (!this.panoSource.layers) {
+          this.panoSource.layers = [];
+        }
         if (this.panoSource) {
           this.initPano();
         } else {
@@ -360,7 +504,28 @@ export default {
       }
     );
   },
+  beforeDestroy() {
+    clearInterval(this.editStatusInterval);
+  },
   methods: {
+    updateEditStatusInterval() {
+      this.editStatusInterval = setInterval(() => {
+        this.updateEditStatus();
+      }, 5 * 60 * 1000 - 60);
+    },
+
+    updateEditStatus() {
+      API.graphql(
+        graphqlOperation(createEditStatus, {
+          input: {
+            name: this.user.name,
+            email: this.user.email,
+            panoID: this.$route.params.id,
+            ttl: new Date().getTime() + 24 * 60 * 60 * 1000,
+          },
+        })
+      );
+    },
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {
@@ -376,40 +541,43 @@ export default {
             );
           })
         );
-        this.currentScene = this.panoSource.sceneArr[0].id;
+
         this.currentSceneIndex = 0;
         this.pano.default = {
-          firstScene: this.currentScene,
+          firstScene: this.panoSource.sceneArr[0].id,
           autoLoad: true,
         };
 
-        this.updateLayerList();
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
-        this.loadLayer("default");
+        this.selectedLayersIndex = Array.from(
+          Array(this.panoSource.layers.length).keys()
+        );
+        this.loadLayers();
       }
     },
 
     loadScene(sceneID) {
-      // remove current spots
-      this.removeCurrentSpots();
       this.viewer.loadScene(sceneID);
-      this.currentScene = sceneID;
-      this.currentSceneIndex = this.panoSource.sceneArr.findIndex(
-        (scene) => scene.id == this.currentScene
-      );
-
-      this.updateLayerList();
-      if (this.layers.includes("default")) {
-        this.loadLayer("default");
-      } else {
-        this.currentLayer = null;
-      }
-      // if (this.layers.includes(this.currentLayer)) {
-      //   this.loadLayer(this.currentLayer);
-      // } else {
-      //   this.currentLayer = null;
-      // }
+      let checkLoad = (viewer) => {
+        if (viewer.isLoaded()) {
+          this.loadLayers();
+        } else {
+          setTimeout(checkLoad, 500, viewer); // setTimeout(func, timeMS, params...)
+        }
+      };
+      checkLoad(this.viewer);
     },
+    initEditLayer(layerIndex) {
+      this.editLayerData.layerIndex = layerIndex;
+      this.editLayerData.layer = this.panoSource.layers[layerIndex];
+      this.editLayerData.dialog = true;
+    },
+    deleteLayer() {
+      this.panoSource.layers.splice(this.editLayerData.layerIndex, 1);
+      this.savePano();
+      this.editLayerData.dialog = false;
+    },
+
     initEditScene(sceneID) {
       if (!sceneID) {
         this.editSceneData.sceneID = null;
@@ -420,8 +588,8 @@ export default {
           (scene) => scene.id == sceneID
         );
         this.editSceneData.sceneID = sceneID;
-        this.editSceneData.title = this.pano.scenes[
-          this.editSceneData.sceneID
+        this.editSceneData.title = this.panoSource.sceneArr[
+          this.editSceneData.sceneIndex
         ].title;
       }
       this.editSceneData.imgToUpload = null;
@@ -470,37 +638,30 @@ export default {
           ).key;
         }
         if (this.editSceneData.sceneID) {
+          let sceneIndex = this.panoSource.sceneArr.findIndex(
+            (scene) => scene.id == sceneID
+          );
+
           //edit scene title
           this.pano.scenes[sceneID].title = this.editSceneData.title;
+
           //edit sceneArr title
-          // let sceneIndex = this.panoSource.sceneArr.findIndex(
-          //   (scene) => scene.id == sceneID
-          // );
-          this.panoSource.sceneArr[
-            this.currentSceneIndex
-          ].title = this.editSceneData.title;
+          this.panoSource.sceneArr[sceneIndex].title = this.editSceneData.title;
+
           if (s3link) {
             //edit sceneArr img
             Storage.remove(
               this.panoSource.id +
                 "/" +
-                this.panoSource.sceneArr[this.currentSceneIndex].img
+                this.panoSource.sceneArr[sceneIndex].img
             );
-            this.panoSource.sceneArr[this.currentSceneIndex].img = s3link.split(
-              "/"
-            )[1];
+            this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
             //edit scene panorama
             this.pano.scenes[sceneID].panorama = await Storage.get(s3link);
+            if (this.currentSceneIndex == sceneIndex) {
+              this.loadScene(sceneID);
+            }
           }
-          //   if (this.editSceneData.imgToUpload) {
-          //   let fileURL = URL.createObjectURL(this.editSceneData.imgToUpload);
-          //   this.pano.scenes[
-          //     this.editSceneData.sceneID
-          //   ].s3Update = this.editSceneData.imgToUpload;
-          // }
-          //   if (scene.img) {
-          //   Storage.remove(this.pano.id + "/" + scene.img);
-          // }
         } else {
           if (!this.pano) {
             // first scene
@@ -533,8 +694,8 @@ export default {
         }
         this.savePano();
         this.editSceneData.dialog = false;
-        this.loadScene(sceneID);
       }
+      //  this.$forceUpdate();
     },
     mouseDownHandler(event) {
       let coords = this.viewer.mouseEventToCoords(event);
@@ -545,7 +706,7 @@ export default {
           pitch: coords[0],
           yaw: coords[1],
           style: "detail",
-          layer: "default",
+          layer: null,
         },
         newContent: {
           type: "img",
@@ -556,6 +717,9 @@ export default {
         },
       };
       this.viewer.off("mousedown", this.mouseDownHandler);
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "");
       // let pitch = this.viewer.getPitch();
       // let yaw = this.viewer.getYaw();
       // let hfov = this.viewer.getHfov();
@@ -568,7 +732,18 @@ export default {
       // };
     },
     addTagConfig() {
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "crosshair", "important");
       this.viewer.on("mousedown", this.mouseDownHandler);
+    },
+    addLayer() {
+      this.panoSource.layers.push({
+        id: nanoid(6),
+        name: "New Layer",
+        icon: "cross",
+      });
+      this.savePano();
     },
     cancelSpot() {
       this.editSpotData = {
@@ -606,7 +781,7 @@ export default {
         ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.filter(
           (spot) => spot.id !== this.editSpotData.spot.id
         );
-        this.updateLayerList();
+
         this.savePano();
       }
       this.editSpotData.dialog = false;
@@ -680,9 +855,10 @@ export default {
             this.editSpotData.spot
           );
         }
-        this.loadLayer(this.editSpotData.spot.layer);
+
+        this.loadLayers();
         this.editSpotData.dialog = false;
-        this.updateLayerList();
+
         this.savePano();
       }
     },
@@ -696,25 +872,6 @@ export default {
         },
       });
       // this.$router.go();
-    },
-    updateLayerList() {
-      let layerList = [];
-      // let sceneIndex = this.panoSource.sceneArr.findIndex(
-      //   (scene) => scene.id == this.currentScene
-      // );
-      if (
-        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
-      ) {
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
-          (spot) => {
-            if (!layerList.includes(spot.layer)) {
-              layerList.push(spot.layer);
-            }
-          }
-        );
-      }
-      this.layers = layerList;
     },
 
     showSpot(spot) {
@@ -749,82 +906,115 @@ export default {
             addSpot.type = "info";
         }
       }
+      if (addSpot.layer) {
+        let layer = this.panoSource.layers.find(
+          (layer) => layer.id == addSpot.layer
+        );
+
+        addSpot.cssClass = layer ? layer.icon + "-hotspot" : null;
+      }
+      delete addSpot.layer;
+      delete addSpot.style;
+      delete addSpot.about;
       this.viewer.addHotSpot(addSpot);
     },
-    removeCurrentSpots() {
-      if (this.currentLayer && this.pano.scenes[this.currentScene].hotSpots) {
-        //removeHotSpots
-        let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
+
+    loadLayers() {
+      // await new Promise((r) => setTimeout(r, 500));
+      //removeCurrentSpots
+      let currentSceneID = this.viewer.getScene();
+      if (this.pano.scenes[currentSceneID].hotSpots) {
+        let hotSpotsID = this.pano.scenes[currentSceneID].hotSpots.map(
           (hotSpot) => hotSpot.id
         );
         hotSpotsID.forEach((hotSpotID) => {
           this.viewer.removeHotSpot(hotSpotID);
         });
       }
-    },
-    loadLayer(layer) {
-      this.removeCurrentSpots();
-      if (
-        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
-      ) {
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
+
+      let selectedLayersID = this.selectedLayersIndex.map(
+        (index) => this.panoSource.layers[index].id
+      );
+      let allLayersID = this.panoSource.layers.map((layer) => layer.id);
+      let SceneIndex = this.panoSource.sceneArr.findIndex(
+        (scene) => scene.id == currentSceneID
+      );
+
+      if (this.panoSource.sceneArr[SceneIndex].spots) {
+        this.panoSource.sceneArr[SceneIndex].spots.forEach(
           (spot, spotIndex) => {
-            if (spot.layer == layer) {
+            if (
+              !spot.layer ||
+              selectedLayersID.includes(spot.layer) ||
+              !allLayersID.includes(spot.layer)
+            ) {
               this.showSpot(spot);
             }
           }
         );
       }
-
-      this.currentLayer = layer;
     },
     async addNewContent() {
-      // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
-      if (!this.editSpotData.spot.contents) {
-        this.editSpotData.spot.contents = [];
+      if (this.$refs.newContentForm.validate()) {
+        // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
+        if (!this.editSpotData.spot.contents) {
+          this.editSpotData.spot.contents = [];
+        }
+
+        if (
+          this.editSpotData.newContent.type == "pdf" ||
+          this.editSpotData.newContent.type == "img"
+        ) {
+          this.editSpotData.spot.contents.push({
+            type: this.editSpotData.newContent.type,
+            name: this.editSpotData.newContent.name,
+            link: this.editSpotData.newContent.link,
+            // thumbnail: "String",
+            s3Upload: true,
+          });
+        } else if (this.editSpotData.newContent.type == "link") {
+          if (!this.editSpotData.newContent.link.includes("http")) {
+            this.editSpotData.newContent.link =
+              "http://" + this.editSpotData.newContent.link;
+          }
+          this.editSpotData.spot.contents.push({
+            type: this.editSpotData.newContent.type,
+            name: this.editSpotData.newContent.name,
+            link: this.editSpotData.newContent.link,
+          });
+        } else {
+          this.editSpotData.spot.contents.push({
+            type: this.editSpotData.newContent.type,
+            name: this.editSpotData.newContent.name,
+            link: this.editSpotData.newContent.link,
+          });
+        }
+        // let fileType = this.editSpotData.newContent.link.type;
+
+        // if (fileType.includes("image")) {
+        //   this.editSpotData.spot.contents.push({
+        //     type: "img",
+        //     name: this.editSpotData.newContent.name,
+        //     link: this.editSpotData.newContent.link,
+        //     // thumbnail: "String",
+        //     s3Upload: true,
+        //   });
+        // }
+
+        // else if (fileType.includes("pdf")) {
+        //   //+++generate thumbnail
+
+        // }
+
+        this.editSpotData.newContent = {
+          type: "img",
+          name: null,
+          thumbnail: null,
+          file: null,
+          link: null,
+        };
+        this.$forceUpdate();
       }
-
-      if (this.editSpotData.newContent.type == "youtube") {
-        this.editSpotData.spot.contents.push({
-          type: this.editSpotData.newContent.type,
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-        });
-      } else {
-        this.editSpotData.spot.contents.push({
-          type: this.editSpotData.newContent.type,
-          name: this.editSpotData.newContent.name,
-          link: this.editSpotData.newContent.link,
-          // thumbnail: "String",
-          s3Upload: true,
-        });
-      }
-      // let fileType = this.editSpotData.newContent.link.type;
-
-      // if (fileType.includes("image")) {
-      //   this.editSpotData.spot.contents.push({
-      //     type: "img",
-      //     name: this.editSpotData.newContent.name,
-      //     link: this.editSpotData.newContent.link,
-      //     // thumbnail: "String",
-      //     s3Upload: true,
-      //   });
-      // }
-
-      // else if (fileType.includes("pdf")) {
-      //   //+++generate thumbnail
-
-      // }
-
-      this.editSpotData.newContent = {
-        type: "img",
-        name: null,
-        thumbnail: null,
-        file: null,
-        link: null,
-      };
-      this.$forceUpdate();
     },
     async getComments() {
       this.editSpotData.comments = (
@@ -862,28 +1052,69 @@ export default {
     "editSpotData.dialog": function (val) {
       if (val) {
         //update scene list
-        this.sceneSelectList = [];
+        this.allScenes = [];
         for (const sceneId in this.pano.scenes) {
-          this.sceneSelectList.push({
+          this.allScenes.push({
             text: this.pano.scenes[sceneId].title,
             value: sceneId,
           });
         }
-        //update detail
-        // if (this.editSpotData.spot && this.editSpotData.spot.style=='detail'){
-        // }
       }
     },
 
     admin: function () {
-      if (this.currentScene) {
-        this.loadScene(this.currentScene);
+      if (this.viewer) {
+        this.loadScene(this.viewer.getScene());
       }
     },
   },
 };
 </script>
 <style>
+/* .pnlm-grab {
+  cursor: crosshair !important;
+} */
+
+.square-hotspot {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M39 6H9C7.34315 6 6 7.34315 6 9V39C6 40.6569 7.34315 42 9 42H39C40.6569 42 42 40.6569 42 39V9C42 7.34315 40.6569 6 39 6Z' stroke='%23e51636' stroke-width='3'/%3E%3C/svg%3E");
+  background-size: 20px 20px;
+  background-color: #f8f8ff;
+}
+
+.triangle-hotspot {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M22.2692 6.98965C23.0395 5.65908 24.9605 5.65908 25.7309 6.98965L44.262 38.9979C45.0339 40.3313 44.0718 42 42.5311 42H5.4689C3.92823 42 2.96611 40.3313 3.73804 38.9979L22.2692 6.98965Z' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-size: 20px 20px;
+  background-color: #f8f8ff;
+}
+
+.cross-hotspot {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M30 4H18V18H4V30H18V44H30V30H44V18H30V4Z' fill='none' stroke='%23e51636' stroke-width='3' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-size: 20px 20px;
+  background-color: #f8f8ff;
+}
+
+.circle-hotspot {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M31 7V24V7Z' fill='none'/%3E%3Cpath d='M31 7V24' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16.636 6.63605L30.7781 20.7782L16.636 6.63605Z' fill='none'/%3E%3Cpath d='M16.636 6.63605L30.7781 20.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7 17H24H7Z' fill='none'/%3E%3Cpath d='M7 17H24' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M20.364 17.636L6.22188 31.7782L20.364 17.636Z' fill='none'/%3E%3Cpath d='M20.364 17.636L6.22188 31.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17 25V42V25Z' fill='none'/%3E%3Cpath d='M17 25V42' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17.636 27.636L31.7781 41.7782L17.636 27.636Z' fill='none'/%3E%3Cpath d='M17.636 27.636L31.7781 41.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M24 31L42 31L24 31Z' fill='none'/%3E%3Cpath d='M24 31L42 31' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M42.364 16.636L28.2219 30.7782L42.364 16.636Z' fill='none'/%3E%3Cpath d='M42.364 16.636L28.2219 30.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath d='M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z' fill='none' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-size: 20px 20px;
+  background-color: #f8f8ff;
+}
+
+.dot-hotspot {
+  width: 20px;
+  height: 20px;
+  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M24 33C28.9706 33 33 28.9706 33 24C33 19.0294 28.9706 15 24 15C19.0294 15 15 19.0294 15 24C15 28.9706 19.0294 33 24 33Z' fill='%23e51636' stroke='%23e51636' stroke-width='3'/%3E%3C/svg%3E");
+  background-size: 20px 20px;
+  background-color: #f8f8ff;
+}
+
 .panoTip {
   white-space: pre-line;
 }
@@ -893,7 +1124,8 @@ export default {
   left: 10px;
   background-color: rgba(0, 0, 0, 0) !important;
   text-transform: capitalize;
-} */
+}
+*/
 .pnlm-panorama-info {
   display: none !important;
 }

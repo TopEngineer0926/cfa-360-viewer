@@ -5,57 +5,67 @@
         >Create</v-btn
       >
     </v-row>
+    <v-row justify="center" class="my-4">
+      <v-col cols="4">
+        <v-select
+          value="All Categorioes"
+          :items="categoryList"
+          label="Solo field"
+          solo
+          @change="filterByCategory"
+        ></v-select>
+      </v-col>
+    </v-row>
 
     <div v-if="panos" class="d-flex flex-wrap justify-center">
-      <div v-for="(pano, index) in panos" :key="index">
-        <v-hover v-slot="{ hover }">
+      <div v-for="(pano, index) in panosFilter" :key="index">
+        <v-hover v-slot="{ hover }" class="ma-6">
           <v-card
             :elevation="hover ? 12 : 2"
-            class="ma-6"
             width="500"
             height="200"
             @click="$router.push('/pano/' + pano.id)"
           >
-            <v-img
-              :src="
-                pano.thumbnail
-                  ? pano.thumbnailUrl
-                  : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
-              "
-              height="200"
-              max-width="500"
-              class="white--text align-end grey"
-            >
-              <v-card-title v-text="pano.title"></v-card-title>
-              <v-card-subtitle class="white--text">
-                Type:{{ pano.ptype }} Size:{{ pano.psize }}
-              </v-card-subtitle>
-            </v-img>
+            <v-list-item three-line>
+              <v-list-item-content>
+                <div class="overline mb-4">
+                  {{ pano.category ? pano.category : "Category Not Assigned" }}
+                </div>
+                <v-list-item-title class="headline mb-1">
+                  {{ pano.title }}
+                </v-list-item-title>
+                <v-list-item-subtitle> {{ pano.ptype }}</v-list-item-subtitle>
+                <v-list-item-subtitle> {{ pano.psize }}</v-list-item-subtitle>
+              </v-list-item-content>
 
-            <!-- <v-card-text> {{ pano.title }}</v-card-text> -->
+              <v-list-item-avatar tile height="120" width="200" color="grey">
+                <v-img
+                  :src="
+                    pano.thumbnail
+                      ? pano.thumbnailUrl
+                      : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
+                  "
+                >
+                </v-img>
+              </v-list-item-avatar>
+            </v-list-item>
+
+            <v-card-actions v-if="user.admin">
+              <v-spacer />
+              <v-btn
+                icon
+                @click.stop="$router.push('/admin/' + pano.id)"
+                class="mr-14"
+              >
+                <v-icon>mdi-cog-outline</v-icon>
+              </v-btn>
+              <v-btn icon @click.stop="deletePanoConfirm(pano)"
+                ><v-icon>mdi-delete-outline </v-icon>
+              </v-btn>
+              <v-spacer />
+            </v-card-actions>
           </v-card>
         </v-hover>
-        <div v-if="user.admin" class="mb-6">
-          <v-btn icon @click="deletePanoConfirm(index)" class="ml-4"
-            ><v-icon>mdi-delete-outline </v-icon>
-          </v-btn>
-          <!-- <v-btn
-            icon
-            @click="
-              editPano.dialog = true;
-              editPano.index = index;
-              editPano.title = pano.title;
-              editPano.ptype = pano.ptype;
-              editPano.psize = pano.psize;
-            "
-          >
-            <v-icon>mdi-pencil-outline</v-icon>
-          </v-btn> -->
-
-          <v-btn icon @click="$router.push('/admin/' + pano.id)">
-            <v-icon>mdi-cog-outline</v-icon>
-          </v-btn>
-        </div>
       </div>
     </div>
     <v-dialog
@@ -122,6 +132,9 @@ export default {
   data: function () {
     return {
       panos: null,
+      panosFilter: null,
+      // selectedCategory: "All Categorioes",
+      categoryList: ["All Categorioes"],
       editPano: {
         index: null,
         ptype: null,
@@ -145,6 +158,9 @@ export default {
         //Get thumbnail URL
         await Promise.all(
           panosRes.map(async (pano) => {
+            if (pano.category) {
+              this.categoryList.push(pano.category);
+            }
             if (pano.thumbnail) {
               pano.thumbnailUrl = await Storage.get(
                 pano.id + "/" + pano.thumbnail
@@ -154,8 +170,19 @@ export default {
           })
         );
         this.panos = panosRes;
+        this.panosFilter = panosRes;
       });
     },
+    filterByCategory(category) {
+      if (category == "All Categorioes") {
+        this.panosFilter = this.panos;
+      } else {
+        this.panosFilter = this.panos.filter(
+          (pano) => pano.category == category
+        );
+      }
+    },
+
     async createPanoFunc() {
       try {
         let newPanoId = await API.graphql(
@@ -168,25 +195,23 @@ export default {
         console.error("createPano", error);
       }
     },
-    deletePanoFunc(index) {
+    deletePanoFunc(pano) {
       //delete thumbnail
-      if (this.panos[index].thumbnail) {
-        Storage.remove(
-          this.panos[index].id + "/" + this.panos[index].thumbnail
-        );
+      if (pano.thumbnail) {
+        Storage.remove(pano.id + "/" + pano.thumbnail);
       }
 
       //delete scene imgs
-      if (this.panos[index].sceneArr && this.panos[index].sceneArr.length > 0) {
-        this.panos[index].sceneArr.forEach((scene) => {
-          Storage.remove(this.panos[index].id + "/" + scene.img);
+      if (pano.sceneArr && pano.sceneArr.length > 0) {
+        pano.sceneArr.forEach((scene) => {
+          Storage.remove(pano.id + "/" + scene.img);
         });
       }
 
       //delete pano
       API.graphql(
         graphqlOperation(deletePano, {
-          input: { id: this.panos[index].id },
+          input: { id: pano.id },
         })
       );
 
@@ -194,12 +219,19 @@ export default {
       // +++++
       //delete Comments
       // +++++
-      this.panos.splice(index, 1);
+      this.panos.splice(
+        this.panos.findIndex((e) => e.id == pano.id),
+        1
+      );
+      this.panosFilter.splice(
+        this.panosFilter.findIndex((e) => e.id == pano.id),
+        1
+      );
     },
-    async deletePanoConfirm(index) {
+    async deletePanoConfirm(pano) {
       if (
         await this.$root.$confirm(
-          `Delete ${this.panos[index].title}?`,
+          `Delete ${pano.title}?`,
           "This action cannot be undone. This scene will be deleted permanently.",
           { color: this.$vuetify.theme.currentTheme.primary }
         )
@@ -208,7 +240,7 @@ export default {
           "Deleted Successfully",
           {},
           () => {
-            this.deletePanoFunc(index);
+            this.deletePanoFunc(pano);
           },
           true
         );

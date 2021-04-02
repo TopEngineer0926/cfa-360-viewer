@@ -18,9 +18,9 @@ export default {
   name: "Home",
   computed: mapState(["user"]),
   created() {
-    onAuthUIStateChange((nextAuthState, authData) => {
+    onAuthUIStateChange(async (nextAuthState, authData) => {
       if (nextAuthState === AuthState.SignedIn) {
-        this.$store.commit("SET_USER_DATA", authData);
+        await this.$store.dispatch("login", authData);
         this.$router.push({ path: "/panolist" });
       }
       if (!authData) {
@@ -28,6 +28,7 @@ export default {
       }
     });
   },
+
   beforeDestroy() {
     return onAuthUIStateChange;
   },

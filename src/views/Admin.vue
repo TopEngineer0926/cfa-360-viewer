@@ -1,6 +1,6 @@
 <template>
   <v-container v-if="panoSource">
-    <h2 class="text-center mb-6">Admin Project Editor</h2>
+    <h2 class="text-center mb-6">Project Editor</h2>
     <v-row>
       <v-col cols="4">
         <S3ImgDisplay
@@ -10,6 +10,13 @@
       </v-col>
 
       <v-col cols="8">
+        <v-text-field
+          v-model="panoSource.category"
+          require
+          :rules="[(v) => !!v || 'Category is required']"
+          label="Category"
+          @change="savePano"
+        ></v-text-field>
         <v-text-field
           v-model="panoSource.title"
           require
@@ -31,6 +38,7 @@
           label="Size"
           @change="savePano"
         ></v-text-field>
+
         <v-file-input
           v-model="thumbnailToUpload"
           accept="image/*"
@@ -45,8 +53,9 @@
           v-if="panoSource.sceneArr && panoSource.sceneArr.length > 0"
           class="text-center"
         >
-          Spot Selector
+          Tag Selector
         </h3>
+        <v-text-field v-model="spotsSearch" label="Search"></v-text-field>
 
         <v-list>
           <v-list-group
@@ -65,7 +74,10 @@
               <v-list-item
                 link
                 @click="loadSpot(sceneIndex, spotIndex)"
-                v-if="spot.style == 'detail'"
+                v-if="
+                  spot.style == 'detail' &&
+                  (spotsSearch == '' || spot.text.includes(spotsSearch))
+                "
               >
                 <v-list-item-title v-text="spot.text"></v-list-item-title>
                 <v-list-item-icon>
@@ -78,7 +90,7 @@
       </v-col>
 
       <v-col v-if="spot" cols="8">
-        <h3 class="text-center">Spot Detail</h3>
+        <h3 class="text-center">Tag Detail</h3>
         <v-card flat>
           <v-card-text>
             <v-row align="center" justify="center">
@@ -183,6 +195,11 @@
       </v-col>
       <v-col v-else cols="8"></v-col>
     </v-row>
+    <v-row justify="center" class="ma-8">
+      <v-btn @click="$router.push('/panolist').catch((err) => {})"
+        >Return</v-btn
+      ></v-row
+    >
   </v-container>
 </template>
 
@@ -205,6 +222,7 @@ export default {
       savePanoTimer: null,
       panoSource: null,
       spot: null,
+      spotsSearch: "",
       comments: null,
       spotStyles: [
         { text: "Product Detail", value: "detail" },
@@ -299,7 +317,7 @@ export default {
           })
         )
       ).data.commentsBySpotID.items;
-      console.log(this.comments);
+
       this.$forceUpdate();
     },
     savePano() {

@@ -9,6 +9,7 @@ export const createPano = /* GraphQL */ `
     createPano(input: $input, condition: $condition) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -34,6 +35,11 @@ export const createPano = /* GraphQL */ `
           }
           about
         }
+      }
+      layers {
+        id
+        name
+        icon
       }
       createdAt
       updatedAt
@@ -48,6 +54,7 @@ export const updatePano = /* GraphQL */ `
     updatePano(input: $input, condition: $condition) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -74,6 +81,11 @@ export const updatePano = /* GraphQL */ `
           about
         }
       }
+      layers {
+        id
+        name
+        icon
+      }
       createdAt
       updatedAt
     }
@@ -87,6 +99,7 @@ export const deletePano = /* GraphQL */ `
     deletePano(input: $input, condition: $condition) {
       id
       title
+      category
       thumbnail
       pabout
       ptype
@@ -112,6 +125,11 @@ export const deletePano = /* GraphQL */ `
           }
           about
         }
+      }
+      layers {
+        id
+        name
+        icon
       }
       createdAt
       updatedAt
@@ -161,6 +179,57 @@ export const deleteComment = /* GraphQL */ `
       owner
       name
       msg
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createEditStatus = /* GraphQL */ `
+  mutation CreateEditStatus(
+    $input: CreateEditStatusInput!
+    $condition: ModelEditStatusConditionInput
+  ) {
+    createEditStatus(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateEditStatus = /* GraphQL */ `
+  mutation UpdateEditStatus(
+    $input: UpdateEditStatusInput!
+    $condition: ModelEditStatusConditionInput
+  ) {
+    updateEditStatus(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteEditStatus = /* GraphQL */ `
+  mutation DeleteEditStatus(
+    $input: DeleteEditStatusInput!
+    $condition: ModelEditStatusConditionInput
+  ) {
+    deleteEditStatus(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      name
+      email
+      ttl
       createdAt
       updatedAt
     }
