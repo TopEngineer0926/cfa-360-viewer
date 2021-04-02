@@ -30,7 +30,7 @@
               show-arrows
               center-active
               v-model="selectedLayersIndex"
-              @change="loadLayers"
+              @change="loadLayers()"
             >
               <v-chip
                 v-for="(layer, layerIndex) in panoSource.layers"
@@ -413,7 +413,6 @@ export default {
       pano: null,
       panoSource: null,
       viewer: null,
-      currentScene: null,
       currentSceneIndex: null,
       layers: [],
       editSceneData: {
@@ -542,10 +541,10 @@ export default {
             );
           })
         );
-        this.currentScene = this.panoSource.sceneArr[0].id;
+
         this.currentSceneIndex = 0;
         this.pano.default = {
-          firstScene: this.currentScene,
+          firstScene: this.panoSource.sceneArr[0].id,
           autoLoad: true,
         };
 
@@ -558,14 +557,15 @@ export default {
     },
 
     loadScene(sceneID) {
-      // remove current spots
-      this.removeCurrentSpots();
       this.viewer.loadScene(sceneID);
-      this.currentScene = sceneID;
-      // this.currentSceneIndex = this.panoSource.sceneArr.findIndex(
-      //   (scene) => scene.id == this.currentScene
-      // );
-      this.loadLayers();
+      let checkLoad = (viewer) => {
+        if (viewer.isLoaded()) {
+          this.loadLayers();
+        } else {
+          setTimeout(checkLoad, 500, viewer); // setTimeout(func, timeMS, params...)
+        }
+      };
+      checkLoad(this.viewer);
     },
     initEditLayer(layerIndex) {
       this.editLayerData.layerIndex = layerIndex;
@@ -856,7 +856,6 @@ export default {
           );
         }
 
-        this.removeCurrentSpots();
         this.loadLayers();
         this.editSpotData.dialog = false;
 
@@ -914,33 +913,38 @@ export default {
 
         addSpot.cssClass = layer ? layer.icon + "-hotspot" : null;
       }
-
+      delete addSpot.layer;
+      delete addSpot.style;
+      delete addSpot.about;
       this.viewer.addHotSpot(addSpot);
     },
-    removeCurrentSpots() {
-      if (this.pano.scenes[this.currentScene].hotSpots) {
-        //removeHotSpots
-        let hotSpotsID = this.pano.scenes[this.currentScene].hotSpots.map(
+
+    loadLayers() {
+      // await new Promise((r) => setTimeout(r, 500));
+      //removeCurrentSpots
+      let currentSceneID = this.viewer.getScene();
+      if (this.pano.scenes[currentSceneID].hotSpots) {
+        let hotSpotsID = this.pano.scenes[currentSceneID].hotSpots.map(
           (hotSpot) => hotSpot.id
         );
         hotSpotsID.forEach((hotSpotID) => {
           this.viewer.removeHotSpot(hotSpotID);
         });
       }
-    },
-    loadLayers() {
-      this.removeCurrentSpots();
+
       let selectedLayersID = this.selectedLayersIndex.map(
         (index) => this.panoSource.layers[index].id
       );
       let allLayersID = this.panoSource.layers.map((layer) => layer.id);
-      if (
-        this.panoSource.sceneArr[this.currentSceneIndex].spots &&
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.length > 0
-      ) {
-        this.panoSource.sceneArr[this.currentSceneIndex].spots.forEach(
+      let SceneIndex = this.panoSource.sceneArr.findIndex(
+        (scene) => scene.id == currentSceneID
+      );
+
+      if (this.panoSource.sceneArr[SceneIndex].spots) {
+        this.panoSource.sceneArr[SceneIndex].spots.forEach(
           (spot, spotIndex) => {
             if (
+              !spot.layer ||
               selectedLayersID.includes(spot.layer) ||
               !allLayersID.includes(spot.layer)
             ) {
@@ -1059,8 +1063,8 @@ export default {
     },
 
     admin: function () {
-      if (this.currentScene) {
-        this.loadScene(this.currentScene);
+      if (this.viewer) {
+        this.loadScene(this.viewer.getScene());
       }
     },
   },
