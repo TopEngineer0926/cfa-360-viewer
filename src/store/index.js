@@ -8,6 +8,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     user: null,
+    navbarText: null
   },
   mutations: {
     SET_USER_DATA(state, data) {
@@ -15,6 +16,9 @@ export default new Vuex.Store({
     },
     SET_USER_NULL(state) {
       state.user = null;
+    },
+    SET_NAVBAR_TEXT(state, data) {
+      state.navbarText = data;
     },
   },
   actions: {

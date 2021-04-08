@@ -1,73 +1,111 @@
 <template>
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
-      <div class="default-slot mb-4">
-        <v-row v-if="user.admin" justify="center" align="center">
-          <v-btn v-if="admin" @click="initEditScene(null)" class="ml-2" small>
-            Add Scene
-          </v-btn>
-          <v-btn v-if="admin" small @click="addLayer()" class="ml-2"
-            >add layer</v-btn
-          >
-
-          <v-btn v-if="admin" small @click="addTagConfig" class="ml-2">
-            Add Tag
-          </v-btn>
-
-          <v-btn small @click="admin = !admin" class="ml-2">
-            {{ admin ? "Change to User View" : "Change to Admin View" }}
-          </v-btn>
-        </v-row>
-        <v-row
-          v-if="panoSource.layers && panoSource.layers.length > 0"
-          justify="center"
-          align="center"
+      <div class="default-slot">
+        <v-expansion-panels
+          v-if="panoSource"
+          v-model="btnPanel"
+          tile
+          class="condensed"
         >
-          <v-col cols="1"> Layers </v-col>
-          <v-col cols="10">
-            <v-chip-group
-              multiple
-              show-arrows
-              center-active
-              v-model="selectedLayersIndex"
-              @change="loadLayers()"
-            >
-              <v-chip
-                v-for="(layer, layerIndex) in panoSource.layers"
-                :key="layerIndex"
-                active-class="primary"
-                :close="admin"
-                close-icon="mdi-pencil-outline"
-                @click:close="initEditLayer(layerIndex)"
-              >
-                {{ layer.name }}
-              </v-chip>
-            </v-chip-group>
-          </v-col>
-        </v-row>
-        <v-row justify="center" align="center">
-          <v-col cols="1"> Scenes </v-col>
-          <v-col cols="10">
-            <v-chip-group
-              mandatory
-              v-model="currentSceneIndex"
-              center-active
-              show-arrows
-            >
-              <v-chip
-                v-for="(scene, sceneIndex) in panoSource.sceneArr"
-                :key="sceneIndex"
-                active-class="primary"
-                @click="loadScene(scene.id)"
-                :close="admin"
-                close-icon="mdi-pencil-outline"
-                @click:close="initEditScene(scene.id)"
-              >
-                {{ scene.title }}
-              </v-chip>
-            </v-chip-group></v-col
+          <v-expansion-panel
+            :style="{ 'background-color': 'rgba(255,255,255,0.5)' }"
           >
-        </v-row>
+            <v-expansion-panel-header>
+              <v-btn
+                v-if="admin"
+                @click.stop="initEditScene(null)"
+                class="ma-1"
+                small
+                text
+              >
+                Add Scene
+              </v-btn>
+              <v-btn
+                v-if="admin"
+                small
+                text
+                @click.stop="addLayer()"
+                class="ma-1"
+                >add layer</v-btn
+              >
+
+              <v-btn
+                v-if="admin"
+                small
+                text
+                @click.stop="addTagConfig"
+                class="ma-1"
+              >
+                Add Tag
+              </v-btn>
+
+              <v-btn small @click.stop="admin = !admin" text class="ma-1">
+                {{ admin ? "Change to User View" : "Change to Admin View" }}
+              </v-btn>
+              <v-btn small text class="ma-1">
+                Layers & Scenes
+                <v-icon v-if="btnPanel == 0" class="ml-1">
+                  mdi-arrow-expand-down</v-icon
+                >
+                <v-icon v-else class="ml-1"> mdi-arrow-expand-up</v-icon>
+              </v-btn>
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-row
+                v-if="panoSource.layers && panoSource.layers.length > 0"
+                justify="center"
+                align="center"
+                class="ma-0 pa-0"
+              >
+                <v-col cols="1" class="ma-0 pa-0"> Layers </v-col>
+                <v-col cols="10" class="ma-0 pa-0">
+                  <v-chip-group
+                    multiple
+                    show-arrows
+                    center-active
+                    v-model="selectedLayersIndex"
+                    @change="loadLayers()"
+                  >
+                    <v-chip
+                      v-for="(layer, layerIndex) in panoSource.layers"
+                      :key="layerIndex"
+                      active-class="primary"
+                      :close="admin"
+                      close-icon="mdi-pencil-outline"
+                      @click:close="initEditLayer(layerIndex)"
+                    >
+                      {{ layer.name }}
+                    </v-chip>
+                  </v-chip-group>
+                </v-col>
+              </v-row>
+              <v-row justify="center" align="center" class="ma-0 pa-0">
+                <v-col cols="1" class="ma-0 pa-0"> Scenes </v-col>
+                <v-col cols="10" class="ma-0 pa-0">
+                  <v-chip-group
+                    mandatory
+                    v-model="currentSceneIndex"
+                    center-active
+                    show-arrows
+                  >
+                    <v-chip
+                      v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                      :key="sceneIndex"
+                      active-class="primary"
+                      @click="loadScene(scene.id)"
+                      :close="admin"
+                      close-icon="mdi-pencil-outline"
+                      @click:close="initEditScene(scene.id)"
+                    >
+                      {{ scene.title }}
+                    </v-chip>
+                  </v-chip-group></v-col
+                >
+              </v-row>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
       </div>
     </div>
 
@@ -460,6 +498,8 @@ export default {
 
       selectedLayersIndex: [],
       editStatusInterval: null,
+
+      btnPanel: [],
     };
   },
 
@@ -493,6 +533,12 @@ export default {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
         this.panoSource = data.data.getPano;
+        this.$store.commit("SET_NAVBAR_TEXT", {
+          title: this.panoSource.title,
+          category: this.panoSource.category,
+          ptype: this.panoSource.ptype,
+          psize: this.panoSource.psize,
+        });
         if (!this.panoSource.layers) {
           this.panoSource.layers = [];
         }
@@ -1156,5 +1202,11 @@ export default {
   bottom: 0;
   z-index: 2;
   /* width: 500px; */
+}
+
+.v-expansion-panels.condensed .v-expansion-panel-header {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  min-height: auto;
 }
 </style>
