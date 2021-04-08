@@ -8,22 +8,22 @@
       :style="{ cursor: 'pointer' }"
     />
 
-    <v-row v-if="navbarText" class="ml-6">
-      <v-col cols="4">
+    <v-row v-if="navbarText" class="ml-6" align="center">
+      <v-col cols="auto">
         <h3>{{ navbarText.title }}</h3>
       </v-col>
 
-      <v-col cols="2">
+      <v-col cols="auto">
         Category:
         {{ navbarText.category }}
       </v-col>
 
-      <v-col cols="2">
+      <v-col cols="auto">
         Type:
         {{ navbarText.ptype }}
       </v-col>
 
-      <v-col cols="2">Size: {{ navbarText.psize }} </v-col></v-row
+      <v-col cols="auto">Size: {{ navbarText.psize }} </v-col></v-row
     >
 
     <!-- <v-btn
