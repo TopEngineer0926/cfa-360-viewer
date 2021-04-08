@@ -1,18 +1,37 @@
 <template>
-  <v-app-bar app flat color="white">
+  <v-app-bar app flat dense color="white">
     <v-img
       :src="require('@/assets/360logo.svg')"
-      max-width="60"
+      max-width="42"
       class="mb-2"
       @click="$router.push('/panolist').catch((err) => {})"
+      :style="{ cursor: 'pointer' }"
     />
 
-    <v-btn
+    <v-row v-if="navbarText" class="ml-6">
+      <v-col cols="4">
+        <h3>{{ navbarText.title }}</h3>
+      </v-col>
+
+      <v-col cols="2">
+        Category:
+        {{ navbarText.category }}
+      </v-col>
+
+      <v-col cols="2">
+        Type:
+        {{ navbarText.ptype }}
+      </v-col>
+
+      <v-col cols="2">Size: {{ navbarText.psize }} </v-col></v-row
+    >
+
+    <!-- <v-btn
       text
       @click="$router.push('/panolist').catch((err) => {})"
       class="ml-4"
       >Gallery</v-btn
-    >
+    > -->
 
     <!-- <v-btn
       v-if="user.admin"
@@ -33,12 +52,13 @@ import { mapState } from "vuex";
 
 export default {
   name: "Nav",
+
   methods: {
     async logout() {
       await this.$store.dispatch("logout");
       this.$router.push("/");
     },
   },
-  computed: mapState(["user"]),
+  computed: mapState(["user", "navbarText"]),
 };
 </script>

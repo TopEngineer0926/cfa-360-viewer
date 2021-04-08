@@ -18,6 +18,7 @@ export default {
   name: "Home",
   computed: mapState(["user"]),
   created() {
+    this.$store.commit("SET_NAVBAR_TEXT", null);
     onAuthUIStateChange(async (nextAuthState, authData) => {
       if (nextAuthState === AuthState.SignedIn) {
         await this.$store.dispatch("login", authData);

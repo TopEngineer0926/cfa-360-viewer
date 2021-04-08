@@ -76,7 +76,8 @@
                 @click="loadSpot(sceneIndex, spotIndex)"
                 v-if="
                   spot.style == 'detail' &&
-                  (spotsSearch == '' || spot.text.includes(spotsSearch))
+                  (spotsSearch == '' ||
+                    spot.text.toLowerCase().includes(spotsSearch.toLowerCase()))
                 "
               >
                 <v-list-item-title v-text="spot.text"></v-list-item-title>
@@ -244,6 +245,7 @@ export default {
     };
   },
   created: function () {
+    this.$store.commit("SET_NAVBAR_TEXT", null);
     if (!this.user.admin) {
       this.$router.push({ path: "/panolist" });
     }

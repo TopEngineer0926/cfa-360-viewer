@@ -4,7 +4,7 @@
     <v-main>
       <router-view :key="$route.fullPath" />
     </v-main>
-    <foot />
+
     <confirm ref="confirm"></confirm>
     <dialog-loader ref="dialogLoader"></dialog-loader>
   </v-app>
@@ -20,7 +20,7 @@ export default {
 
   components: {
     navbar: () => import("./components/Navbar.vue"),
-    foot: () => import("./components/Foot.vue"),
+
     DialogLoader,
     Confirm,
   },

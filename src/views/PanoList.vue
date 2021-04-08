@@ -8,7 +8,7 @@
     <v-row justify="center" class="my-4">
       <v-col cols="4">
         <v-select
-          value="All Categorioes"
+          value="All Categories"
           :items="categoryList"
           label="Solo field"
           solo
@@ -114,6 +114,7 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <foot />
   </v-container>
 </template>
 
@@ -129,12 +130,16 @@ import Compressor from "compressorjs";
 
 export default {
   name: "Pano",
+
+  components: {
+    foot: () => import("../components/Foot.vue"),
+  },
+
   data: function () {
     return {
       panos: null,
       panosFilter: null,
-      // selectedCategory: "All Categorioes",
-      categoryList: ["All Categorioes"],
+      categoryList: ["All Categories"],
       editPano: {
         index: null,
         ptype: null,
@@ -149,6 +154,7 @@ export default {
   },
   computed: mapState(["user"]),
   created() {
+    this.$store.commit("SET_NAVBAR_TEXT", null);
     this.loadPanos();
   },
   methods: {

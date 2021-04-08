@@ -1,73 +1,117 @@
 <template>
   <div class="bg">
     <div v-if="pano" class="vue-pannellum">
-      <div class="default-slot mb-4">
-        <v-row v-if="user.admin" justify="center" align="center">
-          <v-btn v-if="admin" @click="initEditScene(null)" class="ml-2" small>
-            Add Scene
-          </v-btn>
-          <v-btn v-if="admin" small @click="addLayer()" class="ml-2"
-            >add layer</v-btn
-          >
-
-          <v-btn v-if="admin" small @click="addTagConfig" class="ml-2">
-            Add Tag
-          </v-btn>
-
-          <v-btn small @click="admin = !admin" class="ml-2">
-            {{ admin ? "Change to User View" : "Change to Admin View" }}
-          </v-btn>
-        </v-row>
-        <v-row
-          v-if="panoSource.layers && panoSource.layers.length > 0"
-          justify="center"
-          align="center"
+      <div class="default-slot">
+        <v-expansion-panels
+          v-if="panoSource"
+          v-model="btnPanel"
+          tile
+          class="condensed"
         >
-          <v-col cols="1"> Layers </v-col>
-          <v-col cols="10">
-            <v-chip-group
-              multiple
-              show-arrows
-              center-active
-              v-model="selectedLayersIndex"
-              @change="loadLayers()"
-            >
-              <v-chip
-                v-for="(layer, layerIndex) in panoSource.layers"
-                :key="layerIndex"
-                active-class="primary"
-                :close="admin"
-                close-icon="mdi-pencil-outline"
-                @click:close="initEditLayer(layerIndex)"
-              >
-                {{ layer.name }}
-              </v-chip>
-            </v-chip-group>
-          </v-col>
-        </v-row>
-        <v-row justify="center" align="center">
-          <v-col cols="1"> Scenes </v-col>
-          <v-col cols="10">
-            <v-chip-group
-              mandatory
-              v-model="currentSceneIndex"
-              center-active
-              show-arrows
-            >
-              <v-chip
-                v-for="(scene, sceneIndex) in panoSource.sceneArr"
-                :key="sceneIndex"
-                active-class="primary"
-                @click="loadScene(scene.id)"
-                :close="admin"
-                close-icon="mdi-pencil-outline"
-                @click:close="initEditScene(scene.id)"
-              >
-                {{ scene.title }}
-              </v-chip>
-            </v-chip-group></v-col
+          <v-expansion-panel
+            :style="{ 'background-color': 'rgba(255,255,255,0.3)' }"
           >
-        </v-row>
+            <v-expansion-panel-header>
+              <v-btn
+                v-if="admin"
+                @click.stop="initEditScene(null)"
+                class="ma-1"
+                small
+                text
+              >
+                Add Scene
+              </v-btn>
+              <v-btn
+                v-if="admin"
+                small
+                text
+                @click.stop="addLayer()"
+                class="ma-1"
+                >add layer</v-btn
+              >
+
+              <v-btn
+                v-if="admin"
+                small
+                text
+                @click.stop="addTagConfig"
+                class="ma-1"
+              >
+                Add Tag
+              </v-btn>
+
+              <v-btn
+                v-if="admin"
+                small
+                @click.stop="admin = !admin"
+                text
+                class="ma-1"
+              >
+                {{ admin ? "Change to User View" : "Change to Admin View" }}
+              </v-btn>
+              <v-btn small text class="ma-1">
+                Layers & Scenes
+                <v-icon v-if="btnPanel == 0" class="ml-1">
+                  mdi-arrow-expand-down</v-icon
+                >
+                <v-icon v-else class="ml-1"> mdi-arrow-expand-up</v-icon>
+              </v-btn>
+            </v-expansion-panel-header>
+            <v-expansion-panel-content>
+              <v-row
+                v-if="panoSource.layers && panoSource.layers.length > 0"
+                justify="center"
+                align="center"
+                class="ma-0 pa-0"
+              >
+                <v-col cols="1" class="ma-0 pa-0"> Layers </v-col>
+                <v-col cols="10" class="ma-0 pa-0">
+                  <v-chip-group
+                    multiple
+                    show-arrows
+                    center-active
+                    v-model="selectedLayersIndex"
+                    @change="loadLayers()"
+                  >
+                    <v-chip
+                      v-for="(layer, layerIndex) in panoSource.layers"
+                      :key="layerIndex"
+                      active-class="primary"
+                      :close="admin"
+                      close-icon="mdi-pencil-outline"
+                      @click:close="initEditLayer(layerIndex)"
+                    >
+                      {{ layer.name }}
+                    </v-chip>
+                  </v-chip-group>
+                </v-col>
+              </v-row>
+              <v-row justify="center" align="center" class="ma-0 pa-0">
+                <v-col cols="1" class="ma-0 pa-0"> Scenes </v-col>
+                <v-col cols="10" class="ma-0 pa-0">
+                  <v-chip-group
+                    mandatory
+                    v-model="currentSceneIndex"
+                    center-active
+                    show-arrows
+                  >
+                    <v-chip
+                      v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                      :key="sceneIndex"
+                      active-class="primary"
+                      @click="loadScene(scene.id)"
+                      :close="admin"
+                      close-icon="mdi-pencil-outline"
+                      @click:close="initEditScene(scene.id)"
+                    >
+                      {{ scene.title }}
+                    </v-chip>
+                  </v-chip-group></v-col
+                >
+              </v-row>
+            </v-expansion-panel-content>
+          </v-expansion-panel>
+        </v-expansion-panels>
       </div>
     </div>
 
@@ -455,11 +499,13 @@ export default {
         { text: "Youtube", value: "youtube" },
         { text: "Hyperlink", value: "link" },
       ],
-      iconStyles: ["dot", "circle", "cross", "triangle", "square"],
+      iconStyles: ["diamond", "circle", "cross", "triangle", "square"],
       allScenes: [],
 
       selectedLayersIndex: [],
       editStatusInterval: null,
+
+      btnPanel: [],
     };
   },
 
@@ -493,6 +539,12 @@ export default {
     API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
       (data) => {
         this.panoSource = data.data.getPano;
+        this.$store.commit("SET_NAVBAR_TEXT", {
+          title: this.panoSource.title,
+          category: this.panoSource.category,
+          ptype: this.panoSource.ptype,
+          psize: this.panoSource.psize,
+        });
         if (!this.panoSource.layers) {
           this.panoSource.layers = [];
         }
@@ -932,9 +984,11 @@ export default {
         });
       }
 
-      let selectedLayersID = this.selectedLayersIndex.map(
-        (index) => this.panoSource.layers[index].id
-      );
+      let selectedLayersID = this.selectedLayersIndex
+        ? this.selectedLayersIndex.map(
+            (index) => this.panoSource.layers[index].id
+          )
+        : [];
       let allLayersID = this.panoSource.layers.map((layer) => layer.id);
       let SceneIndex = this.panoSource.sceneArr.findIndex(
         (scene) => scene.id == currentSceneID
@@ -1078,41 +1132,41 @@ export default {
 .square-hotspot {
   width: 20px;
   height: 20px;
-  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M39 6H9C7.34315 6 6 7.34315 6 9V39C6 40.6569 7.34315 42 9 42H39C40.6569 42 42 40.6569 42 39V9C42 7.34315 40.6569 6 39 6Z' stroke='%23e51636' stroke-width='3'/%3E%3C/svg%3E");
+  background-image: url("~@/assets/hotspot/square.jpg");
   background-size: 20px 20px;
-  background-color: #f8f8ff;
+  /* background-color: #f8f8ff; */
 }
 
 .triangle-hotspot {
   width: 20px;
   height: 20px;
-  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M22.2692 6.98965C23.0395 5.65908 24.9605 5.65908 25.7309 6.98965L44.262 38.9979C45.0339 40.3313 44.0718 42 42.5311 42H5.4689C3.92823 42 2.96611 40.3313 3.73804 38.9979L22.2692 6.98965Z' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-image: url("~@/assets/hotspot/triangle.png");
   background-size: 20px 20px;
-  background-color: #f8f8ff;
+  /* background-color: #f8f8ff; */
 }
 
 .cross-hotspot {
   width: 20px;
   height: 20px;
-  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M30 4H18V18H4V30H18V44H30V30H44V18H30V4Z' fill='none' stroke='%23e51636' stroke-width='3' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-image: url("~@/assets/hotspot/cross.png");
   background-size: 20px 20px;
-  background-color: #f8f8ff;
+  /* background-color: #f8f8ff; */
 }
 
 .circle-hotspot {
   width: 20px;
   height: 20px;
-  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M31 7V24V7Z' fill='none'/%3E%3Cpath d='M31 7V24' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M16.636 6.63605L30.7781 20.7782L16.636 6.63605Z' fill='none'/%3E%3Cpath d='M16.636 6.63605L30.7781 20.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M7 17H24H7Z' fill='none'/%3E%3Cpath d='M7 17H24' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M20.364 17.636L6.22188 31.7782L20.364 17.636Z' fill='none'/%3E%3Cpath d='M20.364 17.636L6.22188 31.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17 25V42V25Z' fill='none'/%3E%3Cpath d='M17 25V42' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M17.636 27.636L31.7781 41.7782L17.636 27.636Z' fill='none'/%3E%3Cpath d='M17.636 27.636L31.7781 41.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M24 31L42 31L24 31Z' fill='none'/%3E%3Cpath d='M24 31L42 31' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M42.364 16.636L28.2219 30.7782L42.364 16.636Z' fill='none'/%3E%3Cpath d='M42.364 16.636L28.2219 30.7782' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3Cpath d='M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z' fill='none' stroke='%23e51636' stroke-width='3' stroke-linecap='butt' stroke-linejoin='bevel'/%3E%3C/svg%3E");
+  background-image: url("~@/assets/hotspot/circle.png");
   background-size: 20px 20px;
-  background-color: #f8f8ff;
+  /* background-color: #f8f8ff; */
 }
 
-.dot-hotspot {
+.diamond-hotspot {
   width: 20px;
   height: 20px;
-  background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='48' height='48' viewBox='0 0 48 48' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='48' height='48' fill='white' fill-opacity='0.01'/%3E%3Cpath d='M24 33C28.9706 33 33 28.9706 33 24C33 19.0294 28.9706 15 24 15C19.0294 15 15 19.0294 15 24C15 28.9706 19.0294 33 24 33Z' fill='%23e51636' stroke='%23e51636' stroke-width='3'/%3E%3C/svg%3E");
+  background-image: url("~@/assets/hotspot/diamond.png");
   background-size: 20px 20px;
-  background-color: #f8f8ff;
+  /* background-color: #f8f8ff; */
 }
 
 .panoTip {
@@ -1154,5 +1208,11 @@ export default {
   bottom: 0;
   z-index: 2;
   /* width: 500px; */
+}
+
+.v-expansion-panels.condensed .v-expansion-panel-header {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  min-height: auto;
 }
 </style>
