@@ -9,7 +9,7 @@
           class="condensed"
         >
           <v-expansion-panel
-            :style="{ 'background-color': 'rgba(255,255,255,0.5)' }"
+            :style="{ 'background-color': 'rgba(255,255,255,0.3)' }"
           >
             <v-expansion-panel-header>
               <v-btn
