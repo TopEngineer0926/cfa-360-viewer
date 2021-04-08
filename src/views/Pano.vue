@@ -40,7 +40,13 @@
                 Add Tag
               </v-btn>
 
-              <v-btn small @click.stop="admin = !admin" text class="ma-1">
+              <v-btn
+                v-if="admin"
+                small
+                @click.stop="admin = !admin"
+                text
+                class="ma-1"
+              >
                 {{ admin ? "Change to User View" : "Change to Admin View" }}
               </v-btn>
               <v-btn small text class="ma-1">
