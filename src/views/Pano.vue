@@ -573,7 +573,7 @@ export default {
             name: this.user.name,
             email: this.user.email,
             panoID: this.$route.params.id,
-            ttl: new Date().getTime() + 24 * 60 * 60 * 1000,
+            ttl: Math.round(Date.now() / 1000) + 7 * 24 * 60 * 60,
           },
         })
       );
