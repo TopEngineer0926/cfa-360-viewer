@@ -1,8 +1,8 @@
 <template>
   <v-app-bar app flat dense color="white">
     <v-img
-      :src="require('@/assets/360logo.svg')"
-      max-width="42"
+      :src="require('@/assets/logo.png')"
+      max-width="70"
       class="mb-2"
       @click="$router.push('/panolist').catch((err) => {})"
       :style="{ cursor: 'pointer' }"

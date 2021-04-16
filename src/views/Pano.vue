@@ -13,7 +13,7 @@
           >
             <v-expansion-panel-header>
               <v-btn
-                v-if="admin"
+                v-if="isEditable"
                 @click.stop="initEditScene(null)"
                 class="ma-1"
                 small
@@ -22,7 +22,7 @@
                 Add Scene
               </v-btn>
               <v-btn
-                v-if="admin"
+                v-if="isEditable"
                 small
                 text
                 @click.stop="addLayer()"
@@ -31,7 +31,7 @@
               >
 
               <v-btn
-                v-if="admin"
+                v-if="isEditable"
                 small
                 text
                 @click.stop="addTagConfig"
@@ -41,14 +41,17 @@
               </v-btn>
 
               <v-btn
-                v-if="admin"
+                v-if="isEditable || isProjectAdmin"
                 small
-                @click.stop="admin = !admin"
+                @click.stop="isEditable = !isEditable"
                 text
                 class="ma-1"
               >
-                {{ admin ? "Change to User View" : "Change to Admin View" }}
+                {{
+                  isEditable ? "Change to User View" : "Change to Admin View"
+                }}
               </v-btn>
+
               <v-btn small text class="ma-1">
                 Layers & Scenes
                 <v-icon v-if="btnPanel == 0" class="ml-1">
@@ -77,7 +80,7 @@
                       v-for="(layer, layerIndex) in panoSource.layers"
                       :key="layerIndex"
                       active-class="primary"
-                      :close="admin"
+                      :close="isEditable"
                       close-icon="mdi-pencil-outline"
                       @click:close="initEditLayer(layerIndex)"
                     >
@@ -100,7 +103,7 @@
                       :key="sceneIndex"
                       active-class="primary"
                       @click="loadScene(scene.id)"
-                      :close="admin"
+                      :close="isEditable"
                       close-icon="mdi-pencil-outline"
                       @click:close="initEditScene(scene.id)"
                     >
@@ -228,13 +231,13 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title v-if="admin" class="headline">Edit Tag</v-card-title>
+        <v-card-title v-if="isEditable" class="headline">Edit Tag</v-card-title>
         <v-card-title v-else class="headline">
           {{ editSpotData.spot.text }}</v-card-title
         >
         <v-card-text>
           <v-form
-            v-if="admin"
+            v-if="isEditable"
             ref="editspotform"
             v-model="editSpotData.editValid"
             lazy-validation
@@ -284,7 +287,7 @@
               label="Description"
               auto-grow
               :rows="1"
-              :readonly="!admin"
+              :readonly="!isEditable"
             ></v-textarea>
             <v-divider class="ma-8"></v-divider>
             <div
@@ -300,11 +303,11 @@
                 <v-row class="mt-2 ml-0" align="center" justify="center">
                   <v-text-field
                     v-model="content.name"
-                    :readonly="!admin"
+                    :readonly="!isEditable"
                     label="Content Name"
                   ></v-text-field>
                   <v-btn
-                    v-if="admin"
+                    v-if="isEditable"
                     icon
                     @click="deleteContent(content)"
                     class="ml-4"
@@ -313,7 +316,7 @@
                 </v-row>
               </div>
             </div>
-            <div v-if="admin">
+            <div v-if="isEditable">
               <v-divider class="ma-8"></v-divider>
               <v-form
                 ref="newContentForm"
@@ -408,7 +411,7 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn
-            v-if="admin"
+            v-if="isEditable"
             color="primary"
             text
             @click="saveSpot"
@@ -416,11 +419,11 @@
           >
             Save
           </v-btn>
-          <v-btn v-if="admin" color="grey" text @click="cancelSpot">
+          <v-btn v-if="isEditable" color="grey" text @click="cancelSpot">
             Cancel
           </v-btn>
           <v-btn v-else color="grey" text @click="cancelSpot"> OK </v-btn>
-          <v-btn v-if="admin" color="grey" text @click="deleteSpot">
+          <v-btn v-if="isEditable" color="grey" text @click="deleteSpot">
             Delete
           </v-btn>
         </v-card-actions>
@@ -453,7 +456,8 @@ export default {
   },
   data: function () {
     return {
-      admin: null,
+      isProjectAdmin: null,
+      isEditable: false,
       pano: null,
       panoSource: null,
       viewer: null,
@@ -510,9 +514,9 @@ export default {
   },
 
   mounted() {
-    this.admin = this.user.admin;
+    this.isProjectAdmin = this.user.admin;
 
-    if (this.user.admin) {
+    if (this.isProjectAdmin) {
       API.graphql(
         graphqlOperation(editStatusByPano, {
           panoID: this.$route.params.id,
@@ -520,16 +524,21 @@ export default {
         })
       ).then((res) => {
         let items = res.data.editStatusByPano.items;
-
         if (
           items &&
           items.length > 0 &&
           items[0].email !== this.user.email &&
           new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
         ) {
-          console.log(items[0].name + " is editing." + items[0].email);
+          this.isProjectAdmin = false;
+          this.$root.$dialogLoader.start(
+            items[0].name + " is editing.  ",
+            {},
+            () => {},
+            true
+          );
         } else {
-          console.log("You are editing.");
+          // console.log("You are editing.");
           this.updateEditStatus();
           this.updateEditStatusInterval();
         }
@@ -928,7 +937,7 @@ export default {
 
     showSpot(spot) {
       let addSpot = JSON.parse(JSON.stringify(spot));
-      if (this.admin) {
+      if (this.isEditable) {
         addSpot.type = "info";
         addSpot.clickHandlerFunc = () => {
           this.editSpotData.spot = JSON.parse(JSON.stringify(spot));
@@ -1116,7 +1125,7 @@ export default {
       }
     },
 
-    admin: function () {
+    isEditable: function () {
       if (this.viewer) {
         this.loadScene(this.viewer.getScene());
       }
