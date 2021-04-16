@@ -235,3 +235,51 @@ export const deleteEditStatus = /* GraphQL */ `
     }
   }
 `;
+export const createTemporarySharing = /* GraphQL */ `
+  mutation CreateTemporarySharing(
+    $input: CreateTemporarySharingInput!
+    $condition: ModelTemporarySharingConditionInput
+  ) {
+    createTemporarySharing(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      password
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateTemporarySharing = /* GraphQL */ `
+  mutation UpdateTemporarySharing(
+    $input: UpdateTemporarySharingInput!
+    $condition: ModelTemporarySharingConditionInput
+  ) {
+    updateTemporarySharing(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      password
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteTemporarySharing = /* GraphQL */ `
+  mutation DeleteTemporarySharing(
+    $input: DeleteTemporarySharingInput!
+    $condition: ModelTemporarySharingConditionInput
+  ) {
+    deleteTemporarySharing(input: $input, condition: $condition) {
+      id
+      panoID
+      owner
+      password
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;

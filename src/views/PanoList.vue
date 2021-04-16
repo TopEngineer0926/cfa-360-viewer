@@ -59,6 +59,11 @@
               >
                 <v-icon>mdi-cog-outline</v-icon>
               </v-btn>
+
+              <v-btn icon @click.stop="getTempsharing(pano.id)" class="mr-14"
+                ><v-icon>mdi-share </v-icon>
+              </v-btn>
+
               <v-btn icon @click.stop="deletePanoConfirm(pano)"
                 ><v-icon>mdi-delete-outline </v-icon>
               </v-btn>
@@ -114,14 +119,92 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="600">
+      <v-card>
+        <v-card-title class="headline"> Temporary sharing Links</v-card-title>
+        <v-card-text>
+          <div v-if="sharing.list">
+            <div v-for="(sharingitem, index) in sharing.list" :key="index">
+              <v-row align="center">
+                <v-col cols="1">
+                  <h3>{{ index + 1 }}</h3>
+                </v-col>
+
+                <v-col>
+                  <v-btn
+                    text
+                    @click="
+                      copySharingLink(sharingitem.panoID, sharingitem.password)
+                    "
+                    >Copy the Sharing Link</v-btn
+                  >
+                </v-col>
+
+                <v-col>
+                  Link Vaild Until
+                  {{ new Date(sharingitem.ttl * 1000).toLocaleString() }}
+                </v-col>
+                <v-col cols="1">
+                  <v-btn icon @click="deleteTempsharing(sharingitem, index)">
+                    <v-icon>mdi-delete</v-icon></v-btn
+                  >
+                </v-col>
+              </v-row>
+            </div>
+          </div>
+          <h2 class="mt-8">Create a new sharing link</h2>
+          <v-row align="center">
+            <v-col>
+              <v-text-field
+                v-model="sharing.newHours"
+                label="Valid hours from now"
+                type="number"
+              ></v-text-field>
+            </v-col>
+            <v-col> <v-btn block @click="addTempsharing()">Add</v-btn></v-col>
+          </v-row>
+
+          <!-- <v-form ref="form" v-model="editPano.editValid" lazy-validation>
+            <v-text-field
+              v-model="editPano.title"
+              require
+              :rules="[(v) => !!v || 'Title is required']"
+              label="Title"
+            ></v-text-field>
+            <v-text-field v-model="editPano.ptype" label="Type"></v-text-field>
+            <v-text-field v-model="editPano.psize" label="Size"></v-text-field>
+            
+            <v-file-input
+              v-model="editPano.thumbnailToUpload"
+              accept="image/*"
+              label="Select thumbnail image"
+            ></v-file-input>
+          </v-form> -->
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+
+          <v-btn color="grey" text @click="sharing.dialog = false">
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <foot />
   </v-container>
 </template>
 
 <script>
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { createPano, deletePano } from "../graphql/mutations";
-import { listPanos } from "../graphql/queries";
+import {
+  createPano,
+  deletePano,
+  createTemporarySharing,
+  deleteTemporarySharing,
+} from "../graphql/mutations";
+import { listPanos, sharingByPano } from "../graphql/queries";
 import { mapState } from "vuex";
 
 import { updatePano } from "../graphql/mutations";
@@ -149,6 +232,12 @@ export default {
         title: null,
         imgToUpload: null,
         thumbnailToUpload: null,
+      },
+      sharing: {
+        dialog: false,
+        panoID: null,
+        new: null,
+        list: null,
       },
     };
   },
@@ -327,6 +416,51 @@ export default {
         this.loadPanos();
         this.editPano.dialog = false;
       }
+    },
+    getTempsharing(panoID) {
+      this.sharing.panoID = panoID;
+      API.graphql({
+        query: sharingByPano,
+        variables: {
+          panoID: panoID,
+        },
+      }).then((data) => {
+        this.sharing.list = data.data.sharingByPano.items;
+        this.sharing.dialog = true;
+      });
+    },
+
+    async addTempsharing() {
+      let newSharing = {
+        panoID: this.sharing.panoID,
+        password: nanoid(),
+        ttl: Math.round(Date.now() / 1000) + this.sharing.newHours * 60 * 60,
+      };
+      await API.graphql(
+        graphqlOperation(createTemporarySharing, {
+          input: newSharing,
+        })
+      );
+      this.sharing.list.push(newSharing);
+      this.sharing.new = null;
+    },
+
+    deleteTempsharing(item, index) {
+      API.graphql(
+        graphqlOperation(deleteTemporarySharing, {
+          input: { id: item.id },
+        })
+      );
+      this.sharing.list.splice(index, 1);
+    },
+    copySharingLink(panoID, password) {
+      let base = window.location.href.replace("panolist", "pano");
+      this.$root.$dialogLoader.start(
+        "Link Copied to the clipboard",
+        {},
+        navigator.clipboard.writeText(base + "/" + panoID + "/" + password),
+        true
+      );
     },
   },
 };

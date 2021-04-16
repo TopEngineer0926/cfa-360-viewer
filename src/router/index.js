@@ -22,10 +22,10 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: "/pano/:id",
+    path: "/pano/:id/:password?",
     name: "Pano",
     component: () => import('../views/Pano.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, tempLogin: true }
   },
   {
     path: "/admin/:id",
@@ -44,14 +44,20 @@ const router = new VueRouter({
 });
 
 router.beforeResolve((to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
+    Auth.signIn('360TempSharing', 'bhnjcvP94DFAY6Bn').then(async (authData) => { await store.dispatch("login", authData); next() })
+  }
+  else if (to.matched.some(record => record.meta.requiresAuth)) {
     Auth.currentAuthenticatedUser()
       .then(async (authData) => {
-        // console.log('welcome', authData);
-        if (!store.state.user) {
-          await store.dispatch("login", authData);
+
+        if (authData.attributes.email !== '360TempSharing@360TempSharing.com') {
+          if (!store.state.user) {
+            await store.dispatch("login", authData);
+          }
+          next();
         }
-        next();
+
       })
       .catch(() => {
         console.log('unauth');

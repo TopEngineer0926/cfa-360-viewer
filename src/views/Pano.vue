@@ -396,15 +396,16 @@
               <div v-else class="mt-12">
                 <h2 class="text-center">No Comments</h2>
               </div>
-
-              <v-textarea
-                v-model="editSpotData.newComment"
-                label="New Comment"
-                auto-grow
-                :rows="1"
-                class="mt-6"
-              ></v-textarea>
-              <v-btn block @click="addNewComment">Add Comment</v-btn>
+              <div v-if="user.email !== '360TempSharing@360TempSharing.com'">
+                <v-textarea
+                  v-model="editSpotData.newComment"
+                  label="New Comment"
+                  auto-grow
+                  :rows="1"
+                  class="mt-6"
+                ></v-textarea>
+                <v-btn block @click="addNewComment">Add Comment</v-btn>
+              </div>
             </div>
           </div>
         </v-card-text>
@@ -441,6 +442,7 @@ import {
   getPano,
   commentsBySpotId,
   editStatusByPano,
+  sharingByPassword,
 } from "../graphql/queries";
 import {
   updatePano,
@@ -513,40 +515,75 @@ export default {
     };
   },
 
-  mounted() {
-    this.isProjectAdmin = this.user.admin;
+  created() {
+    if (this.user.email == "360TempSharing@360TempSharing.com") {
+      //Guest User
 
-    if (this.isProjectAdmin) {
-      API.graphql(
-        graphqlOperation(editStatusByPano, {
-          panoID: this.$route.params.id,
-          sortDirection: "DESC",
-        })
-      ).then((res) => {
-        let items = res.data.editStatusByPano.items;
-        if (
-          items &&
-          items.length > 0 &&
-          items[0].email !== this.user.email &&
-          new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
-        ) {
-          this.isProjectAdmin = false;
-          this.$root.$dialogLoader.start(
-            items[0].name + " is editing.  ",
-            {},
-            () => {},
-            true
-          );
-        } else {
-          // console.log("You are editing.");
-          this.updateEditStatus();
-          this.updateEditStatusInterval();
-        }
-      });
+      if (this.$route.params.password) {
+        API.graphql(
+          graphqlOperation(sharingByPassword, {
+            password: this.$route.params.password,
+          })
+        ).then((data) => {
+          let sharingData = data.data.sharingByPassword.items;
+
+          if (sharingData && sharingData[0].panoID == this.$route.params.id) {
+            console.log("Guest Access");
+            this.initData();
+          } else {
+            this.$router.push({ path: "/" });
+          }
+        });
+      } else {
+        //Unauth
+      }
+    } else {
+      //login user
+      this.initData();
     }
+  },
 
-    API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
-      (data) => {
+  beforeDestroy() {
+    clearInterval(this.editStatusInterval);
+  },
+  methods: {
+    initData() {
+      this.isProjectAdmin = this.user.admin;
+
+      if (this.isProjectAdmin) {
+        API.graphql(
+          graphqlOperation(editStatusByPano, {
+            panoID: this.$route.params.id,
+            sortDirection: "DESC",
+          })
+        ).then((res) => {
+          let items = res.data.editStatusByPano.items;
+          if (
+            items &&
+            items.length > 0 &&
+            items[0].email !== this.user.email &&
+            new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
+          ) {
+            this.isProjectAdmin = false;
+            this.$root.$dialogLoader.start(
+              items[0].name + " is editing.  ",
+              {},
+              () => {},
+              true
+            );
+          } else {
+            // console.log("You are editing.");
+            this.updateEditStatus();
+            this.updateEditStatusInterval();
+          }
+        });
+
+        this.isEditable = true;
+      }
+
+      API.graphql(
+        graphqlOperation(getPano, { id: this.$route.params.id })
+      ).then((data) => {
         this.panoSource = data.data.getPano;
         this.$store.commit("SET_NAVBAR_TEXT", {
           title: this.panoSource.title,
@@ -562,13 +599,8 @@ export default {
         } else {
           this.$router.push({ path: "/panolist" });
         }
-      }
-    );
-  },
-  beforeDestroy() {
-    clearInterval(this.editStatusInterval);
-  },
-  methods: {
+      });
+    },
     updateEditStatusInterval() {
       this.editStatusInterval = setInterval(() => {
         this.updateEditStatus();

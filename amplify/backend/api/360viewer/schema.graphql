@@ -92,3 +92,24 @@ type EditStatus
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
+
+type TemporarySharing
+  @model
+  @auth(rules: [{ allow: owner }, { allow: private, operations: [read] }])
+  @key(
+    name: "sharingByPano"
+    fields: ["panoID", "createdAt"]
+    queryField: "sharingByPano"
+  )
+  @key(
+    name: "sharingByPassword"
+    fields: ["password"]
+    queryField: "sharingByPassword"
+  ) {
+  id: ID
+  panoID: ID
+  owner: ID
+  password: String
+  ttl: AWSTimestamp
+  createdAt: AWSDateTime
+}

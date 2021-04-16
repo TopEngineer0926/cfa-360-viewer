@@ -167,8 +167,8 @@ export const onDeleteComment = /* GraphQL */ `
   }
 `;
 export const onCreateEditStatus = /* GraphQL */ `
-  subscription OnCreateEditStatus($owner: String) {
-    onCreateEditStatus(owner: $owner) {
+  subscription OnCreateEditStatus {
+    onCreateEditStatus {
       id
       panoID
       owner
@@ -181,8 +181,8 @@ export const onCreateEditStatus = /* GraphQL */ `
   }
 `;
 export const onUpdateEditStatus = /* GraphQL */ `
-  subscription OnUpdateEditStatus($owner: String) {
-    onUpdateEditStatus(owner: $owner) {
+  subscription OnUpdateEditStatus {
+    onUpdateEditStatus {
       id
       panoID
       owner
@@ -195,13 +195,52 @@ export const onUpdateEditStatus = /* GraphQL */ `
   }
 `;
 export const onDeleteEditStatus = /* GraphQL */ `
-  subscription OnDeleteEditStatus($owner: String) {
-    onDeleteEditStatus(owner: $owner) {
+  subscription OnDeleteEditStatus {
+    onDeleteEditStatus {
       id
       panoID
       owner
       name
       email
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateTemporarySharing = /* GraphQL */ `
+  subscription OnCreateTemporarySharing {
+    onCreateTemporarySharing {
+      id
+      panoID
+      owner
+      password
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateTemporarySharing = /* GraphQL */ `
+  subscription OnUpdateTemporarySharing {
+    onUpdateTemporarySharing {
+      id
+      panoID
+      owner
+      password
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteTemporarySharing = /* GraphQL */ `
+  subscription OnDeleteTemporarySharing {
+    onDeleteTemporarySharing {
+      id
+      panoID
+      owner
+      password
       ttl
       createdAt
       updatedAt

@@ -221,3 +221,98 @@ export const editStatusByPano = /* GraphQL */ `
     }
   }
 `;
+export const getTemporarySharing = /* GraphQL */ `
+  query GetTemporarySharing($id: ID!) {
+    getTemporarySharing(id: $id) {
+      id
+      panoID
+      owner
+      password
+      ttl
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listTemporarySharings = /* GraphQL */ `
+  query ListTemporarySharings(
+    $filter: ModelTemporarySharingFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listTemporarySharings(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        panoID
+        owner
+        password
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const sharingByPano = /* GraphQL */ `
+  query SharingByPano(
+    $panoID: ID
+    $createdAt: ModelStringKeyConditionInput
+    $sortDirection: ModelSortDirection
+    $filter: ModelTemporarySharingFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    sharingByPano(
+      panoID: $panoID
+      createdAt: $createdAt
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        panoID
+        owner
+        password
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const sharingByPassword = /* GraphQL */ `
+  query SharingByPassword(
+    $password: String
+    $sortDirection: ModelSortDirection
+    $filter: ModelTemporarySharingFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    sharingByPassword(
+      password: $password
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        panoID
+        owner
+        password
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
