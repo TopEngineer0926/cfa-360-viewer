@@ -573,12 +573,11 @@ export default {
             );
           } else {
             // console.log("You are editing.");
+            this.isEditable = true;
             this.updateEditStatus();
             this.updateEditStatusInterval();
           }
         });
-
-        this.isEditable = true;
       }
 
       API.graphql(
