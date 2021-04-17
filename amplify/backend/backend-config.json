@@ -9,7 +9,7 @@
     }
   },
   "storage": {
-    "s3dev": {
+    "s3prod": {
       "service": "S3",
       "providerPlugin": "awscloudformation"
     }
