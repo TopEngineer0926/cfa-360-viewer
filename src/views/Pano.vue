@@ -527,8 +527,18 @@ export default {
         ).then((data) => {
           let sharingData = data.data.sharingByPassword.items;
 
-          if (sharingData && sharingData[0].panoID == this.$route.params.id) {
-            console.log("Guest Access");
+          if (
+            sharingData &&
+            sharingData[0].panoID == this.$route.params.id &&
+            new Date() < new Date(sharingData[0].ttl * 1000)
+          ) {
+            this.$root.$dialogLoader.start(
+              "Guest Access. Valid until " +
+                new Date(sharingData[0].ttl * 1000).toLocaleString(),
+              {},
+              () => {},
+              true
+            );
             this.initData();
           } else {
             this.$router.push({ path: "/" });
@@ -536,6 +546,7 @@ export default {
         });
       } else {
         //Unauth
+        this.$root.$dialogLoader.start("Not authorized", {}, () => {}, true);
       }
     } else {
       //login user
@@ -629,7 +640,8 @@ export default {
             this.pano.scenes[scene.id] = {};
             this.pano.scenes[scene.id].title = scene.title;
             this.pano.scenes[scene.id].panorama = await Storage.get(
-              this.panoSource.id + "/" + scene.img
+              this.panoSource.id + "/" + scene.img,
+              { expires: 432000 }
             );
           })
         );
