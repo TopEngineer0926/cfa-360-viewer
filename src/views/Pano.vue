@@ -528,7 +528,7 @@ export default {
           let sharingData = data.data.sharingByPassword.items;
 
           if (
-            sharingData &&
+            sharingData.length > 0 &&
             sharingData[0].panoID == this.$route.params.id &&
             new Date() < new Date(sharingData[0].ttl * 1000)
           ) {
@@ -541,7 +541,14 @@ export default {
             );
             this.initData();
           } else {
-            this.$router.push({ path: "/" });
+            this.$root.$dialogLoader.start(
+              "Not authorized.",
+              {},
+              () => {
+                this.$router.push({ path: "/" });
+              },
+              true
+            );
           }
         });
       } else {
