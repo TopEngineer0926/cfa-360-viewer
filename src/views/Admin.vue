@@ -1,387 +1,475 @@
 <template>
-  <v-container v-if="panoSource">
-    <h2 class="text-center mb-6">Project Editor</h2>
-    <v-row>
+  <v-container>
+    <v-row justify="center" class="my-4">
+      <v-btn v-if="user.admin" color="primary" @click="createPanoFunc"
+        >Create</v-btn
+      >
+    </v-row>
+    <v-row justify="center" class="my-4">
       <v-col cols="4">
-        <S3ImgDisplay
-          :src="panoSource.thumbnail"
-          :panoID="panoSource.id"
-        ></S3ImgDisplay>
-      </v-col>
-
-      <v-col cols="8">
-        <v-text-field
-          v-model="panoSource.category"
-          require
-          :rules="[(v) => !!v || 'Category is required']"
-          label="Category"
-          @change="savePano"
-        ></v-text-field>
-        <v-text-field
-          v-model="panoSource.title"
-          require
-          :rules="[(v) => !!v || 'Title is required']"
-          label="Title"
-          @change="savePano"
-        ></v-text-field>
-        <v-text-field
-          v-model="panoSource.ptype"
-          require
-          :rules="[(v) => !!v || 'Type is required']"
-          label="Type"
-          @change="savePano"
-        ></v-text-field>
-        <v-text-field
-          v-model="panoSource.psize"
-          require
-          :rules="[(v) => !!v || 'Size is required']"
-          label="Size"
-          @change="savePano"
-        ></v-text-field>
-
-        <v-file-input
-          v-model="thumbnailToUpload"
-          accept="image/*"
-          label="Upload thumbnail"
-          @change="uploadThumbnail"
-        ></v-file-input>
+        <v-select
+          value="All Categories"
+          :items="categoryList"
+          label="Solo field"
+          solo
+          @change="filterByCategory"
+        ></v-select>
       </v-col>
     </v-row>
-    <v-row>
-      <v-col cols="4">
-        <h3
-          v-if="panoSource.sceneArr && panoSource.sceneArr.length > 0"
-          class="text-center"
-        >
-          Tag Selector
-        </h3>
-        <v-text-field v-model="spotsSearch" label="Search"></v-text-field>
 
-        <v-list>
-          <v-list-group
-            v-for="(scene, sceneIndex) in panoSource.sceneArr"
-            :key="sceneIndex"
-            :value="true"
-            no-action
-            sub-group
+    <div v-if="panos" class="d-flex flex-wrap justify-center">
+      <div v-for="(pano, index) in panosFilter" :key="index">
+        <v-hover v-slot="{ hover }" class="ma-6">
+          <v-card
+            :elevation="hover ? 12 : 2"
+            width="500"
+            height="200"
+            @click="$router.push('/pano/' + pano.id)"
           >
-            <template v-slot:activator>
+            <v-list-item three-line>
               <v-list-item-content>
-                <v-list-item-title>{{ scene.title }}</v-list-item-title>
+                <div class="overline mb-4">
+                  {{ pano.category ? pano.category : "Category Not Assigned" }}
+                </div>
+                <v-list-item-title class="headline mb-1">
+                  {{ pano.title }}
+                </v-list-item-title>
+                <v-list-item-subtitle> {{ pano.ptype }}</v-list-item-subtitle>
+                <v-list-item-subtitle> {{ pano.psize }}</v-list-item-subtitle>
               </v-list-item-content>
-            </template>
-            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex">
-              <v-list-item
-                link
-                @click="loadSpot(sceneIndex, spotIndex)"
-                v-if="
-                  spot.style == 'detail' &&
-                  (spotsSearch == '' ||
-                    spot.text.toLowerCase().includes(spotsSearch.toLowerCase()))
-                "
+
+              <v-list-item-avatar tile height="120" width="200" color="grey">
+                <v-img
+                  :src="
+                    pano.thumbnail
+                      ? pano.thumbnailUrl
+                      : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
+                  "
+                >
+                </v-img>
+              </v-list-item-avatar>
+            </v-list-item>
+
+            <v-card-actions v-if="user.admin">
+              <v-spacer />
+              <v-btn
+                icon
+                @click.stop="$router.push('/panosetting/' + pano.id)"
+                class="mr-14"
               >
-                <v-list-item-title v-text="spot.text"></v-list-item-title>
-                <v-list-item-icon>
-                  <v-icon>mdi-tag-outline</v-icon>
-                </v-list-item-icon>
-              </v-list-item>
-            </div>
-          </v-list-group>
-        </v-list>
-      </v-col>
+                <v-icon>mdi-cog-outline</v-icon>
+              </v-btn>
 
-      <v-col v-if="spot" cols="8">
-        <h3 class="text-center">Tag Detail</h3>
-        <v-card flat>
-          <v-card-text>
-            <v-row align="center" justify="center">
-              <v-text-field
-                v-model="spot.text"
-                require
-                :rules="[(v) => !!v || 'Title is required']"
-                label="Tag Title"
-                @change="savePano"
-              ></v-text-field>
-            </v-row>
-            <v-row align="center" justify="center">
-              <v-textarea
-                v-model="spot.about"
-                label="Description"
-                auto-grow
-                :rows="1"
-                @change="savePano"
-              ></v-textarea
-            ></v-row>
-            <div v-if="spot.contents && spot.contents.length > 0">
-              <div
-                v-for="(content, contentIndex) in spot.contents"
-                :key="contentIndex"
-                class="mt-4"
-              >
-                <v-row align="center" justify="center">
-                  <v-col>
-                    <ContentDisplay
-                      :content="content"
-                      :panoID="panoSource.id"
-                    ></ContentDisplay
-                  ></v-col>
-                </v-row>
+              <v-btn icon @click.stop="getTempsharing(pano.id)" class="mr-14"
+                ><v-icon>mdi-share </v-icon>
+              </v-btn>
 
-                <v-row class="mt-2" align="center" justify="center">
-                  <v-text-field
-                    v-model="content.name"
-                    label="Content Name"
-                    @change="savePano"
-                  ></v-text-field>
-                  <v-btn
-                    icon
-                    @click="deleteContentIndex(contentIndex)"
-                    class="ml-4"
-                    ><v-icon>mdi-delete-outline </v-icon>
-                  </v-btn>
-                </v-row>
-              </div>
-            </div>
-            <v-divider class="ma-8"></v-divider>
-            <v-row>
-              <v-col>
-                <v-select
-                  v-model="newContent.type"
-                  :items="contentTypes"
-                  label="Type"
-                ></v-select
-              ></v-col>
-              <v-col>
-                <v-text-field
-                  label="video Id"
-                  v-model="newContent.link"
-                  v-if="newContent.type == 'youtube'"
-                ></v-text-field>
-                <v-file-input
-                  v-else
-                  v-model="newContent.file"
-                  label="Select File"
-                ></v-file-input>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-text-field
-                v-model="newContent.name"
-                label="Content Name"
-              ></v-text-field>
-              <v-btn block @click="addNewContent">Add Content</v-btn></v-row
-            >
-
-            <div v-if="comments && comments.length > 0" class="mt-12">
-              <h2 class="text-center">Comments</h2>
-              <div v-for="(comment, index) in comments" :key="index">
-                <v-row class="mt-4">
-                  <v-col>
-                    <h3>{{ comment.msg }}</h3></v-col
-                  > </v-row
-                ><v-row justify="space-between">
-                  <v-col> {{ comment.name }}</v-col>
-                  <v-col class="text-end">
-                    {{ new Date(comment.updatedAt).toLocaleString() }}</v-col
-                  >
-                </v-row>
-                <v-row> <v-divider></v-divider></v-row>
-              </div>
-            </div>
-            <div v-else class="mt-12">
-              <h2 class="text-center">No Comments</h2>
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col v-else cols="8"></v-col>
-    </v-row>
-    <v-row justify="center" class="ma-8">
-      <v-btn @click="$router.push('/panolist').catch((err) => {})"
-        >Return</v-btn
-      ></v-row
+              <v-btn icon @click.stop="deletePanoConfirm(pano)"
+                ><v-icon>mdi-delete-outline </v-icon>
+              </v-btn>
+              <v-spacer />
+            </v-card-actions>
+          </v-card>
+        </v-hover>
+      </div>
+    </div>
+    <v-dialog
+      v-if="editPano.dialog"
+      v-model="editPano.dialog"
+      persistent
+      max-width="600"
     >
+      <v-card>
+        <v-card-title class="headline"> Edit </v-card-title>
+        <v-card-text>
+          <v-form ref="form" v-model="editPano.editValid" lazy-validation>
+            <v-text-field
+              v-model="editPano.title"
+              require
+              :rules="[(v) => !!v || 'Title is required']"
+              label="Title"
+            ></v-text-field>
+            <v-text-field v-model="editPano.ptype" label="Type"></v-text-field>
+            <v-text-field v-model="editPano.psize" label="Size"></v-text-field>
+            <!-- <v-file-input
+              v-model="editPano.imgToUpload"
+              accept="image/*"
+              label="Select panorama image"
+            ></v-file-input> -->
+            <v-file-input
+              v-model="editPano.thumbnailToUpload"
+              accept="image/*"
+              label="Select thumbnail image"
+            ></v-file-input>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="savePano"
+            :disabled="!editPano.editValid"
+          >
+            Save
+          </v-btn>
+          <v-btn color="grey" text @click="editPano.dialog = false">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="600">
+      <v-card>
+        <v-card-title class="headline"> Temporary sharing Links</v-card-title>
+        <v-card-text>
+          <div v-if="sharing.list">
+            <div v-for="(sharingitem, index) in sharing.list" :key="index">
+              <v-row align="center">
+                <v-col cols="1">
+                  <h3>{{ index + 1 }}</h3>
+                </v-col>
+
+                <v-col>
+                  <v-btn
+                    text
+                    @click="
+                      copySharingLink(sharingitem.panoID, sharingitem.password)
+                    "
+                    >Copy the Sharing Link</v-btn
+                  >
+                </v-col>
+
+                <v-col>
+                  Link Vaild Until
+                  {{ new Date(sharingitem.ttl * 1000).toLocaleString() }}
+                </v-col>
+                <v-col cols="1">
+                  <v-btn icon @click="deleteTempsharing(sharingitem, index)">
+                    <v-icon>mdi-delete</v-icon></v-btn
+                  >
+                </v-col>
+              </v-row>
+            </div>
+          </div>
+          <h2 class="mt-8">Create a new sharing link</h2>
+          <v-row align="center">
+            <v-col>
+              <v-text-field
+                v-model="sharing.newHours"
+                label="Valid hours from now"
+                type="number"
+              ></v-text-field>
+            </v-col>
+            <v-col> <v-btn block @click="addTempsharing()">Add</v-btn></v-col>
+          </v-row>
+
+          <!-- <v-form ref="form" v-model="editPano.editValid" lazy-validation>
+            <v-text-field
+              v-model="editPano.title"
+              require
+              :rules="[(v) => !!v || 'Title is required']"
+              label="Title"
+            ></v-text-field>
+            <v-text-field v-model="editPano.ptype" label="Type"></v-text-field>
+            <v-text-field v-model="editPano.psize" label="Size"></v-text-field>
+            
+            <v-file-input
+              v-model="editPano.thumbnailToUpload"
+              accept="image/*"
+              label="Select thumbnail image"
+            ></v-file-input>
+          </v-form> -->
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+
+          <v-btn color="grey" text @click="sharing.dialog = false">
+            Close
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <foot />
   </v-container>
 </template>
 
 <script>
-import { mapState } from "vuex";
 import { API, graphqlOperation, Storage } from "aws-amplify";
-import { getPano, commentsBySpotId } from "../graphql/queries";
+import {
+  createPano,
+  deletePano,
+  createTemporarySharing,
+  deleteTemporarySharing,
+} from "../graphql/mutations";
+import { listPanos, sharingByPano } from "../graphql/queries";
+import { mapState } from "vuex";
+
 import { updatePano } from "../graphql/mutations";
 import { nanoid } from "nanoid";
 import Compressor from "compressorjs";
 
 export default {
-  name: "Admin",
+  name: "Pano",
+
   components: {
-    ContentDisplay: () => import("../components/ContentDisplay"),
-    S3ImgDisplay: () => import("../components/S3ImgDisplay"),
+    foot: () => import("../components/Foot.vue"),
   },
+
   data: function () {
     return {
-      savePanoTimer: null,
-      panoSource: null,
-      spot: null,
-      spotsSearch: "",
-      comments: null,
-      spotStyles: [
-        { text: "Product Detail", value: "detail" },
-        { text: "Change Pano Image", value: "scene" },
-      ],
-      contentTypes: [
-        { text: "Image", value: "img" },
-        { text: "PDF", value: "pdf" },
-        { text: "Youtube", value: "youtube" },
-      ],
-      newContent: {
-        type: "img",
-        name: null,
-        thumbnail: null,
-        link: null,
-        file: null,
+      panos: null,
+      panosFilter: null,
+      categoryList: ["All Categories"],
+      editPano: {
+        index: null,
+        ptype: null,
+        psize: null,
+        editValid: false,
+        dialog: false,
+        title: null,
+        imgToUpload: null,
+        thumbnailToUpload: null,
       },
-      thumbnailToUpload: null,
+      sharing: {
+        dialog: false,
+        panoID: null,
+        new: null,
+        list: null,
+      },
     };
   },
-  created: function () {
+  computed: mapState(["user"]),
+  created() {
     this.$store.commit("SET_NAVBAR_TEXT", null);
-    if (!this.user.admin) {
-      this.$router.push({ path: "/panolist" });
-    }
-  },
-  mounted() {
-    API.graphql(graphqlOperation(getPano, { id: this.$route.params.id })).then(
-      (data) => {
-        if (data.data.getPano) {
-          this.panoSource = data.data.getPano;
-        } else {
-          this.$router.push({ path: "/panolist" });
-        }
-      }
-    );
+    this.loadPanos();
   },
   methods: {
-    async uploadThumbnail() {
-      if (this.thumbnailToUpload) {
-        //delete org img
-        if (this.panoSource.thumbnail) {
-          Storage.remove(this.panoSource.id + "/" + this.panoSource.thumbnail);
-        }
+    loadPanos() {
+      API.graphql(graphqlOperation(listPanos)).then(async (data) => {
+        let panosRes = data.data.listPanos.items;
+        //Get thumbnail URL
+        await Promise.all(
+          panosRes.map(async (pano) => {
+            if (pano.category) {
+              this.categoryList.push(pano.category);
+            }
+            if (pano.thumbnail) {
+              pano.thumbnailUrl = await Storage.get(
+                pano.id + "/" + pano.thumbnail
+              );
+            }
+            return pano;
+          })
+        );
+        this.panos = panosRes;
+        this.panosFilter = panosRes;
+      });
+    },
+    filterByCategory(category) {
+      if (category == "All Categorioes") {
+        this.panosFilter = this.panos;
+      } else {
+        this.panosFilter = this.panos.filter(
+          (pano) => pano.category == category
+        );
+      }
+    },
 
-        //Compressor
-        let compressedThumbnail = await new Promise((resolve, reject) => {
-          new Compressor(this.thumbnailToUpload, {
-            quality: 0.7,
-            maxHeight: 512,
-            maxWidth: 512,
-            success: resolve,
-            error: reject,
-          });
+    async createPanoFunc() {
+      try {
+        let newPanoId = await API.graphql(
+          graphqlOperation(createPano, {
+            input: { title: "New Project" },
+          })
+        );
+        this.$router.push({
+          path: "/panosetting/" + newPanoId.data.createPano.id,
         });
+      } catch (error) {
+        console.error("createPano", error);
+      }
+    },
+    deletePanoFunc(pano) {
+      //delete thumbnail
+      if (pano.thumbnail) {
+        Storage.remove(pano.id + "/" + pano.thumbnail);
+      }
 
-        this.panoSource.thumbnail = (
-          await Storage.put(
-            this.panoSource.id + "/" + nanoid(),
-            compressedThumbnail,
-            {
+      //delete scene imgs
+      if (pano.sceneArr && pano.sceneArr.length > 0) {
+        pano.sceneArr.forEach((scene) => {
+          Storage.remove(pano.id + "/" + scene.img);
+        });
+      }
+
+      //delete pano
+      API.graphql(
+        graphqlOperation(deletePano, {
+          input: { id: pano.id },
+        })
+      );
+
+      //delete Spots
+      // +++++
+      //delete Comments
+      // +++++
+      this.panos.splice(
+        this.panos.findIndex((e) => e.id == pano.id),
+        1
+      );
+      this.panosFilter.splice(
+        this.panosFilter.findIndex((e) => e.id == pano.id),
+        1
+      );
+    },
+    async deletePanoConfirm(pano) {
+      if (
+        await this.$root.$confirm(
+          `Delete ${pano.title}?`,
+          "This action cannot be undone. This scene will be deleted permanently.",
+          { color: this.$vuetify.theme.currentTheme.primary }
+        )
+      ) {
+        this.$root.$dialogLoader.start(
+          "Deleted Successfully",
+          {},
+          () => {
+            this.deletePanoFunc(pano);
+          },
+          true
+        );
+      }
+    },
+    async savePano() {
+      if (this.$refs.form.validate()) {
+        let newPano = {
+          id: this.panos[this.editPano.index].id,
+          title: this.editPano.title,
+        };
+        if (this.editPano.psize) {
+          newPano.psize = this.editPano.psize;
+        }
+        if (this.editPano.ptype) {
+          newPano.ptype = this.editPano.ptype;
+        }
+        // if (this.editPano.imgToUpload) {
+        //   let imgId = nanoid();
+        //   newPano.img = (
+        //     await Storage.put(imgId, this.editPano.imgToUpload, {
+        //       level: "protected",
+        //       contentType: this.editPano.imgToUpload.type,
+        //       metadata: { user: this.user.email },
+        //     })
+        //   ).key;
+        //   //delete org img
+        //   if (this.panos[this.editPano.index].img) {
+        //     Storage.remove(this.pano.img, { level: "protected" });
+        //   }
+        // }
+
+        // if (
+        //   !this.editPano.thumbnailToUpload &&
+        //   !this.panos[this.editPano.index].thumbnail &&
+        //   this.editPano.imgToUpload
+        // ) {
+        //   this.editPano.thumbnailToUpload = this.editPano.imgToUpload;
+        // }
+
+        if (this.editPano.thumbnailToUpload) {
+          //Compressor
+          let compressedThumbnail = await new Promise((resolve, reject) => {
+            new Compressor(this.editPano.thumbnailToUpload, {
+              quality: 0.7,
+              maxHeight: 512,
+              maxWidth: 512,
+              success: resolve,
+              error: reject,
+            });
+          });
+          let imgId = nanoid();
+          newPano.thumbnail = (
+            await Storage.put(newPano.id + "/" + imgId, compressedThumbnail, {
               contentType: compressedThumbnail.type,
               metadata: {
                 user: this.user.email,
                 type: "thumbnail",
               },
-            }
-          )
-        ).key.split("/")[1];
-
-        this.savePano();
-        this.thumbnailToUpload = null;
+            })
+          ).key.split("/")[1];
+          //delete org img
+          if (this.panos[this.editPano.index].thumbnail) {
+            Storage.remove(
+              this.panos[this.editPano.index].id +
+                "/" +
+                this.panos[this.editPano.index].thumbnail
+            );
+          }
+        }
+        console.log("updatePano", newPano);
+        await API.graphql({
+          query: updatePano,
+          variables: {
+            input: newPano,
+          },
+        });
+        this.loadPanos();
+        this.editPano.dialog = false;
       }
     },
-
-    deleteContentIndex(contentIndex) {
-      this.spot.contents.splice(contentIndex, 1);
-      this.savePano();
-      //   this.$forceUpdate();
-    },
-    loadSpot(sceneIndex, spotIndex) {
-      this.spot = this.panoSource.sceneArr[sceneIndex].spots[spotIndex];
-      this.getComments();
-    },
-
-    async getComments() {
-      this.comments = (
-        await API.graphql(
-          graphqlOperation(commentsBySpotId, {
-            spotID: this.spot.id,
-            sortDirection: "DESC",
-            // limit: 10,
-          })
-        )
-      ).data.commentsBySpotID.items;
-
-      this.$forceUpdate();
-    },
-    savePano() {
-      console.log("save", this.panoSource);
+    getTempsharing(panoID) {
+      this.sharing.panoID = panoID;
       API.graphql({
-        query: updatePano,
+        query: sharingByPano,
         variables: {
-          input: this.panoSource,
+          panoID: panoID,
         },
+      }).then((data) => {
+        this.sharing.list = data.data.sharingByPano.items;
+        this.sharing.dialog = true;
       });
-      // this.$router.go();
     },
 
-    async addNewContent() {
-      if (this.newContent.type !== "youtube") {
-        this.newContent.link = (
-          await Storage.put(
-            this.panoSource.id + "/" + nanoid(),
-            this.newContent.file,
-            {
-              contentType: this.newContent.file.type,
-              metadata: {
-                user: this.user.email,
-                type: "spotDetail",
-              },
-            }
-          )
-        ).key.split("/")[1];
-      }
-      delete this.newContent.file;
-      if (!this.spot.contents) {
-        this.spot.contents = [];
-      }
-      this.spot.contents.push(this.newContent);
-      this.savePano();
-      this.newContent = {
-        type: "img",
-        name: null,
-        thumbnail: null,
-        file: null,
-        link: null,
+    async addTempsharing() {
+      let newSharing = {
+        panoID: this.sharing.panoID,
+        password: nanoid(),
+        ttl: Math.round(Date.now() / 1000) + this.sharing.newHours * 60 * 60,
       };
+      await API.graphql(
+        graphqlOperation(createTemporarySharing, {
+          input: newSharing,
+        })
+      );
+      this.sharing.list.push(newSharing);
+      this.sharing.new = null;
     },
-    async getImgUrl(link) {
-      let url = await Storage.get(this.panoSource.id + "/" + link);
-      console.log(url);
-      return url;
+
+    deleteTempsharing(item, index) {
+      API.graphql(
+        graphqlOperation(deleteTemporarySharing, {
+          input: { id: item.id },
+        })
+      );
+      this.sharing.list.splice(index, 1);
+    },
+    copySharingLink(panoID, password) {
+      let base = window.location.href.replace("panolist", "pano");
+      this.$root.$dialogLoader.start(
+        "Link Copied to the clipboard",
+        {},
+        navigator.clipboard.writeText(base + "/" + panoID + "/" + password),
+        true
+      );
     },
   },
-  computed: {
-    ...mapState(["user"]),
-  },
-  // watch: {
-  //   panoSource: function () {
-  //     if (this.savePanoTimer) {
-  //       clearTimeout(this.savePanoTimer);
-  //       this.savePanoTimer = null;
-  //     }
-  //     this.savePanoTimer = setTimeout(() => {
-  //       this.savePano;
-  //     }, 1000);
-  //   },
-  // },
 };
 </script>
+<style scoped>
+amplify-s3-image {
+  --height: 200px;
+  --width: 400px;
+}
+</style>

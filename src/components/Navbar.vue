@@ -25,20 +25,22 @@
 
       <v-col cols="auto">Size: {{ navbarText.psize }} </v-col></v-row
     >
+    <div else>
+      <v-btn
+        text
+        @click="$router.push('/panolist').catch((err) => {})"
+        class="ml-4"
+        >Gallery</v-btn
+      >
 
-    <!-- <v-btn
-      text
-      @click="$router.push('/panolist').catch((err) => {})"
-      class="ml-4"
-      >Gallery</v-btn
-    > -->
+      <v-btn
+        v-if="user.admin"
+        text
+        @click="$router.push('/admin').catch((err) => {})"
+        >Admin</v-btn
+      >
+    </div>
 
-    <!-- <v-btn
-      v-if="user.admin"
-      text
-      @click="$router.push('/admin').catch((err) => {})"
-      >Admin</v-btn
-    > -->
     <v-spacer />
     <v-icon v-if="user.admin" color="primary" class="mr-2">
       mdi-alpha-a-box-outline

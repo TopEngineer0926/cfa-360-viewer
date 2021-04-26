@@ -28,6 +28,10 @@ export default new Vuex.Store({
     },
     login({ commit }, data) {
 
+
+      API.get("index", "/index/users").then(usersData => console.log('usersData', usersData))
+
+
       // return new Promise(async (resolve, reject) => {
       //   let indexAuthData = await API.get("indexapi", "/index/auth", {
       //     queryStringParameters: {

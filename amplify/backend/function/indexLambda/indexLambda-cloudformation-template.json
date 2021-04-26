@@ -47,12 +47,12 @@
         "FunctionName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "indexfunction",
+            "indexLambda",
             {
               "Fn::Join": [
                 "",
                 [
-                  "indexfunction",
+                  "indexLambda",
                   "-",
                   {
                     "Ref": "env"
@@ -89,12 +89,12 @@
         "RoleName": {
           "Fn::If": [
             "ShouldNotCreateEnvResources",
-            "360viewerLambdaRole4eb5d539",
+            "360viewerLambdaRole8b4e248a",
             {
               "Fn::Join": [
                 "",
                 [
-                  "360viewerLambdaRole4eb5d539",
+                  "360viewerLambdaRole8b4e248a",
                   "-",
                   {
                     "Ref": "env"

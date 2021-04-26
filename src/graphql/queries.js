@@ -125,6 +125,117 @@ export const listComments = /* GraphQL */ `
     }
   }
 `;
+export const getSitePermission = /* GraphQL */ `
+  query GetSitePermission($id: ID!) {
+    getSitePermission(id: $id) {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listSitePermissions = /* GraphQL */ `
+  query ListSitePermissions(
+    $filter: ModelSitePermissionFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listSitePermissions(filter: $filter, limit: $limit, nextToken: $nextToken) {
+      items {
+        id
+        user
+        admin
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const getProjectPermission = /* GraphQL */ `
+  query GetProjectPermission($id: ID!) {
+    getProjectPermission(id: $id) {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listProjectPermissions = /* GraphQL */ `
+  query ListProjectPermissions(
+    $filter: ModelProjectPermissionFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listProjectPermissions(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        user
+        panoID
+        role
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const getPermissionSetting = /* GraphQL */ `
+  query GetPermissionSetting($id: ID!) {
+    getPermissionSetting(id: $id) {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const listPermissionSettings = /* GraphQL */ `
+  query ListPermissionSettings(
+    $filter: ModelPermissionSettingFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    listPermissionSettings(
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        role
+        assignNewSite
+        assignProject
+        adjustRole
+        createNewProject
+        createNewScene
+        createNewTag
+        tagComments
+        readContent
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
 export const commentsBySpotId = /* GraphQL */ `
   query CommentsBySpotId(
     $spotID: ID

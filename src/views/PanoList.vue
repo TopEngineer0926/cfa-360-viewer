@@ -54,7 +54,7 @@
               <v-spacer />
               <v-btn
                 icon
-                @click.stop="$router.push('/admin/' + pano.id)"
+                @click.stop="$router.push('/panosetting/' + pano.id)"
                 class="mr-14"
               >
                 <v-icon>mdi-cog-outline</v-icon>
@@ -285,7 +285,9 @@ export default {
             input: { title: "New Project" },
           })
         );
-        this.$router.push({ path: "/admin/" + newPanoId.data.createPano.id });
+        this.$router.push({
+          path: "/panosetting/" + newPanoId.data.createPano.id,
+        });
       } catch (error) {
         console.error("createPano", error);
       }

@@ -184,6 +184,156 @@ export const deleteComment = /* GraphQL */ `
     }
   }
 `;
+export const createSitePermission = /* GraphQL */ `
+  mutation CreateSitePermission(
+    $input: CreateSitePermissionInput!
+    $condition: ModelSitePermissionConditionInput
+  ) {
+    createSitePermission(input: $input, condition: $condition) {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateSitePermission = /* GraphQL */ `
+  mutation UpdateSitePermission(
+    $input: UpdateSitePermissionInput!
+    $condition: ModelSitePermissionConditionInput
+  ) {
+    updateSitePermission(input: $input, condition: $condition) {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteSitePermission = /* GraphQL */ `
+  mutation DeleteSitePermission(
+    $input: DeleteSitePermissionInput!
+    $condition: ModelSitePermissionConditionInput
+  ) {
+    deleteSitePermission(input: $input, condition: $condition) {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createProjectPermission = /* GraphQL */ `
+  mutation CreateProjectPermission(
+    $input: CreateProjectPermissionInput!
+    $condition: ModelProjectPermissionConditionInput
+  ) {
+    createProjectPermission(input: $input, condition: $condition) {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updateProjectPermission = /* GraphQL */ `
+  mutation UpdateProjectPermission(
+    $input: UpdateProjectPermissionInput!
+    $condition: ModelProjectPermissionConditionInput
+  ) {
+    updateProjectPermission(input: $input, condition: $condition) {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deleteProjectPermission = /* GraphQL */ `
+  mutation DeleteProjectPermission(
+    $input: DeleteProjectPermissionInput!
+    $condition: ModelProjectPermissionConditionInput
+  ) {
+    deleteProjectPermission(input: $input, condition: $condition) {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const createPermissionSetting = /* GraphQL */ `
+  mutation CreatePermissionSetting(
+    $input: CreatePermissionSettingInput!
+    $condition: ModelPermissionSettingConditionInput
+  ) {
+    createPermissionSetting(input: $input, condition: $condition) {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const updatePermissionSetting = /* GraphQL */ `
+  mutation UpdatePermissionSetting(
+    $input: UpdatePermissionSettingInput!
+    $condition: ModelPermissionSettingConditionInput
+  ) {
+    updatePermissionSetting(input: $input, condition: $condition) {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const deletePermissionSetting = /* GraphQL */ `
+  mutation DeletePermissionSetting(
+    $input: DeletePermissionSettingInput!
+    $condition: ModelPermissionSettingConditionInput
+  ) {
+    deletePermissionSetting(input: $input, condition: $condition) {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
 export const createEditStatus = /* GraphQL */ `
   mutation CreateEditStatus(
     $input: CreateEditStatusInput!

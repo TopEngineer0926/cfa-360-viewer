@@ -34,13 +34,13 @@
         }
       }
     },
-    "indexapi": {
+    "index": {
       "service": "API Gateway",
       "providerPlugin": "awscloudformation",
       "dependsOn": [
         {
           "category": "function",
-          "resourceName": "indexfunction",
+          "resourceName": "indexLambda",
           "attributes": [
             "Name",
             "Arn"
@@ -52,6 +52,11 @@
   "hosting": {},
   "function": {
     "indexfunction": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "indexLambda": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"

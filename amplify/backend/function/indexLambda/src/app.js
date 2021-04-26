@@ -6,6 +6,9 @@ or in the "license" file accompanying this file. This file is distributed on an 
 See the License for the specific language governing permissions and limitations under the License.
 */
 
+
+
+
 var express = require('express')
 var bodyParser = require('body-parser')
 var awsServerlessExpressMiddleware = require('aws-serverless-express/middleware')
@@ -22,22 +25,55 @@ app.use(function (req, res, next) {
   next()
 });
 
+
 var AWS = require('aws-sdk');
 var docClient = new AWS.DynamoDB.DocumentClient();
 
-app.get('/index/auth', function (req, res) {
-  docClient.get({
+app.get('/index/users', function (req, res) {
+  docClient.scan({
     TableName: 'cfa-dev-users',
-    Key: { id: req.query.id }
+    FilterExpression: "#user_status = :statusACTIVE OR #user_status = :statusCONFIRMED",
+    ExpressionAttributeValues: {
+      ':statusACTIVE': 'ACTIVE',
+      ':statusCONFIRMED': 'CONFIRMED'
+    },
+    ExpressionAttributeNames: {
+      "#user_status": "status"
+    }
   }, function (err, data) {
     if (err) {
-      res.json({ err: err, url: req.url, id: req.query.id });
+      console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+      res.status(500).json(err)
     } else {
-      res.json({ success: data.Item, url: req.url, id: req.query.id });
+      res.json(data.Items);
     }
   });
 
 });
+
+// app.get('/index/auth', function (req, res) {
+//   docClient.get({
+//     TableName: 'cfa-dev-users',
+//     Key: { id: req.query.id }
+//   }, function (err, data) {
+//     if (err) {
+//       res.json({ err: err, url: req.url, id: req.query.id });
+//     } else {
+//       res.json({ success: data.Item, url: req.url, id: req.query.id });
+//     }
+//   });
+
+// });
+
+
+// /**********************
+//  * Example get method *
+//  **********************/
+
+// app.get('/index', function(req, res) {
+//   // Add your code here
+//   res.json({success: 'get call succeed!', url: req.url});
+// });
 
 // app.get('/index/*', function(req, res) {
 //   // Add your code here

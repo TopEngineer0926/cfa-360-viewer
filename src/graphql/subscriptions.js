@@ -166,6 +166,129 @@ export const onDeleteComment = /* GraphQL */ `
     }
   }
 `;
+export const onCreateSitePermission = /* GraphQL */ `
+  subscription OnCreateSitePermission {
+    onCreateSitePermission {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateSitePermission = /* GraphQL */ `
+  subscription OnUpdateSitePermission {
+    onUpdateSitePermission {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteSitePermission = /* GraphQL */ `
+  subscription OnDeleteSitePermission {
+    onDeleteSitePermission {
+      id
+      user
+      admin
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreateProjectPermission = /* GraphQL */ `
+  subscription OnCreateProjectPermission {
+    onCreateProjectPermission {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdateProjectPermission = /* GraphQL */ `
+  subscription OnUpdateProjectPermission {
+    onUpdateProjectPermission {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeleteProjectPermission = /* GraphQL */ `
+  subscription OnDeleteProjectPermission {
+    onDeleteProjectPermission {
+      id
+      user
+      panoID
+      role
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onCreatePermissionSetting = /* GraphQL */ `
+  subscription OnCreatePermissionSetting {
+    onCreatePermissionSetting {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onUpdatePermissionSetting = /* GraphQL */ `
+  subscription OnUpdatePermissionSetting {
+    onUpdatePermissionSetting {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
+export const onDeletePermissionSetting = /* GraphQL */ `
+  subscription OnDeletePermissionSetting {
+    onDeletePermissionSetting {
+      id
+      role
+      assignNewSite
+      assignProject
+      adjustRole
+      createNewProject
+      createNewScene
+      createNewTag
+      tagComments
+      readContent
+      createdAt
+      updatedAt
+    }
+  }
+`;
 export const onCreateEditStatus = /* GraphQL */ `
   subscription OnCreateEditStatus {
     onCreateEditStatus {

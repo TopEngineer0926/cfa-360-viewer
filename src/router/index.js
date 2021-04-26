@@ -28,13 +28,17 @@ const routes = [
     meta: { requiresAuth: true, tempLogin: true }
   },
   {
-    path: "/admin/:id",
+    path: "/panosetting/:id",
+    name: "PanoSetting",
+    component: () => import('../views/PanoSetting.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: "/admin",
     name: "Admin",
     component: () => import('../views/Admin.vue'),
     meta: { requiresAuth: true }
   },
-
-
 ];
 
 const router = new VueRouter({

@@ -113,3 +113,49 @@ type TemporarySharing
   ttl: AWSTimestamp
   createdAt: AWSDateTime
 }
+
+# type PanoUser @model {
+#   id: ID
+#   user: ID
+#   fullname: String
+#   email: String
+#   company: String
+#   indexPermission: String
+#   panoSiteAdmin: Bool
+#   role: String
+#   status: String
+#   createdAt: AWSDateTime
+#   updatedAt: AWSDateTime
+# }
+
+type SitePermission @model {
+  id: ID
+  user: ID
+  admin: Boolean
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ProjectPermission @model {
+  id: ID
+  user: ID
+  panoID: ID
+  role: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type PermissionSetting @model {
+  id: ID
+  role: String
+  assignNewSite: Boolean
+  assignProject: Boolean
+  adjustRole: Boolean
+  createNewProject: Boolean
+  createNewScene: Boolean
+  createNewTag: Boolean
+  tagComments: Boolean
+  readContent: Boolean
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
