@@ -29,7 +29,7 @@ export default new Vuex.Store({
     login({ commit }, data) {
 
 
-      API.get("index", "/index/users").then(usersData => console.log('usersData', usersData))
+      // API.get("index", "/index/users").then(usersData => console.log('usersData', usersData))
 
 
       // return new Promise(async (resolve, reject) => {
@@ -50,8 +50,8 @@ export default new Vuex.Store({
         if (data.signInUserSession.accessToken.payload["cognito:groups"].includes('360Admin')) { ifAdmin = true }
       }
       catch { ifAdmin = false }
-
       commit("SET_USER_DATA", {
+        username: data.username,
         name: data.attributes.name,
         email: data.attributes.email,
         admin: ifAdmin

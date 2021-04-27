@@ -129,8 +129,6 @@ export const getSitePermission = /* GraphQL */ `
   query GetSitePermission($id: ID!) {
     getSitePermission(id: $id) {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -145,8 +143,6 @@ export const listSitePermissions = /* GraphQL */ `
     listSitePermissions(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        user
-        admin
         createdAt
         updatedAt
       }
@@ -158,9 +154,9 @@ export const getProjectPermission = /* GraphQL */ `
   query GetProjectPermission($id: ID!) {
     getProjectPermission(id: $id) {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }
@@ -179,9 +175,9 @@ export const listProjectPermissions = /* GraphQL */ `
     ) {
       items {
         id
-        user
-        panoID
-        role
+        admins
+        editors
+        viewers
         createdAt
         updatedAt
       }

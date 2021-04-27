@@ -170,8 +170,6 @@ export const onCreateSitePermission = /* GraphQL */ `
   subscription OnCreateSitePermission {
     onCreateSitePermission {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -181,8 +179,6 @@ export const onUpdateSitePermission = /* GraphQL */ `
   subscription OnUpdateSitePermission {
     onUpdateSitePermission {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -192,8 +188,6 @@ export const onDeleteSitePermission = /* GraphQL */ `
   subscription OnDeleteSitePermission {
     onDeleteSitePermission {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -203,9 +197,9 @@ export const onCreateProjectPermission = /* GraphQL */ `
   subscription OnCreateProjectPermission {
     onCreateProjectPermission {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }
@@ -215,9 +209,9 @@ export const onUpdateProjectPermission = /* GraphQL */ `
   subscription OnUpdateProjectPermission {
     onUpdateProjectPermission {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }
@@ -227,9 +221,9 @@ export const onDeleteProjectPermission = /* GraphQL */ `
   subscription OnDeleteProjectPermission {
     onDeleteProjectPermission {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }

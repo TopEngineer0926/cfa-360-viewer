@@ -129,18 +129,18 @@ type TemporarySharing
 # }
 
 type SitePermission @model {
-  id: ID
-  user: ID
-  admin: Boolean
+  id: String #username
+  # name: String
+  # email: String
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
 
 type ProjectPermission @model {
-  id: ID
-  user: ID
-  panoID: ID
-  role: String
+  id: ID! #panoID
+  admins: [String] #username
+  editors: [String] #username
+  viewers: [String] #username
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }

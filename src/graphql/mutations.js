@@ -191,8 +191,6 @@ export const createSitePermission = /* GraphQL */ `
   ) {
     createSitePermission(input: $input, condition: $condition) {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -205,8 +203,6 @@ export const updateSitePermission = /* GraphQL */ `
   ) {
     updateSitePermission(input: $input, condition: $condition) {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -219,8 +215,6 @@ export const deleteSitePermission = /* GraphQL */ `
   ) {
     deleteSitePermission(input: $input, condition: $condition) {
       id
-      user
-      admin
       createdAt
       updatedAt
     }
@@ -233,9 +227,9 @@ export const createProjectPermission = /* GraphQL */ `
   ) {
     createProjectPermission(input: $input, condition: $condition) {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }
@@ -248,9 +242,9 @@ export const updateProjectPermission = /* GraphQL */ `
   ) {
     updateProjectPermission(input: $input, condition: $condition) {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }
@@ -263,9 +257,9 @@ export const deleteProjectPermission = /* GraphQL */ `
   ) {
     deleteProjectPermission(input: $input, condition: $condition) {
       id
-      user
-      panoID
-      role
+      admins
+      editors
+      viewers
       createdAt
       updatedAt
     }

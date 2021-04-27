@@ -212,7 +212,7 @@ import { nanoid } from "nanoid";
 import Compressor from "compressorjs";
 
 export default {
-  name: "Pano",
+  name: "PanoList",
 
   components: {
     foot: () => import("../components/Foot.vue"),
