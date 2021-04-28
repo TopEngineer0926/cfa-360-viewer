@@ -229,55 +229,31 @@ export const onDeleteProjectPermission = /* GraphQL */ `
     }
   }
 `;
-export const onCreatePermissionSetting = /* GraphQL */ `
-  subscription OnCreatePermissionSetting {
-    onCreatePermissionSetting {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+export const onCreateSiteSetting = /* GraphQL */ `
+  subscription OnCreateSiteSetting {
+    onCreateSiteSetting {
+      type
+      config
       createdAt
       updatedAt
     }
   }
 `;
-export const onUpdatePermissionSetting = /* GraphQL */ `
-  subscription OnUpdatePermissionSetting {
-    onUpdatePermissionSetting {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+export const onUpdateSiteSetting = /* GraphQL */ `
+  subscription OnUpdateSiteSetting {
+    onUpdateSiteSetting {
+      type
+      config
       createdAt
       updatedAt
     }
   }
 `;
-export const onDeletePermissionSetting = /* GraphQL */ `
-  subscription OnDeletePermissionSetting {
-    onDeletePermissionSetting {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+export const onDeleteSiteSetting = /* GraphQL */ `
+  subscription OnDeleteSiteSetting {
+    onDeleteSiteSetting {
+      type
+      config
       createdAt
       updatedAt
     }

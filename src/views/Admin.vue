@@ -13,13 +13,20 @@
       <v-tab-item>
         <v-card flat>
           <v-card-text>
-            <v-text-field
-              v-model="search"
-              append-icon="mdi-magnify"
-              label="Search"
-              single-line
-              hide-details
-            ></v-text-field>
+            <v-row>
+              <v-col> </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  v-model="search"
+                  append-icon="mdi-magnify"
+                  label="Search"
+                  single-line
+                  hide-details
+                  solo
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
             <v-data-table
               :headers="siteAdminHeaders"
               :items="INDEXusers"
@@ -38,15 +45,30 @@
       <v-tab-item>
         <v-card flat v-if="panos">
           <v-card-text>
-            <v-select
-              :items="panos"
-              v-model="selectedProjectID"
-              item-text="title"
-              item-value="id"
-              label="Select a project"
-              solo
-              @change="getProjectPermission"
-            ></v-select>
+            <v-row>
+              <v-col>
+                <v-select
+                  :items="panos"
+                  v-model="selectedProjectID"
+                  item-text="title"
+                  item-value="id"
+                  label="Select a project"
+                  solo
+                  @change="getProjectPermission"
+                ></v-select>
+              </v-col>
+              <v-col cols="4">
+                <v-text-field
+                  v-model="search"
+                  append-icon="mdi-magnify"
+                  label="Search"
+                  single-line
+                  hide-details
+                  solo
+                ></v-text-field>
+              </v-col>
+            </v-row>
+
             <v-data-table
               v-if="selectedProjectID"
               :headers="projectPermissionHeaders"
@@ -80,7 +102,79 @@
       </v-tab-item>
       <v-tab-item>
         <v-card flat>
-          <v-card-text>3</v-card-text>
+          <v-card-text>
+            <v-data-table
+              v-if="siteSetting"
+              :headers="siteSettingHeaders"
+              :items="siteSetting.config.roleTable"
+              :search="search"
+              :items-per-page="100"
+              hide-default-footer
+            >
+              <template v-slot:[`item.assignSiteAdmin`]="{ item }">
+                <v-switch
+                  v-model="item.assignSiteAdmin"
+                  :disabled="item.name !== 'Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+              <template v-slot:[`item.assignProject`]="{ item }">
+                <v-switch
+                  v-model="item.assignProject"
+                  :disabled="item.name !== 'Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+
+              <template v-slot:[`item.adjustRole`]="{ item }">
+                <v-switch
+                  v-model="item.adjustRole"
+                  :disabled="item.name !== 'Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+
+              <template v-slot:[`item.createProject`]="{ item }">
+                <v-switch
+                  v-model="item.createProject"
+                  :disabled="
+                    ['Master Site Admin', 'Project Viewer'].includes(item.name)
+                  "
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+
+              <template v-slot:[`item.createScene`]="{ item }">
+                <v-switch
+                  v-model="item.createScene"
+                  :disabled="item.name == 'Master Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+
+              <template v-slot:[`item.createTag`]="{ item }">
+                <v-switch
+                  v-model="item.createTag"
+                  :disabled="item.name == 'Master Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+
+              <template v-slot:[`item.tagComment`]="{ item }">
+                <v-switch
+                  v-model="item.tagComment"
+                  :disabled="item.name == 'Master Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template>
+              <template v-slot:[`item.readContent`]="{ item }">
+                <v-switch
+                  v-model="item.readContent"
+                  :disabled="item.name == 'Master Site Admin'"
+                  @change="saveSiteSetting"
+                ></v-switch>
+              </template> </v-data-table
+          ></v-card-text>
         </v-card>
       </v-tab-item>
     </v-tabs-items>
@@ -95,11 +189,13 @@ import {
   deleteSitePermission,
   createProjectPermission,
   updateProjectPermission,
+  updateSiteSetting,
 } from "../graphql/mutations";
 import {
   listPanos,
   listSitePermissions,
   getProjectPermission,
+  getSiteSetting,
 } from "../graphql/queries";
 
 // import { updatePano } from "../graphql/mutations";
@@ -142,6 +238,25 @@ export default {
         { text: "Set as Pano Project Admin", value: "projectAdmin" },
         { text: "Set as Pano Project Editor", value: "projectEditor" },
         { text: "Set as Pano Project Viewer", value: "projectViewer" },
+      ],
+      siteSetting: null,
+      siteSettingHeaders: [
+        {
+          text: "Role Name",
+          align: "start",
+          value: "name",
+        },
+        { text: "Assign New Site Admin", value: "assignSiteAdmin" },
+        { text: "Assign Project Admin", value: "assignProject" },
+        { text: "Adjust Role Permissions", value: "adjustRole" },
+        { text: "Create New Projects", value: "createProject" },
+        { text: "Create New Scenes Within Projects", value: "createScene" },
+        { text: "Create New Tags Within Scenes", value: "createTag" },
+        { text: "Read/Write Tag Comments", value: "tagComment" },
+        {
+          text: "Readl All Other Content(Except Comments)",
+          value: "readContent",
+        },
       ],
       // panosCategoryList: [],
       // panosTitleList: [],
@@ -269,6 +384,87 @@ export default {
       });
       this.updateProjectPermissionTable();
     },
+    async loadSiteSetting() {
+      let siteSettingData = (
+        await API.graphql(
+          graphqlOperation(getSiteSetting, { type: "role-definition" })
+        )
+      ).data.getSiteSetting;
+
+      siteSettingData.config = JSON.parse(siteSettingData.config);
+
+      // siteSettingData.config = {
+      //   roleTable: [
+      //     {
+      //       name: "Master Site Admin",
+      //       assignSiteAdmin: true,
+      //       assignProject: true,
+      //       adjustRole: true,
+      //       createProject: true,
+      //       createScene: true,
+      //       createTag: true,
+      //       tagComment: true,
+      //       readContent: true,
+      //     },
+      //     {
+      //       name: "Site Admin",
+      //       assignSiteAdmin: true,
+      //       assignProject: true,
+      //       adjustRole: true,
+      //       createProject: true,
+      //       createScene: true,
+      //       createTag: true,
+      //       tagComment: true,
+      //       readContent: true,
+      //     },
+      //     {
+      //       name: "Project Admin",
+      //       assignSiteAdmin: true,
+      //       assignProject: true,
+      //       adjustRole: true,
+      //       createProject: true,
+      //       createScene: true,
+      //       createTag: true,
+      //       tagComment: true,
+      //       readContent: true,
+      //     },
+      //     {
+      //       name: "Project Editor",
+      //       assignSiteAdmin: true,
+      //       assignProject: true,
+      //       adjustRole: true,
+      //       createProject: true,
+      //       createScene: true,
+      //       createTag: true,
+      //       tagComment: true,
+      //       readContent: true,
+      //     },
+      //     {
+      //       name: "Project Viewer",
+      //       assignSiteAdmin: true,
+      //       assignProject: true,
+      //       adjustRole: true,
+      //       createProject: true,
+      //       createScene: true,
+      //       createTag: true,
+      //       tagComment: true,
+      //       readContent: true,
+      //     },
+      //   ],
+      // };
+
+      this.siteSetting = siteSettingData;
+    },
+    async saveSiteSetting() {
+      let siteSettingData = JSON.parse(JSON.stringify(this.siteSetting));
+      siteSettingData.config = JSON.stringify(siteSettingData.config);
+      await API.graphql({
+        query: updateSiteSetting,
+        variables: {
+          input: siteSettingData,
+        },
+      });
+    },
   },
   watch: {
     tab: function (val) {
@@ -278,6 +474,8 @@ export default {
         }
       } else if (val == 1) {
         this.loadPanos();
+      } else if (val == 2) {
+        this.loadSiteSetting();
       }
     },
   },

@@ -265,64 +265,40 @@ export const deleteProjectPermission = /* GraphQL */ `
     }
   }
 `;
-export const createPermissionSetting = /* GraphQL */ `
-  mutation CreatePermissionSetting(
-    $input: CreatePermissionSettingInput!
-    $condition: ModelPermissionSettingConditionInput
+export const createSiteSetting = /* GraphQL */ `
+  mutation CreateSiteSetting(
+    $input: CreateSiteSettingInput!
+    $condition: ModelSiteSettingConditionInput
   ) {
-    createPermissionSetting(input: $input, condition: $condition) {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+    createSiteSetting(input: $input, condition: $condition) {
+      type
+      config
       createdAt
       updatedAt
     }
   }
 `;
-export const updatePermissionSetting = /* GraphQL */ `
-  mutation UpdatePermissionSetting(
-    $input: UpdatePermissionSettingInput!
-    $condition: ModelPermissionSettingConditionInput
+export const updateSiteSetting = /* GraphQL */ `
+  mutation UpdateSiteSetting(
+    $input: UpdateSiteSettingInput!
+    $condition: ModelSiteSettingConditionInput
   ) {
-    updatePermissionSetting(input: $input, condition: $condition) {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+    updateSiteSetting(input: $input, condition: $condition) {
+      type
+      config
       createdAt
       updatedAt
     }
   }
 `;
-export const deletePermissionSetting = /* GraphQL */ `
-  mutation DeletePermissionSetting(
-    $input: DeletePermissionSettingInput!
-    $condition: ModelPermissionSettingConditionInput
+export const deleteSiteSetting = /* GraphQL */ `
+  mutation DeleteSiteSetting(
+    $input: DeleteSiteSettingInput!
+    $condition: ModelSiteSettingConditionInput
   ) {
-    deletePermissionSetting(input: $input, condition: $condition) {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+    deleteSiteSetting(input: $input, condition: $condition) {
+      type
+      config
       createdAt
       updatedAt
     }

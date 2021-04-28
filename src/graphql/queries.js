@@ -185,46 +185,34 @@ export const listProjectPermissions = /* GraphQL */ `
     }
   }
 `;
-export const getPermissionSetting = /* GraphQL */ `
-  query GetPermissionSetting($id: ID!) {
-    getPermissionSetting(id: $id) {
-      id
-      role
-      assignNewSite
-      assignProject
-      adjustRole
-      createNewProject
-      createNewScene
-      createNewTag
-      tagComments
-      readContent
+export const getSiteSetting = /* GraphQL */ `
+  query GetSiteSetting($type: String!) {
+    getSiteSetting(type: $type) {
+      type
+      config
       createdAt
       updatedAt
     }
   }
 `;
-export const listPermissionSettings = /* GraphQL */ `
-  query ListPermissionSettings(
-    $filter: ModelPermissionSettingFilterInput
+export const listSiteSettings = /* GraphQL */ `
+  query ListSiteSettings(
+    $type: String
+    $filter: ModelSiteSettingFilterInput
     $limit: Int
     $nextToken: String
+    $sortDirection: ModelSortDirection
   ) {
-    listPermissionSettings(
+    listSiteSettings(
+      type: $type
       filter: $filter
       limit: $limit
       nextToken: $nextToken
+      sortDirection: $sortDirection
     ) {
       items {
-        id
-        role
-        assignNewSite
-        assignProject
-        adjustRole
-        createNewProject
-        createNewScene
-        createNewTag
-        tagComments
-        readContent
+        type
+        config
         createdAt
         updatedAt
       }

@@ -145,17 +145,24 @@ type ProjectPermission @model {
   updatedAt: AWSDateTime
 }
 
-type PermissionSetting @model {
-  id: ID
-  role: String
-  assignNewSite: Boolean
-  assignProject: Boolean
-  adjustRole: Boolean
-  createNewProject: Boolean
-  createNewScene: Boolean
-  createNewTag: Boolean
-  tagComments: Boolean
-  readContent: Boolean
+# type PermissionSetting @model {
+#   id: ID
+#   role: String
+# assignNewSite: Boolean
+# assignProject: Boolean
+# adjustRole: Boolean
+# createNewProject: Boolean
+# createNewScene: Boolean
+# createNewTag: Boolean
+# tagComments: Boolean
+# readContent: Boolean
+#   createdAt: AWSDateTime
+#   updatedAt: AWSDateTime
+# }
+
+type SiteSetting @model @key(fields: ["type"]) {
+  type: String!
+  config: AWSJSON
   createdAt: AWSDateTime
   updatedAt: AWSDateTime
 }
