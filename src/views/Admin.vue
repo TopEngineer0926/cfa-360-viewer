@@ -490,7 +490,6 @@ export default {
     //     },
     //   ],
     // };
-
     //   this.siteSetting = siteSettingData;
     // },
     async saveSiteSetting() {
