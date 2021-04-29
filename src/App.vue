@@ -4,7 +4,6 @@
     <v-main>
       <router-view :key="$route.fullPath" />
     </v-main>
-
     <confirm ref="confirm"></confirm>
     <dialog-loader ref="dialogLoader"></dialog-loader>
   </v-app>
