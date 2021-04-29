@@ -66,12 +66,6 @@
           "unauthRoleArn": "arn:aws:iam::310460685849:role/Cognito_cfadevIdentityPoolUnauth_Role",
           "unauthRoleName": "Cognito_cfadevIdentityPoolUnauth_Role"
         }
-      },
-      "function": {
-        "indexfunction": {
-          "deploymentBucketName": "amplify-360viewer-prod-203029-deployment",
-          "s3Key": "amplify-builds/indexfunction-745a79586174442b4a2f-build.zip"
-        }
       }
     }
   }
