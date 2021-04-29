@@ -51,11 +51,6 @@
   },
   "hosting": {},
   "function": {
-    "indexfunction": {
-      "build": true,
-      "providerPlugin": "awscloudformation",
-      "service": "Lambda"
-    },
     "indexLambda": {
       "build": true,
       "providerPlugin": "awscloudformation",
