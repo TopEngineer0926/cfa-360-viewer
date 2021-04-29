@@ -63,15 +63,16 @@ router.beforeResolve((to, from, next) => {
 
 
           //Get Role Defination
-          let res = await API.graphql(
-            graphqlOperation(getSiteSetting, { type: "role-definition" })
-          )
+          if (!store.state.roleDefinitionTable) {
+            let res = await API.graphql(
+              graphqlOperation(getSiteSetting, { type: "role-definition" })
+            )
+            store.commit(
+              "SET_ROLE_DEFINATION_TABLE",
+              JSON.parse(res.data.getSiteSetting.config).roleTable
+            );
+          }
 
-
-          store.commit(
-            "SET_ROLE_DEFINATION_TABLE",
-            JSON.parse(res.data.getSiteSetting.config).roleTable
-          );
 
 
           next();

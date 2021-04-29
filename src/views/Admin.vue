@@ -350,7 +350,7 @@ export default {
           graphqlOperation(getProjectPermission, { id: this.selectedProjectID })
         )
       ).data.getProjectPermission;
-      console.log("projectPermission", this.projectPermission);
+
       if (this.projectPermission == null) {
         this.projectPermission = {
           id: this.selectedProjectID,

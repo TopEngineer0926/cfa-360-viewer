@@ -249,7 +249,7 @@ export default {
       },
     };
   },
-  computed: mapState(["user"]),
+  computed: mapState(["user", "roleDefinitionTable"]),
   created() {
     this.$store.commit("SET_NAVBAR_TEXT", null);
     this.loadPanos();
@@ -277,7 +277,7 @@ export default {
       });
     },
     filterByCategory(category) {
-      if (category == "All Categorioes") {
+      if (category == "All Categories") {
         this.panosFilter = this.panos;
       } else {
         this.panosFilter = this.panos.filter(

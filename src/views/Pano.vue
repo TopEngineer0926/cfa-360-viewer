@@ -13,26 +13,7 @@
           >
             <v-expansion-panel-header>
               <v-btn
-                v-if="
-                  isEditable &&
-                  (user.masterSiteAdmin ||
-                    (user.siteAdmin &&
-                      roleDefinitionTable.find(
-                        (role) => role.name == 'Site Admin'
-                      ).createScene) ||
-                    (isProjectAdmin &&
-                      roleDefinitionTable.find(
-                        (role) => role.name == 'Project Admin'
-                      ).createScene) ||
-                    (isProjectEditor &&
-                      roleDefinitionTable.find(
-                        (role) => role.name == 'Project Editor'
-                      ).createScene) ||
-                    (isProjectViewer &&
-                      roleDefinitionTable.find(
-                        (role) => role.name == 'Project Viewer'
-                      ).createScene))
-                "
+                v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
                 @click.stop="initEditScene(null)"
                 class="ma-1"
                 small
@@ -50,7 +31,7 @@
               >
 
               <v-btn
-                v-if="isEditable"
+                v-if="isEditable && canCreateTag"
                 small
                 text
                 @click.stop="addTagConfig"
@@ -389,7 +370,7 @@
               </v-form>
               <v-btn block @click="addNewContent">Add Content</v-btn>
             </div>
-            <div v-else>
+            <div v-else-if="canTagComment">
               <div
                 v-if="editSpotData.comments && editSpotData.comments.length > 0"
                 class="mt-12"
@@ -415,7 +396,7 @@
               <div v-else class="mt-12">
                 <h2 class="text-center">No Comments</h2>
               </div>
-              <div v-if="user.email !== '360TempSharing@360TempSharing.com'">
+              <div>
                 <v-textarea
                   v-model="editSpotData.newComment"
                   label="New Comment"
@@ -462,6 +443,7 @@ import {
   commentsBySpotId,
   editStatusByPano,
   sharingByPassword,
+  getProjectPermission,
 } from "../graphql/queries";
 import {
   updatePano,
@@ -480,6 +462,12 @@ export default {
       isProjectAdmin: null,
       isProjectEditor: null,
       isProjectViewer: null,
+
+      canCreateScene: null,
+      canCreateTag: null,
+      canTagComment: null,
+      canReadContent: null,
+      isGuest: null,
       isEditable: false,
       pano: null,
       panoSource: null,
@@ -537,7 +525,9 @@ export default {
   },
 
   created() {
-    if (this.user.email == "360TempSharing@360TempSharing.com") {
+    this.isGuest = this.user.email == "360TempSharing@360TempSharing.com";
+
+    if (this.isGuest) {
       //Guest User
 
       if (this.$route.params.password) {
@@ -553,32 +543,121 @@ export default {
             sharingData[0].panoID == this.$route.params.id &&
             new Date() < new Date(sharingData[0].ttl * 1000)
           ) {
-            this.$root.$dialogLoader.start(
+            this.$root.$dialogLoader.showSnackbar(
               "Guest Access. Valid until " +
-                new Date(sharingData[0].ttl * 1000).toLocaleString(),
-              {},
-              () => {},
-              true
+                new Date(sharingData[0].ttl * 1000).toLocaleString()
             );
+
             this.initData();
           } else {
-            this.$root.$dialogLoader.start(
-              "Not authorized.",
-              {},
-              () => {
-                this.$router.push({ path: "/" });
-              },
-              true
-            );
+            this.$root.$dialogLoader.showSnackbar("Not authorized");
+            this.$router.push({ path: "/" });
           }
         });
       } else {
         //Unauth
-        this.$root.$dialogLoader.start("Not authorized", {}, () => {}, true);
+        this.$root.$dialogLoader.showSnackbar("Not authorized");
       }
     } else {
       //login user
-      this.initData();
+
+      API.graphql(
+        graphqlOperation(getProjectPermission, { id: this.$route.params.id })
+      ).then((res) => {
+        let projectPermission = res.data.getProjectPermission;
+
+        this.isProjectAdmin = projectPermission.admins.includes(
+          this.user.username
+        );
+        this.isProjectEditor = projectPermission.editors.includes(
+          this.user.username
+        );
+        this.isProjectViewer = projectPermission.viewers.includes(
+          this.user.username
+        );
+
+        this.canCreateScene =
+          this.user.masterSiteAdmin ||
+          (this.user.siteAdmin &&
+            this.roleDefinitionTable.find((role) => role.name == "Site Admin")
+              .createScene) ||
+          (this.isProjectAdmin &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Admin"
+            ).createScene) ||
+          (this.isProjectEditor &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Editor"
+            ).createScene) ||
+          (this.isProjectViewer &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Viewer"
+            ).createScene)
+            ? true
+            : false;
+
+        this.canCreateTag =
+          this.user.masterSiteAdmin ||
+          (this.user.siteAdmin &&
+            this.roleDefinitionTable.find((role) => role.name == "Site Admin")
+              .createTag) ||
+          (this.isProjectAdmin &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Admin"
+            ).createTag) ||
+          (this.isProjectEditor &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Editor"
+            ).createTag) ||
+          (this.isProjectViewer &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Viewer"
+            ).createTag)
+            ? true
+            : false;
+
+        this.canTagComment =
+          this.user.masterSiteAdmin ||
+          (this.user.siteAdmin &&
+            this.roleDefinitionTable.find((role) => role.name == "Site Admin")
+              .tagComment) ||
+          (this.isProjectAdmin &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Admin"
+            ).tagComment) ||
+          (this.isProjectEditor &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Editor"
+            ).tagComment) ||
+          (this.isProjectViewer &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Viewer"
+            ).tagComment)
+            ? true
+            : false;
+
+        this.canReadContent =
+          this.user.masterSiteAdmin ||
+          (this.user.siteAdmin &&
+            this.roleDefinitionTable.find((role) => role.name == "Site Admin")
+              .readContent) ||
+          (this.isProjectAdmin &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Admin"
+            ).readContent) ||
+          (this.isProjectEditor &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Editor"
+            ).readContent) ||
+          (this.isProjectViewer &&
+            this.roleDefinitionTable.find(
+              (role) => role.name == "Project Viewer"
+            ).readContent)
+            ? true
+            : false;
+
+        this.initData();
+      });
     }
   },
 
@@ -586,37 +665,31 @@ export default {
     clearInterval(this.editStatusInterval);
   },
   methods: {
-    initData() {
-      this.isProjectAdmin = this.user.siteAdmin;
+    async initData() {
+      if (this.canCreateScene || this.canCreateTag) {
+        let items = (
+          await API.graphql(
+            graphqlOperation(editStatusByPano, {
+              panoID: this.$route.params.id,
+              sortDirection: "DESC",
+            })
+          )
+        ).data.editStatusByPano.items;
+        if (
+          items &&
+          items.length > 0 &&
+          items[0].email !== this.user.email &&
+          new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
+        ) {
+          this.isProjectAdmin = false;
 
-      if (this.isProjectAdmin) {
-        API.graphql(
-          graphqlOperation(editStatusByPano, {
-            panoID: this.$route.params.id,
-            sortDirection: "DESC",
-          })
-        ).then((res) => {
-          let items = res.data.editStatusByPano.items;
-          if (
-            items &&
-            items.length > 0 &&
-            items[0].email !== this.user.email &&
-            new Date() - new Date(items[0].createdAt) < 5 * 60 * 1000
-          ) {
-            this.isProjectAdmin = false;
-            this.$root.$dialogLoader.start(
-              items[0].name + " is editing.  ",
-              {},
-              () => {},
-              true
-            );
-          } else {
-            // console.log("You are editing.");
-            this.isEditable = true;
-            this.updateEditStatus();
-            this.updateEditStatusInterval();
-          }
-        });
+          this.$root.$dialogLoader.showSnackbar(items[0].name + " is editing.");
+        } else {
+          // console.log("You are editing.");
+          this.isEditable = true;
+          this.updateEditStatus();
+          this.updateEditStatusInterval();
+        }
       }
 
       API.graphql(
@@ -1018,11 +1091,15 @@ export default {
         switch (addSpot.style) {
           case "detail":
             addSpot.type = "info";
-            addSpot.clickHandlerFunc = () => {
-              this.editSpotData.spot = spot;
-              this.editSpotData.dialog = true;
-              this.getComments();
-            };
+            if (this.canReadContent) {
+              addSpot.clickHandlerFunc = () => {
+                this.editSpotData.spot = spot;
+                this.editSpotData.dialog = true;
+                if (this.canTagComment) {
+                  this.getComments();
+                }
+              };
+            }
             break;
           case "link":
             addSpot.type = "info";
@@ -1180,7 +1257,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["user"]),
+    ...mapState(["user", "roleDefinitionTable"]),
   },
   watch: {
     "editSpotData.dialog": function (val) {
