@@ -25,7 +25,7 @@
 
       <v-col cols="auto">Size: {{ navbarText.psize }} </v-col></v-row
     >
-    <div else>
+    <div v-else>
       <v-btn
         text
         @click="$router.push('/panolist').catch((err) => {})"
@@ -34,7 +34,7 @@
       >
 
       <v-btn
-        v-if="user.admin"
+        v-if="!user.guest"
         text
         @click="$router.push('/admin').catch((err) => {})"
         >Admin</v-btn
@@ -42,10 +42,14 @@
     </div>
 
     <v-spacer />
-    <v-icon v-if="user.admin" color="primary" class="mr-2">
-      mdi-alpha-a-box-outline
-    </v-icon>
+
     {{ user.name }}
+    <v-chip v-if="user.masterSiteAdmin" color="primary" class="ml-2" small>
+      Master Site Admin
+    </v-chip>
+    <v-chip v-else-if="user.siteAdmin" color="primary" class="ml-2" small>
+      Site Admin
+    </v-chip>
     <v-btn text @click="logout">Logout</v-btn>
   </v-app-bar>
 </template>

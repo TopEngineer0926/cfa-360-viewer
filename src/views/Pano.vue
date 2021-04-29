@@ -13,7 +13,26 @@
           >
             <v-expansion-panel-header>
               <v-btn
-                v-if="isEditable"
+                v-if="
+                  isEditable &&
+                  (user.masterSiteAdmin ||
+                    (user.siteAdmin &&
+                      roleDefinitionTable.find(
+                        (role) => role.name == 'Site Admin'
+                      ).createScene) ||
+                    (isProjectAdmin &&
+                      roleDefinitionTable.find(
+                        (role) => role.name == 'Project Admin'
+                      ).createScene) ||
+                    (isProjectEditor &&
+                      roleDefinitionTable.find(
+                        (role) => role.name == 'Project Editor'
+                      ).createScene) ||
+                    (isProjectViewer &&
+                      roleDefinitionTable.find(
+                        (role) => role.name == 'Project Viewer'
+                      ).createScene))
+                "
                 @click.stop="initEditScene(null)"
                 class="ma-1"
                 small
@@ -459,6 +478,8 @@ export default {
   data: function () {
     return {
       isProjectAdmin: null,
+      isProjectEditor: null,
+      isProjectViewer: null,
       isEditable: false,
       pano: null,
       panoSource: null,
@@ -566,7 +587,7 @@ export default {
   },
   methods: {
     initData() {
-      this.isProjectAdmin = this.user.admin;
+      this.isProjectAdmin = this.user.siteAdmin;
 
       if (this.isProjectAdmin) {
         API.graphql(

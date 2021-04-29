@@ -6,7 +6,8 @@ import store from "../store"
 
 import Home from "../views/Home.vue";
 import PanoList from "../views/PanoList.vue";
-
+import { API, graphqlOperation } from "aws-amplify";
+import { getSiteSetting } from "../graphql/queries";
 Vue.use(VueRouter);
 
 const routes = [
@@ -59,6 +60,20 @@ router.beforeResolve((to, from, next) => {
           if (!store.state.user) {
             await store.dispatch("login", authData);
           }
+
+
+          //Get Role Defination
+          let res = await API.graphql(
+            graphqlOperation(getSiteSetting, { type: "role-definition" })
+          )
+
+
+          store.commit(
+            "SET_ROLE_DEFINATION_TABLE",
+            JSON.parse(res.data.getSiteSetting.config).roleTable
+          );
+
+
           next();
         }
 

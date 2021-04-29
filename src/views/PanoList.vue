@@ -1,7 +1,15 @@
 <template>
   <v-container>
     <v-row justify="center" class="my-4">
-      <v-btn v-if="user.admin" color="primary" @click="createPanoFunc"
+      <v-btn
+        v-if="
+          user.masterSiteAdmin ||
+          (user.siteAdmin &&
+            roleDefinitionTable.find((role) => role.name == 'Site Admin')
+              .createProject)
+        "
+        color="primary"
+        @click="createPanoFunc"
         >Create</v-btn
       >
     </v-row>
@@ -50,7 +58,7 @@
               </v-list-item-avatar>
             </v-list-item>
 
-            <v-card-actions v-if="user.admin">
+            <v-card-actions v-if="user.siteAdmin">
               <v-spacer />
               <v-btn
                 icon

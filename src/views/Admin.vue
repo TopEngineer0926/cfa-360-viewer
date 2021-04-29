@@ -3,14 +3,39 @@
     <v-tabs v-model="tab" align-with-title>
       <v-tabs-slider color="primary"></v-tabs-slider>
 
-      <v-tab> Site Admin </v-tab>
+      <v-tab
+        v-show="
+          (user.siteAdmin &&
+            roleDefinitionTable.find((role) => role.name == 'Site Admin')
+              .assignSiteAdmin) ||
+          user.masterSiteAdmin
+        "
+      >
+        Site Admin
+      </v-tab>
 
       <v-tab> Project Permissions </v-tab>
 
-      <v-tab> Role Definitions </v-tab>
+      <v-tab
+        v-show="
+          (user.siteAdmin &&
+            roleDefinitionTable.find((role) => role.name == 'Site Admin')
+              .adjustRole) ||
+          user.masterSiteAdmin
+        "
+      >
+        Role Definitions
+      </v-tab>
     </v-tabs>
     <v-tabs-items v-model="tab">
-      <v-tab-item>
+      <v-tab-item
+        v-show="
+          (user.siteAdmin &&
+            roleDefinitionTable.find((role) => role.name == 'Site Admin')
+              .assignSiteAdmin) ||
+          user.masterSiteAdmin
+        "
+      >
         <v-card flat>
           <v-card-text>
             <v-row>
@@ -34,10 +59,10 @@
               :items-per-page="500"
             >
               <template v-slot:[`item.siteAdmin`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.siteAdmin"
                   @change="addSitePermission(item)"
-                ></v-switch>
+                ></v-checkbox>
               </template> </v-data-table
           ></v-card-text>
         </v-card>
@@ -77,102 +102,116 @@
               :items-per-page="500"
             >
               <template v-slot:[`item.projectAdmin`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.projectAdmin"
+                  :disabled="
+                    !(
+                      user.siteAdmin &&
+                      roleDefinitionTable.find(
+                        (role) => role.name == 'Site Admin'
+                      ).assignSiteAdmin
+                    ) && !user.masterSiteAdmin
+                  "
                   @change="addProjectPermission(item, 'admin')"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.projectEditor`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.projectEditor"
                   @change="addProjectPermission(item, 'editor')"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.projectViewer`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.projectViewer"
                   @change="addProjectPermission(item, 'viewer')"
-                ></v-switch>
+                ></v-checkbox>
               </template>
             </v-data-table>
           </v-card-text>
         </v-card>
       </v-tab-item>
-      <v-tab-item>
+      <v-tab-item
+        v-show="
+          (user.siteAdmin &&
+            roleDefinitionTable.find((role) => role.name == 'Site Admin')
+              .adjustRole) ||
+          user.masterSiteAdmin
+        "
+      >
         <v-card flat>
           <v-card-text>
             <v-data-table
-              v-if="siteSetting"
               :headers="siteSettingHeaders"
-              :items="siteSetting.config.roleTable"
+              :items="roleDefinitionTable"
               :search="search"
               :items-per-page="100"
               hide-default-footer
             >
               <template v-slot:[`item.assignSiteAdmin`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.assignSiteAdmin"
                   :disabled="item.name !== 'Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
               <template v-slot:[`item.assignProject`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.assignProject"
                   :disabled="item.name !== 'Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.adjustRole`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.adjustRole"
                   :disabled="item.name !== 'Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.createProject`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.createProject"
                   :disabled="
                     ['Master Site Admin', 'Project Viewer'].includes(item.name)
                   "
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.createScene`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.createScene"
                   :disabled="item.name == 'Master Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.createTag`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.createTag"
                   :disabled="item.name == 'Master Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
 
               <template v-slot:[`item.tagComment`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.tagComment"
                   :disabled="item.name == 'Master Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template>
               <template v-slot:[`item.readContent`]="{ item }">
-                <v-switch
+                <v-checkbox
                   v-model="item.readContent"
                   :disabled="item.name == 'Master Site Admin'"
                   @change="saveSiteSetting"
-                ></v-switch>
+                ></v-checkbox>
               </template> </v-data-table
           ></v-card-text>
         </v-card>
@@ -195,7 +234,6 @@ import {
   listPanos,
   listSitePermissions,
   getProjectPermission,
-  getSiteSetting,
 } from "../graphql/queries";
 
 // import { updatePano } from "../graphql/mutations";
@@ -208,7 +246,7 @@ export default {
     return {
       INDEXusers: null,
       siteAdmins: null,
-      tab: null,
+      tab: 1,
       search: "",
       siteAdminHeaders: [
         {
@@ -220,7 +258,7 @@ export default {
         { text: "Company", value: "company" },
         { text: "Permission", value: "permission" },
         { text: "Status", value: "status" },
-        { text: "Set as Pano App Admin", value: "siteAdmin" },
+        { text: "Set as Site Admin", value: "siteAdmin" },
       ],
 
       panos: null,
@@ -235,11 +273,11 @@ export default {
         { text: "Company", value: "company" },
         { text: "Permission", value: "permission" },
         { text: "Status", value: "status" },
-        { text: "Set as Pano Project Admin", value: "projectAdmin" },
-        { text: "Set as Pano Project Editor", value: "projectEditor" },
-        { text: "Set as Pano Project Viewer", value: "projectViewer" },
+        { text: "Set as Project Admin", value: "projectAdmin" },
+        { text: "Set as Project Editor", value: "projectEditor" },
+        { text: "Set as Project Viewer", value: "projectViewer" },
       ],
-      siteSetting: null,
+
       siteSettingHeaders: [
         {
           text: "Role Name",
@@ -262,7 +300,7 @@ export default {
       // panosTitleList: [],
     };
   },
-  computed: mapState(["user"]),
+  computed: mapState(["user", "roleDefinitionTable"]),
   created() {
     this.$store.commit("SET_NAVBAR_TEXT", null);
     API.get("index", "/index/users").then((usersData) => {
@@ -299,8 +337,8 @@ export default {
         );
       }
     },
-    loadPanos() {
-      API.graphql(graphqlOperation(listPanos)).then((data) => {
+    async loadPanos() {
+      await API.graphql(graphqlOperation(listPanos)).then((data) => {
         this.panos = data.data.listPanos.items;
         // this.panosCategoryList = this.panos.map((pano) => pano.category);
         // this.panosTitleList = this.panos.map((pano) => pano.title);
@@ -384,80 +422,84 @@ export default {
       });
       this.updateProjectPermissionTable();
     },
-    async loadSiteSetting() {
-      let siteSettingData = (
-        await API.graphql(
-          graphqlOperation(getSiteSetting, { type: "role-definition" })
-        )
-      ).data.getSiteSetting;
+    // async loadSiteSetting() {
+    //   let siteSettingData = (
+    //     await API.graphql(
+    //       graphqlOperation(getSiteSetting, { type: "role-definition" })
+    //     )
+    //   ).data.getSiteSetting;
 
-      siteSettingData.config = JSON.parse(siteSettingData.config);
+    //   siteSettingData.config = JSON.parse(siteSettingData.config);
 
-      // siteSettingData.config = {
-      //   roleTable: [
-      //     {
-      //       name: "Master Site Admin",
-      //       assignSiteAdmin: true,
-      //       assignProject: true,
-      //       adjustRole: true,
-      //       createProject: true,
-      //       createScene: true,
-      //       createTag: true,
-      //       tagComment: true,
-      //       readContent: true,
-      //     },
-      //     {
-      //       name: "Site Admin",
-      //       assignSiteAdmin: true,
-      //       assignProject: true,
-      //       adjustRole: true,
-      //       createProject: true,
-      //       createScene: true,
-      //       createTag: true,
-      //       tagComment: true,
-      //       readContent: true,
-      //     },
-      //     {
-      //       name: "Project Admin",
-      //       assignSiteAdmin: true,
-      //       assignProject: true,
-      //       adjustRole: true,
-      //       createProject: true,
-      //       createScene: true,
-      //       createTag: true,
-      //       tagComment: true,
-      //       readContent: true,
-      //     },
-      //     {
-      //       name: "Project Editor",
-      //       assignSiteAdmin: true,
-      //       assignProject: true,
-      //       adjustRole: true,
-      //       createProject: true,
-      //       createScene: true,
-      //       createTag: true,
-      //       tagComment: true,
-      //       readContent: true,
-      //     },
-      //     {
-      //       name: "Project Viewer",
-      //       assignSiteAdmin: true,
-      //       assignProject: true,
-      //       adjustRole: true,
-      //       createProject: true,
-      //       createScene: true,
-      //       createTag: true,
-      //       tagComment: true,
-      //       readContent: true,
-      //     },
-      //   ],
-      // };
+    // siteSettingData.config = {
+    //   roleTable: [
+    //     {
+    //       name: "Master Site Admin",
+    //       assignSiteAdmin: true,
+    //       assignProject: true,
+    //       adjustRole: true,
+    //       createProject: true,
+    //       createScene: true,
+    //       createTag: true,
+    //       tagComment: true,
+    //       readContent: true,
+    //     },
+    //     {
+    //       name: "Site Admin",
+    //       assignSiteAdmin: true,
+    //       assignProject: true,
+    //       adjustRole: true,
+    //       createProject: true,
+    //       createScene: true,
+    //       createTag: true,
+    //       tagComment: true,
+    //       readContent: true,
+    //     },
+    //     {
+    //       name: "Project Admin",
+    //       assignSiteAdmin: true,
+    //       assignProject: true,
+    //       adjustRole: true,
+    //       createProject: true,
+    //       createScene: true,
+    //       createTag: true,
+    //       tagComment: true,
+    //       readContent: true,
+    //     },
+    //     {
+    //       name: "Project Editor",
+    //       assignSiteAdmin: true,
+    //       assignProject: true,
+    //       adjustRole: true,
+    //       createProject: true,
+    //       createScene: true,
+    //       createTag: true,
+    //       tagComment: true,
+    //       readContent: true,
+    //     },
+    //     {
+    //       name: "Project Viewer",
+    //       assignSiteAdmin: true,
+    //       assignProject: true,
+    //       adjustRole: true,
+    //       createProject: true,
+    //       createScene: true,
+    //       createTag: true,
+    //       tagComment: true,
+    //       readContent: true,
+    //     },
+    //   ],
+    // };
 
-      this.siteSetting = siteSettingData;
-    },
+    //   this.siteSetting = siteSettingData;
+    // },
     async saveSiteSetting() {
-      let siteSettingData = JSON.parse(JSON.stringify(this.siteSetting));
-      siteSettingData.config = JSON.stringify(siteSettingData.config);
+      let siteSettingData = {
+        type: "role-definition",
+        config: JSON.stringify({
+          roleTable: this.roleDefinitionTable,
+        }),
+      };
       await API.graphql({
         query: updateSiteSetting,
         variables: {
@@ -467,16 +509,19 @@ export default {
     },
   },
   watch: {
-    tab: function (val) {
-      if (val == 0) {
-        if (!this.siteAdmins) {
-          this.loadSiteAdmin();
+    tab: {
+      immediate: true,
+      handler(val) {
+        if (val == 0) {
+          if (!this.siteAdmins) {
+            this.loadSiteAdmin();
+          }
+        } else if (val == 1) {
+          this.loadPanos();
+        } else if (val == 2) {
+          // this.loadSiteSetting();
         }
-      } else if (val == 1) {
-        this.loadPanos();
-      } else if (val == 2) {
-        this.loadSiteSetting();
-      }
+      },
     },
   },
 };

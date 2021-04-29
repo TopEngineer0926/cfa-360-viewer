@@ -20,7 +20,6 @@ export default {
 
   components: {
     navbar: () => import("./components/Navbar.vue"),
-
     DialogLoader,
     Confirm,
   },

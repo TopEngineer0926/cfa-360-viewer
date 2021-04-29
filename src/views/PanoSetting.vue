@@ -246,7 +246,7 @@ export default {
   },
   created: function () {
     this.$store.commit("SET_NAVBAR_TEXT", null);
-    if (!this.user.admin) {
+    if (!this.user.siteAdmin) {
       this.$router.push({ path: "/panolist" });
     }
   },
