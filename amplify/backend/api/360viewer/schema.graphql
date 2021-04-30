@@ -1,0 +1,168 @@
+type Pano @model {
+  # @auth(
+  #   rules: [
+  #     { allow: private, operations: [read] }
+  #     { allow: groups, groups: ["360Admin"] }
+  #   ]
+  # )
+  id: ID!
+  title: String!
+  category: String
+  thumbnail: String
+  pabout: String
+  ptype: String
+  psize: String
+  sceneArr: [SceneObject]
+  layers: [LayerObject]
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type LayerObject {
+  id: ID
+  name: String
+  icon: String
+}
+
+type SceneObject {
+  id: ID!
+  title: String!
+  img: String
+  spots: [SpotObject]
+}
+
+type SpotObject {
+  id: ID!
+  pitch: Float!
+  yaw: Float!
+  style: String!
+  text: String!
+  link: String
+  sceneID: String
+  layer: String
+  contents: [SpotContent]
+  about: String
+  # comments: [Comment] @connection(keyName: "bySpot", fields: ["id"])
+}
+
+type SpotContent {
+  type: String
+  name: String
+  thumbnail: String
+  link: String
+}
+
+type Comment
+  @model
+  @key(
+    name: "BySpotID"
+    fields: ["spotID", "updatedAt"]
+    queryField: "commentsBySpotID"
+  ) {
+  # @auth(
+  #   rules: [
+  #     { allow: owner }
+  #     { allow: private, operations: [read] }
+  #     { allow: groups, groups: ["360Admin"] }
+  #   ]
+  # )
+  id: ID!
+  spotID: ID!
+  owner: ID
+  name: String
+  msg: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type EditStatus
+  @model
+  @auth(rules: [{ allow: owner }, { allow: private, operations: [read] }])
+  @key(
+    name: "editStatusByPano"
+    fields: ["panoID", "createdAt"]
+    queryField: "editStatusByPano"
+  ) {
+  id: ID
+  panoID: ID
+  owner: ID
+  name: String
+  email: String
+  ttl: AWSTimestamp
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type TemporarySharing
+  @model
+  @auth(rules: [{ allow: owner }, { allow: private, operations: [read] }])
+  @key(
+    name: "sharingByPano"
+    fields: ["panoID", "createdAt"]
+    queryField: "sharingByPano"
+  )
+  @key(
+    name: "sharingByPassword"
+    fields: ["password"]
+    queryField: "sharingByPassword"
+  ) {
+  id: ID
+  panoID: ID
+  owner: ID
+  password: String
+  ttl: AWSTimestamp
+  createdAt: AWSDateTime
+}
+
+# type PanoUser @model {
+#   id: ID
+#   user: ID
+#   fullname: String
+#   email: String
+#   company: String
+#   indexPermission: String
+#   panoSiteAdmin: Bool
+#   role: String
+#   status: String
+#   createdAt: AWSDateTime
+#   updatedAt: AWSDateTime
+# }
+
+type SitePermission @model {
+  id: String #username
+  # name: String
+  # email: String
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+type ProjectPermission @model {
+  id: ID! #panoID
+  admins: [String] #username
+  editors: [String] #username
+  viewers: [String] #username
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+# type PermissionSetting @model {
+#   id: ID
+#   role: String
+# assignNewSite: Boolean
+# assignProject: Boolean
+# adjustRole: Boolean
+# createNewProject: Boolean
+# createNewScene: Boolean
+# createNewTag: Boolean
+# tagComments: Boolean
+# readContent: Boolean
+#   createdAt: AWSDateTime
+#   updatedAt: AWSDateTime
+# }
+
+type SiteSetting @model @key(fields: ["type"]) {
+  type: String!
+  config: AWSJSON
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
