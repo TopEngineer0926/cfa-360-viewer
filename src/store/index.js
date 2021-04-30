@@ -68,8 +68,8 @@ export default new Vuex.Store({
         name: data.attributes.name,
         email: data.attributes.email,
         guest: data.username == '360TempSharing' ? true : false,
-        masterSiteAdmin: ['yao.chenATviatechnik.com1', 'corey.overtonATcfacorp.com', 'juhun.leeATviatechnik.com', 'kyle.hudsonATviatechnik.com'].includes(data.username) ? true : false,
-        siteAdmin: false
+        masterSiteAdmin: ['yao.chenATviatechnik.com', 'corey.overtonATcfacorp.com', 'juhun.leeATviatechnik.com', 'kyle.hudsonATviatechnik.com'].includes(data.username) ? true : false,
+        siteAdmin: sitePermission ? true : false
       });
 
 

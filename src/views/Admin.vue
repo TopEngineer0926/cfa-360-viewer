@@ -14,7 +14,9 @@
         Site Admin
       </v-tab>
 
-      <v-tab> Project Permissions </v-tab>
+      <v-tab v-show="user.siteAdmin || user.masterSiteAdmin">
+        Project Permissions
+      </v-tab>
 
       <v-tab
         v-show="
@@ -67,7 +69,7 @@
           ></v-card-text>
         </v-card>
       </v-tab-item>
-      <v-tab-item>
+      <v-tab-item v-show="user.siteAdmin || user.masterSiteAdmin">
         <v-card flat v-if="panos">
           <v-card-text>
             <v-row>

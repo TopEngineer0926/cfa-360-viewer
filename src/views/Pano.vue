@@ -1,5 +1,5 @@
 <template>
-  <div class="bg">
+  <div v-if="isGuest || canReadContent" class="bg">
     <div v-if="pano" class="vue-pannellum">
       <div class="default-slot">
         <v-expansion-panels
@@ -695,25 +695,27 @@ export default {
         }
       }
 
-      API.graphql(
-        graphqlOperation(getPano, { id: this.$route.params.id })
-      ).then((data) => {
-        this.panoSource = data.data.getPano;
-        this.$store.commit("SET_NAVBAR_TEXT", {
-          title: this.panoSource.title,
-          category: this.panoSource.category,
-          ptype: this.panoSource.ptype,
-          psize: this.panoSource.psize,
+      if (this.isGuest || this.canReadContent) {
+        API.graphql(
+          graphqlOperation(getPano, { id: this.$route.params.id })
+        ).then((data) => {
+          this.panoSource = data.data.getPano;
+          this.$store.commit("SET_NAVBAR_TEXT", {
+            title: this.panoSource.title,
+            category: this.panoSource.category,
+            ptype: this.panoSource.ptype,
+            psize: this.panoSource.psize,
+          });
+          if (!this.panoSource.layers) {
+            this.panoSource.layers = [];
+          }
+          if (this.panoSource) {
+            this.initPano();
+          } else {
+            this.$router.push({ path: "/panolist" });
+          }
         });
-        if (!this.panoSource.layers) {
-          this.panoSource.layers = [];
-        }
-        if (this.panoSource) {
-          this.initPano();
-        } else {
-          this.$router.push({ path: "/panolist" });
-        }
-      });
+      }
     },
     updateEditStatusInterval() {
       this.editStatusInterval = setInterval(() => {
