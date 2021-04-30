@@ -100,7 +100,7 @@
       "function": {
         "indexLambda": {
           "deploymentBucketName": "amplify-360viewer-master-20323-deployment",
-          "s3Key": "amplify-builds/indexLambda-2f6d7a4f304c594a4851-build.zip"
+          "s3Key": "amplify-builds/indexLambda-4e612f72664a2b727458-build.zip"
         }
       }
     }
