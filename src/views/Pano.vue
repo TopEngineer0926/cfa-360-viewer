@@ -525,9 +525,7 @@ export default {
   },
 
   created() {
-    this.isGuest = this.user.email == "360TempSharing@360TempSharing.com";
-
-    if (this.isGuest) {
+    if (this.user.email == "360TempSharing@360TempSharing.com") {
       //Guest User
 
       if (this.$route.params.password) {
@@ -547,7 +545,7 @@ export default {
               "Guest Access. Valid until " +
                 new Date(sharingData[0].ttl * 1000).toLocaleString()
             );
-
+            this.isGuest = true;
             this.initData();
           } else {
             this.$root.$dialogLoader.showSnackbar("Not authorized");
@@ -565,16 +563,21 @@ export default {
         graphqlOperation(getProjectPermission, { id: this.$route.params.id })
       ).then((res) => {
         let projectPermission = res.data.getProjectPermission;
-
-        this.isProjectAdmin = projectPermission.admins.includes(
-          this.user.username
-        );
-        this.isProjectEditor = projectPermission.editors.includes(
-          this.user.username
-        );
-        this.isProjectViewer = projectPermission.viewers.includes(
-          this.user.username
-        );
+        if (projectPermission) {
+          this.isProjectAdmin = projectPermission.admins.includes(
+            this.user.username
+          );
+          this.isProjectEditor = projectPermission.editors.includes(
+            this.user.username
+          );
+          this.isProjectViewer = projectPermission.viewers.includes(
+            this.user.username
+          );
+        } else {
+          this.isProjectAdmin = false;
+          this.isProjectEditor = false;
+          this.isProjectViewer = false;
+        }
 
         this.canCreateScene =
           this.user.masterSiteAdmin ||
