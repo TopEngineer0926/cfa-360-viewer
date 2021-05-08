@@ -212,7 +212,11 @@ import {
   createTemporarySharing,
   deleteTemporarySharing,
 } from "../graphql/mutations";
-import { listPanos, sharingByPano } from "../graphql/queries";
+import {
+  listPanos,
+  sharingByPano,
+  getProjectPermission,
+} from "../graphql/queries";
 import { mapState } from "vuex";
 
 import { updatePano } from "../graphql/mutations";
@@ -257,21 +261,51 @@ export default {
   methods: {
     loadPanos() {
       API.graphql(graphqlOperation(listPanos)).then(async (data) => {
-        let panosRes = data.data.listPanos.items;
-        //Get thumbnail URL
+        let panosData = data.data.listPanos.items;
+        let panosRes = [];
+
         await Promise.all(
-          panosRes.map(async (pano) => {
-            if (pano.category) {
-              this.categoryList.push(pano.category);
+          panosData.map(async (pano) => {
+            let projectPermission = (
+              await API.graphql(
+                graphqlOperation(getProjectPermission, { id: pano.id })
+              )
+            ).data.getProjectPermission;
+
+            if (
+              this.user.masterSiteAdmin ||
+              this.user.siteAdmin ||
+              (projectPermission &&
+                (projectPermission.admins.includes(this.user.username) ||
+                  projectPermission.editors.includes(this.user.username) ||
+                  projectPermission.viewers.includes(this.user.username)))
+            ) {
+              if (pano.category) {
+                this.categoryList.push(pano.category);
+              }
+              if (pano.thumbnail) {
+                pano.thumbnailUrl = await Storage.get(
+                  pano.id + "/" + pano.thumbnail,
+                  { expires: 432000 }
+                );
+              }
+              panosRes.push(pano);
             }
-            if (pano.thumbnail) {
-              pano.thumbnailUrl = await Storage.get(
-                pano.id + "/" + pano.thumbnail
-              );
-            }
-            return pano;
           })
         );
+
+        panosRes = panosRes.sort((a, b) => {
+          let fa = a.title.toLowerCase(),
+            fb = b.title.toLowerCase();
+          if (fa < fb) {
+            return -1;
+          }
+          if (fa > fb) {
+            return 1;
+          }
+          return 0;
+        });
+
         this.panos = panosRes;
         this.panosFilter = panosRes;
       });

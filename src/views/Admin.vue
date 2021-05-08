@@ -498,11 +498,11 @@ export default {
       } else if (type == "editor") {
         if (user.projectEditor) {
           this.projectsPermission.forEach((projectPermission) => {
-            projectPermission.editor.push(user.username);
+            projectPermission.editors.push(user.username);
           });
         } else {
           this.projectsPermission.forEach((projectPermission) => {
-            projectPermission.editor = projectPermission.editor.filter(
+            projectPermission.editors = projectPermission.editors.filter(
               (username) => username !== user.username
             );
           });
