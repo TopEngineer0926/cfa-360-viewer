@@ -25,7 +25,10 @@
       </v-col>
     </v-row>
 
-    <div v-if="panos" class="d-flex flex-wrap justify-center">
+    <div
+      v-if="panos && panos.length > 0"
+      class="d-flex flex-wrap justify-center"
+    >
       <div v-for="(pano, index) in panosFilter" :key="index">
         <v-hover v-slot="{ hover }" class="ma-6">
           <v-card
@@ -80,6 +83,12 @@
           </v-card>
         </v-hover>
       </div>
+    </div>
+    <div v-else-if="panos && panos.length == 0" class="text-center">
+      <h3>
+        Please reach out to Corey Overton for access to scenes within the
+        virtual restaurant viewer.
+      </h3>
     </div>
     <v-dialog
       v-if="editPano.dialog"
