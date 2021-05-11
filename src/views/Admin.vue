@@ -58,7 +58,8 @@
               :headers="siteAdminHeaders"
               :items="INDEXusers"
               :search="search"
-              :items-per-page="500"
+              disable-pagination
+              hide-default-footer
             >
               <template v-slot:[`item.siteAdmin`]="{ item }">
                 <v-checkbox
@@ -111,7 +112,8 @@
               :headers="projectPermissionHeaders"
               :items="INDEXusers"
               :search="search"
-              :items-per-page="500"
+              disable-pagination
+              hide-default-footer
             >
               <template v-slot:[`item.projectAdmin`]="{ item }">
                 <v-checkbox
@@ -162,7 +164,7 @@
               :headers="siteSettingHeaders"
               :items="roleDefinitionTable"
               :search="search"
-              :items-per-page="100"
+              disable-pagination
               hide-default-footer
             >
               <template v-slot:[`item.assignSiteAdmin`]="{ item }">
