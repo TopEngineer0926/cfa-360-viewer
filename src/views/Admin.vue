@@ -14,7 +14,9 @@
         Site Admin
       </v-tab>
 
-      <v-tab> Project Permissions </v-tab>
+      <v-tab v-show="user.siteAdmin || user.masterSiteAdmin">
+        Project Permissions
+      </v-tab>
 
       <v-tab
         v-show="
@@ -56,7 +58,8 @@
               :headers="siteAdminHeaders"
               :items="INDEXusers"
               :search="search"
-              :items-per-page="500"
+              disable-pagination
+              hide-default-footer
             >
               <template v-slot:[`item.siteAdmin`]="{ item }">
                 <v-checkbox
@@ -67,12 +70,12 @@
           ></v-card-text>
         </v-card>
       </v-tab-item>
-      <v-tab-item>
+      <v-tab-item v-show="user.siteAdmin || user.masterSiteAdmin">
         <v-card flat v-if="panos">
           <v-card-text>
             <v-row>
               <v-col>
-                <v-select
+                <!-- <v-select
                   :items="panos"
                   v-model="selectedProjectID"
                   item-text="title"
@@ -80,7 +83,17 @@
                   label="Select a project"
                   solo
                   @change="getProjectPermission"
-                ></v-select>
+                ></v-select> -->
+                <v-combobox
+                  v-model="selectedProjects"
+                  :items="panos"
+                  item-text="title"
+                  item-value="id"
+                  label="Select projects"
+                  multiple
+                  solo
+                  @change="getProjectsPermission"
+                ></v-combobox>
               </v-col>
               <v-col cols="4">
                 <v-text-field
@@ -95,15 +108,17 @@
             </v-row>
 
             <v-data-table
-              v-if="selectedProjectID"
+              v-if="selectedProjects"
               :headers="projectPermissionHeaders"
               :items="INDEXusers"
               :search="search"
-              :items-per-page="500"
+              disable-pagination
+              hide-default-footer
             >
               <template v-slot:[`item.projectAdmin`]="{ item }">
                 <v-checkbox
                   v-model="item.projectAdmin"
+                  :color="item.partialAdmin ? 'grey' : 'primary'"
                   :disabled="
                     !(
                       user.siteAdmin &&
@@ -119,6 +134,7 @@
               <template v-slot:[`item.projectEditor`]="{ item }">
                 <v-checkbox
                   v-model="item.projectEditor"
+                  :color="item.partialEditor ? 'grey' : 'primary'"
                   @change="addProjectPermission(item, 'editor')"
                 ></v-checkbox>
               </template>
@@ -126,6 +142,7 @@
               <template v-slot:[`item.projectViewer`]="{ item }">
                 <v-checkbox
                   v-model="item.projectViewer"
+                  :color="item.partialViewer ? 'grey' : 'primary'"
                   @change="addProjectPermission(item, 'viewer')"
                 ></v-checkbox>
               </template>
@@ -147,7 +164,7 @@
               :headers="siteSettingHeaders"
               :items="roleDefinitionTable"
               :search="search"
-              :items-per-page="100"
+              disable-pagination
               hide-default-footer
             >
               <template v-slot:[`item.assignSiteAdmin`]="{ item }">
@@ -262,7 +279,10 @@ export default {
       ],
 
       panos: null,
-      selectedProjectID: null,
+
+      selectedProjects: null,
+      projectsPermission: [],
+
       projectPermissionHeaders: [
         {
           text: "Name",
@@ -296,6 +316,7 @@ export default {
           value: "readContent",
         },
       ],
+
       // panosCategoryList: [],
       // panosTitleList: [],
     };
@@ -344,44 +365,120 @@ export default {
         // this.panosTitleList = this.panos.map((pano) => pano.title);
       });
     },
-    async getProjectPermission() {
-      this.projectPermission = (
-        await API.graphql(
-          graphqlOperation(getProjectPermission, { id: this.selectedProjectID })
-        )
-      ).data.getProjectPermission;
 
-      if (this.projectPermission == null) {
-        this.projectPermission = {
-          id: this.selectedProjectID,
-          admins: [],
-          editors: [],
-          viewers: [],
-        };
+    async getProjectsPermission() {
+      this.projectsPermission = [];
 
-        await API.graphql(
-          graphqlOperation(createProjectPermission, {
-            input: this.projectPermission,
-          })
-        );
-      }
-      this.updateProjectPermissionTable();
+      await Promise.all(
+        this.selectedProjects.map(async (project) => {
+          let projectPermission = (
+            await API.graphql(
+              graphqlOperation(getProjectPermission, { id: project.id })
+            )
+          ).data.getProjectPermission;
+
+          if (projectPermission == null) {
+            projectPermission = {
+              id: project.id,
+              admins: [],
+              editors: [],
+              viewers: [],
+            };
+
+            await API.graphql(
+              graphqlOperation(createProjectPermission, {
+                input: projectPermission,
+              })
+            );
+          }
+
+          this.projectsPermission.push(projectPermission);
+        })
+      );
+
+      this.updateProjectsPermissionTable();
     },
-    updateProjectPermissionTable() {
+
+    // async getProjectPermission() {
+    //   this.projectPermission = (
+    //     await API.graphql(
+    //       graphqlOperation(getProjectPermission, { id: this.selectedProjectID })
+    //     )
+    //   ).data.getProjectPermission;
+
+    //   if (this.projectPermission == null) {
+    //     this.projectPermission = {
+    //       id: this.selectedProjectID,
+    //       admins: [],
+    //       editors: [],
+    //       viewers: [],
+    //     };
+
+    //     await API.graphql(
+    //       graphqlOperation(createProjectPermission, {
+    //         input: this.projectPermission,
+    //       })
+    //     );
+    //   }
+    //   this.updateProjectsPermissionTable();
+    // },
+    updateProjectsPermissionTable() {
+      let admins = [];
+      let editors = [];
+      let viewers = [];
+
+      let partialAdmins = [];
+      let partialEditors = [];
+      let partialViewers = [];
+
+      this.projectsPermission.forEach((projectPermission) => {
+        admins = admins.concat(projectPermission.admins);
+        editors = editors.concat(projectPermission.editors);
+        viewers = viewers.concat(projectPermission.viewers);
+      });
+
+      admins.forEach((admin) => {
+        if (
+          this.projectsPermission.some(
+            (projectPermission) => !projectPermission.admins.includes(admin)
+          )
+        ) {
+          partialAdmins.push(admin);
+        }
+      });
+
+      editors.forEach((editor) => {
+        if (
+          this.projectsPermission.some(
+            (projectPermission) => !projectPermission.editors.includes(editor)
+          )
+        ) {
+          partialEditors.push(editor);
+        }
+      });
+
+      viewers.forEach((viewer) => {
+        if (
+          this.projectsPermission.some(
+            (projectPermission) => !projectPermission.viewers.includes(viewer)
+          )
+        ) {
+          partialViewers.push(viewer);
+        }
+      });
+
       this.INDEXusers.forEach((user) => {
-        user.projectAdmin = this.projectPermission.admins.includes(
-          user.username
-        )
+        user.projectAdmin = admins.includes(user.username) ? true : false;
+        user.projectEditor = editors.includes(user.username) ? true : false;
+        user.projectViewer = viewers.includes(user.username) ? true : false;
+
+        user.partialAdmin = partialAdmins.includes(user.username)
           ? true
           : false;
-        user.projectEditor = this.projectPermission.editors.includes(
-          user.username
-        )
+        user.partialEditor = partialEditors.includes(user.username)
           ? true
           : false;
-        user.projectViewer = this.projectPermission.viewers.includes(
-          user.username
-        )
+        user.partialViewer = partialViewers.includes(user.username)
           ? true
           : false;
       });
@@ -390,37 +487,52 @@ export default {
     async addProjectPermission(user, type) {
       if (type == "admin") {
         if (user.projectAdmin) {
-          this.projectPermission.admins.push(user.username);
+          this.projectsPermission.forEach((projectPermission) => {
+            projectPermission.admins.push(user.username);
+          });
         } else {
-          this.projectPermission.admins = this.projectPermission.admins.filter(
-            (username) => username !== user.username
-          );
+          this.projectsPermission.forEach((projectPermission) => {
+            projectPermission.admins = projectPermission.admins.filter(
+              (username) => username !== user.username
+            );
+          });
         }
       } else if (type == "editor") {
         if (user.projectEditor) {
-          this.projectPermission.editors.push(user.username);
+          this.projectsPermission.forEach((projectPermission) => {
+            projectPermission.editors.push(user.username);
+          });
         } else {
-          this.projectPermission.editors = this.projectPermission.editors.filter(
-            (username) => username !== user.username
-          );
+          this.projectsPermission.forEach((projectPermission) => {
+            projectPermission.editors = projectPermission.editors.filter(
+              (username) => username !== user.username
+            );
+          });
         }
       } else if (type == "viewer") {
         if (user.projectViewer) {
-          this.projectPermission.viewers.push(user.username);
+          this.projectsPermission.forEach((projectPermission) => {
+            projectPermission.viewers.push(user.username);
+          });
         } else {
-          this.projectPermission.viewers = this.projectPermission.viewers.filter(
-            (username) => username !== user.username
-          );
+          this.projectsPermission.forEach((projectPermission) => {
+            projectPermission.viewers = projectPermission.viewers.filter(
+              (username) => username !== user.username
+            );
+          });
         }
       }
 
-      await API.graphql({
-        query: updateProjectPermission,
-        variables: {
-          input: this.projectPermission,
-        },
+      this.projectsPermission.forEach(async (projectPermission) => {
+        await API.graphql({
+          query: updateProjectPermission,
+          variables: {
+            input: projectPermission,
+          },
+        });
       });
-      this.updateProjectPermissionTable();
+
+      this.updateProjectsPermissionTable();
     },
     // async loadSiteSetting() {
     //   let siteSettingData = (

@@ -34,7 +34,7 @@
       >
 
       <v-btn
-        v-if="!user.guest"
+        v-if="user.masterSiteAdmin || user.siteAdmin"
         text
         @click="$router.push('/admin').catch((err) => {})"
         >Admin</v-btn
