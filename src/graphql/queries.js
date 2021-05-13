@@ -5,12 +5,11 @@ export const getPano = /* GraphQL */ `
   query GetPano($id: ID!) {
     getPano(id: $id) {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title
@@ -52,12 +51,11 @@ export const listPanos = /* GraphQL */ `
     listPanos(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
-        title
+        prototypeName
         category
         thumbnail
-        pabout
-        ptype
-        psize
+        prototypeEdition
+        description
         sceneArr {
           id
           title

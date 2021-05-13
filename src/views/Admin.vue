@@ -78,7 +78,7 @@
                 <!-- <v-select
                   :items="panos"
                   v-model="selectedProjectID"
-                  item-text="title"
+                  item-text="prototypeName"
                   item-value="id"
                   label="Select a project"
                   solo
@@ -87,7 +87,7 @@
                 <v-combobox
                   v-model="selectedProjects"
                   :items="panos"
-                  item-text="title"
+                  item-text="prototypeName"
                   item-value="id"
                   label="Select projects"
                   multiple
@@ -362,7 +362,7 @@ export default {
       await API.graphql(graphqlOperation(listPanos)).then((data) => {
         this.panos = data.data.listPanos.items;
         // this.panosCategoryList = this.panos.map((pano) => pano.category);
-        // this.panosTitleList = this.panos.map((pano) => pano.title);
+        // this.panosTitleList = this.panos.map((pano) => pano.prototypeName);
       });
     },
 

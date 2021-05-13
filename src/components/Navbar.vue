@@ -10,21 +10,58 @@
 
     <v-row v-if="navbarText" class="ml-6" align="center">
       <v-col cols="auto">
-        <h3>{{ navbarText.title }}</h3>
+        <h3>{{ navbarText.prototypeName }}</h3>
       </v-col>
 
       <v-col cols="auto">
-        Category:
-        {{ navbarText.category }}
+        Prototype Edition:
+        {{ navbarText.prototypeEdition }}
+      </v-col>
+
+      <v-col cols="auto" v-if="navbarText.Description">
+        Description:
+        {{ navbarText.Description }}
       </v-col>
 
       <v-col cols="auto">
-        Type:
-        {{ navbarText.ptype }}
-      </v-col>
+        <v-dialog v-model="INDEXdialog" persistent>
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="primary"
+              text
+              v-bind="attrs"
+              v-on="on"
+              @click="getIndexDesignInventory()"
+            >
+              Related Projects
+            </v-btn>
+          </template>
 
-      <v-col cols="auto">Size: {{ navbarText.psize }} </v-col></v-row
-    >
+          <v-card>
+            <v-card-title class="headline grey lighten-2">
+              Related Projects in Design Inventory
+            </v-card-title>
+
+            <v-card-text v-if="INDEXprojects">
+              <v-data-table
+                :headers="headers"
+                :items="INDEXprojects"
+                :items-per-page="50"
+              ></v-data-table>
+            </v-card-text>
+            <v-card-text v-else> Cannot find any related projects </v-card-text>
+            <v-divider></v-divider>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="primary" text @click="INDEXdialog = false">
+                Close
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-col>
+    </v-row>
     <div v-else>
       <v-btn
         text
@@ -55,14 +92,45 @@
 </template>
 <script>
 import { mapState } from "vuex";
-
+import { API } from "aws-amplify";
 export default {
   name: "Nav",
-
+  data: function () {
+    return {
+      INDEXprojects: null,
+      INDEXdialog: false,
+      headers: [
+        {
+          text: "Store",
+          align: "start",
+          value: "projectName",
+        },
+        { text: "Store #", value: "projectNumber" },
+        { text: "Project Issuance Date", value: "projectIssueDate" },
+        { text: "Store Address", value: "cfaAddress1" },
+        { text: "City", value: "cfaCity" },
+        { text: "County", value: "cfaCounty" },
+      ],
+    };
+  },
   methods: {
     async logout() {
       await this.$store.dispatch("logout");
       this.$router.push("/");
+    },
+    getIndexDesignInventory() {
+      this.INDEXprojects = null;
+      API.post("index", "/index/design-inventory", {
+        body: {
+          prototypeName: this.navbarText.prototypeName,
+          prototypeEdition: this.navbarText.prototypeEdition,
+        },
+      }).then((res) => {
+        console.log(res);
+        this.INDEXprojects = res.filter(
+          (project) => project.projectNumber !== "00000"
+        );
+      });
     },
   },
   computed: mapState(["user", "navbarText"]),
