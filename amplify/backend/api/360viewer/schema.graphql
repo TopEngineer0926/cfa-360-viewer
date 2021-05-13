@@ -6,12 +6,15 @@ type Pano @model {
   #   ]
   # )
   id: ID!
-  title: String!
+  # title: String
+  prototypeName: String
   category: String
   thumbnail: String
-  pabout: String
-  ptype: String
-  psize: String
+  # pabout: String
+  # ptype: String
+  # psize: String
+  prototypeEdition: String
+  description: String
   sceneArr: [SceneObject]
   layers: [LayerObject]
   createdAt: AWSDateTime

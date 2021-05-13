@@ -8,12 +8,11 @@ export const createPano = /* GraphQL */ `
   ) {
     createPano(input: $input, condition: $condition) {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title
@@ -53,12 +52,11 @@ export const updatePano = /* GraphQL */ `
   ) {
     updatePano(input: $input, condition: $condition) {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title
@@ -98,12 +96,11 @@ export const deletePano = /* GraphQL */ `
   ) {
     deletePano(input: $input, condition: $condition) {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title

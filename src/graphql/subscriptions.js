@@ -5,12 +5,11 @@ export const onCreatePano = /* GraphQL */ `
   subscription OnCreatePano {
     onCreatePano {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title
@@ -47,12 +46,11 @@ export const onUpdatePano = /* GraphQL */ `
   subscription OnUpdatePano {
     onUpdatePano {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title
@@ -89,12 +87,11 @@ export const onDeletePano = /* GraphQL */ `
   subscription OnDeletePano {
     onDeletePano {
       id
-      title
+      prototypeName
       category
       thumbnail
-      pabout
-      ptype
-      psize
+      prototypeEdition
+      description
       sceneArr {
         id
         title

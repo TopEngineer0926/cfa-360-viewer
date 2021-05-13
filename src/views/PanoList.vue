@@ -43,10 +43,14 @@
                   {{ pano.category ? pano.category : "Category Not Assigned" }}
                 </div>
                 <v-list-item-title class="headline mb-1">
-                  {{ pano.title }}
+                  {{ pano.prototypeName }}
                 </v-list-item-title>
-                <v-list-item-subtitle> {{ pano.ptype }}</v-list-item-subtitle>
-                <v-list-item-subtitle> {{ pano.psize }}</v-list-item-subtitle>
+                <v-list-item-subtitle>
+                  {{ pano.prototypeEdition }}</v-list-item-subtitle
+                >
+                <v-list-item-subtitle>
+                  {{ pano.description }}</v-list-item-subtitle
+                >
               </v-list-item-content>
 
               <v-list-item-avatar tile height="120" width="200" color="grey">
@@ -101,13 +105,19 @@
         <v-card-text>
           <v-form ref="form" v-model="editPano.editValid" lazy-validation>
             <v-text-field
-              v-model="editPano.title"
+              v-model="editPano.prototypeName"
               require
-              :rules="[(v) => !!v || 'Title is required']"
-              label="Title"
+              :rules="[(v) => !!v || 'Prototype Name is required']"
+              label="Prototype Name"
             ></v-text-field>
-            <v-text-field v-model="editPano.ptype" label="Type"></v-text-field>
-            <v-text-field v-model="editPano.psize" label="Size"></v-text-field>
+            <v-text-field
+              v-model="editPano.prototypeEdition"
+              label="Prototype Edition"
+            ></v-text-field>
+            <v-text-field
+              v-model="editPano.description"
+              label="Description"
+            ></v-text-field>
             <!-- <v-file-input
               v-model="editPano.imgToUpload"
               accept="image/*"
@@ -184,13 +194,13 @@
 
           <!-- <v-form ref="form" v-model="editPano.editValid" lazy-validation>
             <v-text-field
-              v-model="editPano.title"
+              v-model="editPano.prototypeName"
               require
-              :rules="[(v) => !!v || 'Title is required']"
-              label="Title"
+              :rules="[(v) => !!v || 'prototypeName is required']"
+              label="prototypeName"
             ></v-text-field>
-            <v-text-field v-model="editPano.ptype" label="Type"></v-text-field>
-            <v-text-field v-model="editPano.psize" label="Size"></v-text-field>
+            <v-text-field v-model="editPano.prototypeEdition" label="Type"></v-text-field>
+            <v-text-field v-model="editPano.description" label="Size"></v-text-field>
             
             <v-file-input
               v-model="editPano.thumbnailToUpload"
@@ -246,11 +256,11 @@ export default {
       categoryList: ["All Categories"],
       editPano: {
         index: null,
-        ptype: null,
-        psize: null,
+        prototypeEdition: null,
+        description: null,
         editValid: false,
         dialog: false,
-        title: null,
+        prototypeName: null,
         imgToUpload: null,
         thumbnailToUpload: null,
       },
@@ -304,8 +314,8 @@ export default {
         );
 
         panosRes = panosRes.sort((a, b) => {
-          let fa = a.title.toLowerCase(),
-            fb = b.title.toLowerCase();
+          let fa = a.prototypeName.toLowerCase(),
+            fb = b.prototypeName.toLowerCase();
           if (fa < fb) {
             return -1;
           }
@@ -333,7 +343,7 @@ export default {
       try {
         let newPanoId = await API.graphql(
           graphqlOperation(createPano, {
-            input: { title: "New Project" },
+            input: { prototypeName: "New Project" },
           })
         );
         this.$router.push({
@@ -379,7 +389,7 @@ export default {
     async deletePanoConfirm(pano) {
       if (
         await this.$root.$confirm(
-          `Delete ${pano.title}?`,
+          `Delete ${pano.prototypeName}?`,
           "This action cannot be undone. This scene will be deleted permanently.",
           { color: this.$vuetify.theme.currentTheme.primary }
         )
@@ -398,13 +408,13 @@ export default {
       if (this.$refs.form.validate()) {
         let newPano = {
           id: this.panos[this.editPano.index].id,
-          title: this.editPano.title,
+          prototypeName: this.editPano.prototypeName,
         };
-        if (this.editPano.psize) {
-          newPano.psize = this.editPano.psize;
+        if (this.editPano.description) {
+          newPano.description = this.editPano.description;
         }
-        if (this.editPano.ptype) {
-          newPano.ptype = this.editPano.ptype;
+        if (this.editPano.prototypeEdition) {
+          newPano.prototypeEdition = this.editPano.prototypeEdition;
         }
         // if (this.editPano.imgToUpload) {
         //   let imgId = nanoid();

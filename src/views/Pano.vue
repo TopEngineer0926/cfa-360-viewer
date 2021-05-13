@@ -701,10 +701,10 @@ export default {
         ).then((data) => {
           this.panoSource = data.data.getPano;
           this.$store.commit("SET_NAVBAR_TEXT", {
-            title: this.panoSource.title,
+            prototypeName: this.panoSource.prototypeName,
             category: this.panoSource.category,
-            ptype: this.panoSource.ptype,
-            psize: this.panoSource.psize,
+            prototypeEdition: this.panoSource.prototypeEdition,
+            description: this.panoSource.description,
           });
           if (!this.panoSource.layers) {
             this.panoSource.layers = [];
@@ -738,7 +738,7 @@ export default {
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {
-          title: this.panoSource.title,
+          title: this.panoSource.prototypeName,
           scenes: {},
         };
         await Promise.all(

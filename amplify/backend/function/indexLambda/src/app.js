@@ -51,6 +51,30 @@ app.get('/index/users', function (req, res) {
 
 });
 
+app.post('/index/design-inventory', function (req, res) {
+  var params = {
+    TableName: 'cfa-dev-inventory',
+    FilterExpression: '#cfaPrototypeName = :prototypeName and #cfaPrototypePortfolio = :prototypeEdition',
+    ExpressionAttributeValues: {
+      ':prototypeName': req.body.prototypeName,
+      ':prototypeEdition': req.body.prototypeEdition
+    }, ExpressionAttributeNames: {
+      "#cfaPrototypeName": "cfaPrototypeName",
+      "#cfaPrototypePortfolio": "cfaPrototypePortfolio",
+    }
+  };
+
+  docClient.scan(params, function (err, data) {
+    if (err) {
+      console.error("Unable to scan the table. Error JSON:", JSON.stringify(err, null, 2));
+      res.status(500).json(err)
+    } else {
+      res.json(data.Items);
+    }
+  });
+
+});
+
 // app.get('/index/auth', function (req, res) {
 //   docClient.get({
 //     TableName: 'cfa-dev-users',

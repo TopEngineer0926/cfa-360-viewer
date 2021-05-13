@@ -18,24 +18,24 @@
           @change="savePano"
         ></v-text-field>
         <v-text-field
-          v-model="panoSource.title"
+          v-model="panoSource.prototypeName"
           require
-          :rules="[(v) => !!v || 'Title is required']"
-          label="Title"
+          :rules="[(v) => !!v || 'Prototype Name is required']"
+          label="Prototype Name"
           @change="savePano"
         ></v-text-field>
         <v-text-field
-          v-model="panoSource.ptype"
+          v-model="panoSource.prototypeEdition"
           require
-          :rules="[(v) => !!v || 'Type is required']"
-          label="Type"
+          :rules="[(v) => !!v || 'Prototype Edition is required']"
+          label="Prototype Edition"
           @change="savePano"
         ></v-text-field>
         <v-text-field
-          v-model="panoSource.psize"
+          v-model="panoSource.description"
           require
-          :rules="[(v) => !!v || 'Size is required']"
-          label="Size"
+          :rules="[(v) => !!v || 'Description is required']"
+          label="Description"
           @change="savePano"
         ></v-text-field>
 
