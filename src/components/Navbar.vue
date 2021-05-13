@@ -49,7 +49,7 @@
                 :items-per-page="50"
               ></v-data-table>
             </v-card-text>
-            <v-card-text v-else> Cannot find any related projects </v-card-text>
+            <v-card-text v-else> Searching... </v-card-text>
             <v-divider></v-divider>
 
             <v-card-actions>
