@@ -46,7 +46,8 @@
               <v-data-table
                 :headers="headers"
                 :items="INDEXprojects"
-                :items-per-page="50"
+                disable-pagination
+                hide-default-footer
               ></v-data-table>
             </v-card-text>
             <v-card-text v-else> Searching... </v-card-text>
