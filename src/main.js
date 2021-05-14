@@ -1,8 +1,6 @@
 import Vue from "vue";
 import App from "./App.vue";
 
-import * as serviceWorker from "./serviceWorker";
-serviceWorker.unregister();
 
 import router from "./router";
 import store from "./store";
