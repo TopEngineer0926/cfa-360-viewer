@@ -94,6 +94,14 @@
         virtual restaurant viewer.
       </h3>
     </div>
+    <div v-else-if="!panos" class="text-center">
+      <h3>Loading. Please wait.</h3>
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        class="mt-4"
+      ></v-progress-circular>
+    </div>
     <v-dialog
       v-if="editPano.dialog"
       v-model="editPano.dialog"
