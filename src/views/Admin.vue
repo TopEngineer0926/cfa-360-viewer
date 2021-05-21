@@ -1,81 +1,82 @@
 <template>
-  <v-container v-if="INDEXusers">
-    <v-tabs v-model="tab" align-with-title>
-      <v-tabs-slider color="primary"></v-tabs-slider>
+  <v-container>
+    <div v-if="INDEXusers">
+      <v-tabs v-model="tab" align-with-title>
+        <v-tabs-slider color="primary"></v-tabs-slider>
 
-      <v-tab
-        v-show="
-          (user.siteAdmin &&
-            roleDefinitionTable.find((role) => role.name == 'Site Admin')
-              .assignSiteAdmin) ||
-          user.masterSiteAdmin
-        "
-      >
-        Site Admin
-      </v-tab>
+        <v-tab
+          v-show="
+            (user.siteAdmin &&
+              roleDefinitionTable.find((role) => role.name == 'Site Admin')
+                .assignSiteAdmin) ||
+            user.masterSiteAdmin
+          "
+        >
+          Site Admin
+        </v-tab>
 
-      <v-tab v-show="user.siteAdmin || user.masterSiteAdmin">
-        Project Permissions
-      </v-tab>
+        <v-tab v-show="user.siteAdmin || user.masterSiteAdmin">
+          Project Permissions
+        </v-tab>
 
-      <v-tab
-        v-show="
-          (user.siteAdmin &&
-            roleDefinitionTable.find((role) => role.name == 'Site Admin')
-              .adjustRole) ||
-          user.masterSiteAdmin
-        "
-      >
-        Role Definitions
-      </v-tab>
-    </v-tabs>
-    <v-tabs-items v-model="tab">
-      <v-tab-item
-        v-show="
-          (user.siteAdmin &&
-            roleDefinitionTable.find((role) => role.name == 'Site Admin')
-              .assignSiteAdmin) ||
-          user.masterSiteAdmin
-        "
-      >
-        <v-card flat>
-          <v-card-text>
-            <v-row>
-              <v-col> </v-col>
-              <v-col cols="4">
-                <v-text-field
-                  v-model="search"
-                  append-icon="mdi-magnify"
-                  label="Search"
-                  single-line
-                  hide-details
-                  solo
-                ></v-text-field>
-              </v-col>
-            </v-row>
+        <v-tab
+          v-show="
+            (user.siteAdmin &&
+              roleDefinitionTable.find((role) => role.name == 'Site Admin')
+                .adjustRole) ||
+            user.masterSiteAdmin
+          "
+        >
+          Role Definitions
+        </v-tab>
+      </v-tabs>
+      <v-tabs-items v-model="tab">
+        <v-tab-item
+          v-show="
+            (user.siteAdmin &&
+              roleDefinitionTable.find((role) => role.name == 'Site Admin')
+                .assignSiteAdmin) ||
+            user.masterSiteAdmin
+          "
+        >
+          <v-card flat>
+            <v-card-text>
+              <v-row>
+                <v-col> </v-col>
+                <v-col cols="4">
+                  <v-text-field
+                    v-model="search"
+                    append-icon="mdi-magnify"
+                    label="Search"
+                    single-line
+                    hide-details
+                    solo
+                  ></v-text-field>
+                </v-col>
+              </v-row>
 
-            <v-data-table
-              :headers="siteAdminHeaders"
-              :items="INDEXusers"
-              :search="search"
-              disable-pagination
-              hide-default-footer
-            >
-              <template v-slot:[`item.siteAdmin`]="{ item }">
-                <v-checkbox
-                  v-model="item.siteAdmin"
-                  @change="addSitePermission(item)"
-                ></v-checkbox>
-              </template> </v-data-table
-          ></v-card-text>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item v-show="user.siteAdmin || user.masterSiteAdmin">
-        <v-card flat v-if="panos">
-          <v-card-text>
-            <v-row>
-              <v-col>
-                <!-- <v-select
+              <v-data-table
+                :headers="siteAdminHeaders"
+                :items="INDEXusers"
+                :search="search"
+                disable-pagination
+                hide-default-footer
+              >
+                <template v-slot:[`item.siteAdmin`]="{ item }">
+                  <v-checkbox
+                    v-model="item.siteAdmin"
+                    @change="addSitePermission(item)"
+                  ></v-checkbox>
+                </template> </v-data-table
+            ></v-card-text>
+          </v-card>
+        </v-tab-item>
+        <v-tab-item v-show="user.siteAdmin || user.masterSiteAdmin">
+          <v-card flat v-if="panos">
+            <v-card-text>
+              <v-row>
+                <v-col>
+                  <!-- <v-select
                   :items="panos"
                   v-model="selectedProjectID"
                   item-text="prototypeName"
@@ -84,156 +85,167 @@
                   solo
                   @change="getProjectPermission"
                 ></v-select> -->
-                <v-combobox
-                  v-model="selectedProjects"
-                  :items="panos"
-                  item-text="prototypeName"
-                  item-value="id"
-                  label="Select projects"
-                  multiple
-                  solo
-                  @change="getProjectsPermission"
-                ></v-combobox>
-              </v-col>
-              <v-col cols="4">
-                <v-text-field
-                  v-model="search"
-                  append-icon="mdi-magnify"
-                  label="Search"
-                  single-line
-                  hide-details
-                  solo
-                ></v-text-field>
-              </v-col>
-            </v-row>
+                  <v-combobox
+                    v-model="selectedProjects"
+                    :items="panos"
+                    item-text="prototypeName"
+                    item-value="id"
+                    label="Select projects"
+                    multiple
+                    solo
+                    @change="getProjectsPermission"
+                  ></v-combobox>
+                </v-col>
+                <v-col cols="4">
+                  <v-text-field
+                    v-model="search"
+                    append-icon="mdi-magnify"
+                    label="Search"
+                    single-line
+                    hide-details
+                    solo
+                  ></v-text-field>
+                </v-col>
+              </v-row>
 
-            <v-data-table
-              v-if="selectedProjects"
-              :headers="projectPermissionHeaders"
-              :items="INDEXusers"
-              :search="search"
-              disable-pagination
-              hide-default-footer
-            >
-              <template v-slot:[`item.projectAdmin`]="{ item }">
-                <v-checkbox
-                  v-model="item.projectAdmin"
-                  :color="item.partialAdmin ? 'grey' : 'primary'"
-                  :disabled="
-                    !(
-                      user.siteAdmin &&
-                      roleDefinitionTable.find(
-                        (role) => role.name == 'Site Admin'
-                      ).assignSiteAdmin
-                    ) && !user.masterSiteAdmin
-                  "
-                  @change="addProjectPermission(item, 'admin')"
-                ></v-checkbox>
-              </template>
+              <v-data-table
+                v-if="selectedProjects"
+                :headers="projectPermissionHeaders"
+                :items="INDEXusers"
+                :search="search"
+                disable-pagination
+                hide-default-footer
+              >
+                <template v-slot:[`item.projectAdmin`]="{ item }">
+                  <v-checkbox
+                    v-model="item.projectAdmin"
+                    :color="item.partialAdmin ? 'grey' : 'primary'"
+                    :disabled="
+                      !(
+                        user.siteAdmin &&
+                        roleDefinitionTable.find(
+                          (role) => role.name == 'Site Admin'
+                        ).assignSiteAdmin
+                      ) && !user.masterSiteAdmin
+                    "
+                    @change="addProjectPermission(item, 'admin')"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.projectEditor`]="{ item }">
-                <v-checkbox
-                  v-model="item.projectEditor"
-                  :color="item.partialEditor ? 'grey' : 'primary'"
-                  @change="addProjectPermission(item, 'editor')"
-                ></v-checkbox>
-              </template>
+                <template v-slot:[`item.projectEditor`]="{ item }">
+                  <v-checkbox
+                    v-model="item.projectEditor"
+                    :color="item.partialEditor ? 'grey' : 'primary'"
+                    @change="addProjectPermission(item, 'editor')"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.projectViewer`]="{ item }">
-                <v-checkbox
-                  v-model="item.projectViewer"
-                  :color="item.partialViewer ? 'grey' : 'primary'"
-                  @change="addProjectPermission(item, 'viewer')"
-                ></v-checkbox>
-              </template>
-            </v-data-table>
-          </v-card-text>
-        </v-card>
-      </v-tab-item>
-      <v-tab-item
-        v-show="
-          (user.siteAdmin &&
-            roleDefinitionTable.find((role) => role.name == 'Site Admin')
-              .adjustRole) ||
-          user.masterSiteAdmin
-        "
-      >
-        <v-card flat>
-          <v-card-text>
-            <v-data-table
-              :headers="siteSettingHeaders"
-              :items="roleDefinitionTable"
-              :search="search"
-              disable-pagination
-              hide-default-footer
-            >
-              <template v-slot:[`item.assignSiteAdmin`]="{ item }">
-                <v-checkbox
-                  v-model="item.assignSiteAdmin"
-                  :disabled="item.name !== 'Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
-              <template v-slot:[`item.assignProject`]="{ item }">
-                <v-checkbox
-                  v-model="item.assignProject"
-                  :disabled="item.name !== 'Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
+                <template v-slot:[`item.projectViewer`]="{ item }">
+                  <v-checkbox
+                    v-model="item.projectViewer"
+                    :color="item.partialViewer ? 'grey' : 'primary'"
+                    @change="addProjectPermission(item, 'viewer')"
+                  ></v-checkbox>
+                </template>
+              </v-data-table>
+            </v-card-text>
+          </v-card>
+        </v-tab-item>
+        <v-tab-item
+          v-show="
+            (user.siteAdmin &&
+              roleDefinitionTable.find((role) => role.name == 'Site Admin')
+                .adjustRole) ||
+            user.masterSiteAdmin
+          "
+        >
+          <v-card flat>
+            <v-card-text>
+              <v-data-table
+                :headers="siteSettingHeaders"
+                :items="roleDefinitionTable"
+                :search="search"
+                disable-pagination
+                hide-default-footer
+              >
+                <template v-slot:[`item.assignSiteAdmin`]="{ item }">
+                  <v-checkbox
+                    v-model="item.assignSiteAdmin"
+                    :disabled="item.name !== 'Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
+                <template v-slot:[`item.assignProject`]="{ item }">
+                  <v-checkbox
+                    v-model="item.assignProject"
+                    :disabled="item.name !== 'Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.adjustRole`]="{ item }">
-                <v-checkbox
-                  v-model="item.adjustRole"
-                  :disabled="item.name !== 'Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
+                <template v-slot:[`item.adjustRole`]="{ item }">
+                  <v-checkbox
+                    v-model="item.adjustRole"
+                    :disabled="item.name !== 'Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.createProject`]="{ item }">
-                <v-checkbox
-                  v-model="item.createProject"
-                  :disabled="
-                    ['Master Site Admin', 'Project Viewer'].includes(item.name)
-                  "
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
+                <template v-slot:[`item.createProject`]="{ item }">
+                  <v-checkbox
+                    v-model="item.createProject"
+                    :disabled="
+                      ['Master Site Admin', 'Project Viewer'].includes(
+                        item.name
+                      )
+                    "
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.createScene`]="{ item }">
-                <v-checkbox
-                  v-model="item.createScene"
-                  :disabled="item.name == 'Master Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
+                <template v-slot:[`item.createScene`]="{ item }">
+                  <v-checkbox
+                    v-model="item.createScene"
+                    :disabled="item.name == 'Master Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.createTag`]="{ item }">
-                <v-checkbox
-                  v-model="item.createTag"
-                  :disabled="item.name == 'Master Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
+                <template v-slot:[`item.createTag`]="{ item }">
+                  <v-checkbox
+                    v-model="item.createTag"
+                    :disabled="item.name == 'Master Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
 
-              <template v-slot:[`item.tagComment`]="{ item }">
-                <v-checkbox
-                  v-model="item.tagComment"
-                  :disabled="item.name == 'Master Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template>
-              <template v-slot:[`item.readContent`]="{ item }">
-                <v-checkbox
-                  v-model="item.readContent"
-                  :disabled="item.name == 'Master Site Admin'"
-                  @change="saveSiteSetting"
-                ></v-checkbox>
-              </template> </v-data-table
-          ></v-card-text>
-        </v-card>
-      </v-tab-item>
-    </v-tabs-items>
+                <template v-slot:[`item.tagComment`]="{ item }">
+                  <v-checkbox
+                    v-model="item.tagComment"
+                    :disabled="item.name == 'Master Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template>
+                <template v-slot:[`item.readContent`]="{ item }">
+                  <v-checkbox
+                    v-model="item.readContent"
+                    :disabled="item.name == 'Master Site Admin'"
+                    @change="saveSiteSetting"
+                  ></v-checkbox>
+                </template> </v-data-table
+            ></v-card-text>
+          </v-card>
+        </v-tab-item>
+      </v-tabs-items>
+    </div>
+    <div v-else class="text-center">
+      <h3>Loading. Please wait.</h3>
+      <v-progress-circular
+        indeterminate
+        color="primary"
+        class="mt-4"
+      ></v-progress-circular>
+    </div>
   </v-container>
 </template>
 
