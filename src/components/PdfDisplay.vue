@@ -20,6 +20,10 @@
       >
         <v-icon>mdi-chevron-right</v-icon>
       </v-btn>
+
+      <v-btn icon color="primary" :href="src" target="_blank">
+        <v-icon>mdi-download</v-icon>
+      </v-btn>
     </div>
   </div>
 </template>
