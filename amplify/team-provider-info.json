@@ -28,10 +28,6 @@
         }
       },
       "function": {
-        "indexfunction": {
-          "deploymentBucketName": "amplify-360viewer-dev-202327-deployment",
-          "s3Key": "amplify-builds/indexfunction-7570696d703133676a61-build.zip"
-        },
         "indexLambda": {
           "deploymentBucketName": "amplify-360viewer-dev-202327-deployment",
           "s3Key": "amplify-builds/indexLambda-69434338376c7a4c4357-build.zip"
