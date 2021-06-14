@@ -1170,7 +1170,6 @@ export default {
         );
       }
     },
-
     async addNewContent() {
       if (this.$refs.newContentForm.validate()) {
         // let fileURL = URL.createObjectURL(this.editSpotData.newContent.file);
