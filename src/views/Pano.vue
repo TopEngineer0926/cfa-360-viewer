@@ -22,7 +22,7 @@
                 Add Scene
               </v-btn>
               <v-btn
-                v-if="isEditable"
+                v-if="isEditable && canCreateTag"
                 small
                 text
                 @click.stop="addLayer()"
@@ -41,7 +41,7 @@
               </v-btn>
 
               <v-btn
-                v-if="isEditable || isProjectAdmin"
+                v-if="isEditable || canCreateTag || canCreateScene"
                 small
                 @click.stop="isEditable = !isEditable"
                 text
@@ -563,6 +563,7 @@ export default {
         graphqlOperation(getProjectPermission, { id: this.$route.params.id })
       ).then((res) => {
         let projectPermission = res.data.getProjectPermission;
+
         if (projectPermission) {
           this.isProjectAdmin = projectPermission.admins.includes(
             this.user.username
