@@ -798,9 +798,8 @@ export default {
           (scene) => scene.id == sceneID
         );
         this.editSceneData.sceneID = sceneID;
-        this.editSceneData.title = this.panoSource.sceneArr[
-          this.editSceneData.sceneIndex
-        ].title;
+        this.editSceneData.title =
+          this.panoSource.sceneArr[this.editSceneData.sceneIndex].title;
       }
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
@@ -977,8 +976,9 @@ export default {
 
       if (spotIndex >= 0) {
         //delete contents
-        let thisContents = this.panoSource.sceneArr[this.currentSceneIndex]
-          .spots[spotIndex].contents;
+        let thisContents =
+          this.panoSource.sceneArr[this.currentSceneIndex].spots[spotIndex]
+            .contents;
         if (thisContents && thisContents.length > 0) {
           thisContents.forEach((content) => {
             if (content.link && !content.s3Upload) {
@@ -986,11 +986,10 @@ export default {
             }
           });
         }
-        this.panoSource.sceneArr[
-          this.currentSceneIndex
-        ].spots = this.panoSource.sceneArr[this.currentSceneIndex].spots.filter(
-          (spot) => spot.id !== this.editSpotData.spot.id
-        );
+        this.panoSource.sceneArr[this.currentSceneIndex].spots =
+          this.panoSource.sceneArr[this.currentSceneIndex].spots.filter(
+            (spot) => spot.id !== this.editSpotData.spot.id
+          );
 
         this.savePano();
       }
@@ -1027,7 +1026,11 @@ export default {
                   }
                   content.link = (
                     await Storage.put(
-                      this.panoSource.id + "/" + nanoid(),
+                      this.panoSource.id +
+                        "/" +
+                        nanoid() +
+                        "." +
+                        content.link.name.split(".").pop(),
                       content.link,
                       {
                         contentType: content.link.type,
@@ -1044,9 +1047,10 @@ export default {
               }
             }
           );
-          this.editSpotData.spot.contents = this.editSpotData.spot.contents.filter(
-            (content) => !content.delete
-          );
+          this.editSpotData.spot.contents =
+            this.editSpotData.spot.contents.filter(
+              (content) => !content.delete
+            );
         }
 
         if (this.editSpotData.spot.id) {
@@ -1055,9 +1059,8 @@ export default {
           let spotIndex = this.panoSource.sceneArr[
             this.currentSceneIndex
           ].spots.findIndex((spot) => spot.id == this.editSpotData.spot.id);
-          this.panoSource.sceneArr[this.currentSceneIndex].spots[
-            spotIndex
-          ] = this.editSpotData.spot;
+          this.panoSource.sceneArr[this.currentSceneIndex].spots[spotIndex] =
+            this.editSpotData.spot;
         } else {
           //create new
           this.editSpotData.spot.id = nanoid();
@@ -1222,13 +1225,8 @@ export default {
 
         // }
 
-        this.editSpotData.newContent = {
-          type: "img",
-          name: null,
-          thumbnail: null,
-          file: null,
-          link: null,
-        };
+        this.$refs.newContentForm.reset();
+        this.editSpotData.newContent.type = "img";
         this.$forceUpdate();
       }
     },
