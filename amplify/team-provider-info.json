@@ -53,7 +53,7 @@
           "userPoolId": "us-east-2_UCbUOtQYX",
           "userPoolName": "cfa-dev-userpool",
           "webClientId": "3g2pvp6o6eai3rl87h5ifnskrh",
-          "nativeClientId": "3g2pvp6o6eai3rl87h5ifnskrh",
+          "nativeClientId": "3uaqu7hntmspvftf71dlo3jjst",
           "identityPoolId": "us-east-2:71d5d37f-833f-4493-870f-44933bddb89d",
           "identityPoolName": "cfadevIdentityPool",
           "allowUnauthenticatedIdentities": false,
