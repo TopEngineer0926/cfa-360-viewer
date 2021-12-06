@@ -41,7 +41,7 @@ Amplify.configure({
     cookieStorage: {
       // REQUIRED - Cookie domain (only required if cookieStorage is provided)
       // domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
-      domain: '.cfadesigntechnology.com',
+      domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
       // OPTIONAL - Cookie path
       // path: '/',
       // // OPTIONAL - Cookie expiration in days
