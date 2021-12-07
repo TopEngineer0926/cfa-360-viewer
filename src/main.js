@@ -21,6 +21,12 @@ Amplify.configure({
   ...awsconfig,
   Auth: {
     ...awsconfig,
+    identityPoolId: 'us-east-2:71d5d37f-833f-4493-870f-44933bddb89d',
+    region: 'us-east-2',
+    identityPoolRegion: 'us-east-2',
+    userPoolId: 'us-east-2_UCbUOtQYX',
+    userPoolWebClientId: '3g2pvp6o6eai3rl87h5ifnskrh',
+    mandatorySignIn: false,
     cookieStorage: {
       // REQUIRED - Cookie domain (only required if cookieStorage is provided)
       domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
