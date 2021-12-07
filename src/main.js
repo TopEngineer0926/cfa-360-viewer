@@ -1,7 +1,6 @@
 import Vue from "vue";
 import App from "./App.vue";
 
-
 import router from "./router";
 import store from "./store";
 import vuetify from "./plugins/vuetify";
@@ -29,9 +28,9 @@ Amplify.configure({
       // OPTIONAL - Cookie path
       path: '/',
       // // OPTIONAL - Cookie expiration in days
-      expires: 365,
+      // expires: 365,
       // // OPTIONAL - See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
-      sameSite: "strict",
+      // sameSite: "strict",
       // OPTIONAL - Cookie secure flag
       // Either true or false, indicating if the cookie transmission requires a secure protocol (https).
       secure: false

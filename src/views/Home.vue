@@ -30,6 +30,20 @@ export default {
   created() {
     this.$store.commit("SET_NAVBAR_TEXT", null);
 
+    Auth.currentUserInfo()
+      .then(async (user) => {
+        console.log("currentSession", user);
+        if (user) {
+          if (user.attributes.email == "360TempSharing@360TempSharing.com") {
+            this.$store.commit("SET_USER_NULL");
+          } else {
+            await this.$store.dispatch("login", user);
+            this.$router.push({ path: "/panolist" });
+          }
+        }
+      })
+      .catch((err) => console.log(err));
+
     // this.unsubscribeAuth = onAuthUIStateChange(
     //   async (nextAuthState, authData) => {
     //     console.log("nextAuthState, authData", nextAuthState, authData);
