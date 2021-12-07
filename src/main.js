@@ -13,7 +13,7 @@ import {
 import Amplify from 'aws-amplify';
 import awsconfig from './aws-exports';
 
-// window.LOG_LEVEL = "DEBUG";
+window.LOG_LEVEL = "DEBUG";
 
 console.log('window.location.hostname: ', window.location.hostname);
 console.log('domain: ', window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com');
