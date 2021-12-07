@@ -44,7 +44,7 @@ Amplify.configure({
       // domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
       domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
       // OPTIONAL - Cookie path
-      // path: '/',
+      path: '/',
       // // OPTIONAL - Cookie expiration in days
       // expires: 365,
       // // OPTIONAL - See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
