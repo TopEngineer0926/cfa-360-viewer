@@ -14,7 +14,7 @@ import {
 import Amplify from 'aws-amplify';
 import awsconfig from './aws-exports';
 
-window.LOG_LEVEL = "DEBUG";
+// window.LOG_LEVEL = "DEBUG";
 
 console.log('window.location.hostname: ', window.location.hostname);
 console.log('domain: ', window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com');
@@ -22,7 +22,6 @@ Amplify.configure({
   ...awsconfig,
   Auth: {
     ...awsconfig,
-    mandatorySignIn: false,
     cookieStorage: {
       // REQUIRED - Cookie domain (only required if cookieStorage is provided)
       domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
@@ -32,7 +31,7 @@ Amplify.configure({
       // // OPTIONAL - Cookie expiration in days
       expires: 365,
       // // OPTIONAL - See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
-      // sameSite: "lax",
+      sameSite: "strict",
       // OPTIONAL - Cookie secure flag
       // Either true or false, indicating if the cookie transmission requires a secure protocol (https).
       secure: false
