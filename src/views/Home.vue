@@ -19,19 +19,22 @@ export default {
   computed: mapState(["user"]),
   created() {
     this.$store.commit("SET_NAVBAR_TEXT", null);
-    onAuthUIStateChange(async (nextAuthState, authData) => {
-      if (nextAuthState === AuthState.SignedIn) {
-        await this.$store.dispatch("login", authData);
-        this.$router.push({ path: "/panolist" });
+    this.unsubscribeAuth = onAuthUIStateChange(
+      async (nextAuthState, authData) => {
+        console.log("nextAuthState, authData", nextAuthState, authData);
+        if (nextAuthState === AuthState.SignedIn) {
+          await this.$store.dispatch("login", authData);
+          this.$router.push({ path: "/panolist" });
+        }
+        if (!authData) {
+          this.$store.commit("SET_USER_NULL");
+        }
       }
-      if (!authData) {
-        this.$store.commit("SET_USER_NULL");
-      }
-    });
+    );
   },
 
   beforeDestroy() {
-    return onAuthUIStateChange;
+    this.unsubscribeAuth();
   },
 };
 </script>
