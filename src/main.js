@@ -12,6 +12,9 @@ import {
 
 import Amplify from 'aws-amplify';
 import awsconfig from './aws-exports';
+import {
+  CookieStorage,
+} from "amazon-cognito-identity-js";
 
 window.LOG_LEVEL = "DEBUG";
 
@@ -27,20 +30,10 @@ Amplify.configure({
     userPoolId: 'us-east-2_UCbUOtQYX',
     userPoolWebClientId: '3g2pvp6o6eai3rl87h5ifnskrh',
     mandatorySignIn: false,
-    cookieStorage: {
-      // REQUIRED - Cookie domain (only required if cookieStorage is provided)
+    Storage: new CookieStorage({
+      secure: false,
       domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
-      // domain: '.cfadesigntechnology.com',
-      // OPTIONAL - Cookie path
-      path: '/',
-      // // OPTIONAL - Cookie expiration in days
-      // expires: 365,
-      // // OPTIONAL - See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie/SameSite
-      // sameSite: "strict",
-      // OPTIONAL - Cookie secure flag
-      // Either true or false, indicating if the cookie transmission requires a secure protocol (https).
-      secure: false
-    },
+    }),
   }
 });
 
