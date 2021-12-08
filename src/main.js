@@ -13,7 +13,7 @@ import {
 import Amplify from 'aws-amplify';
 import awsconfig from './aws-exports';
 
-window.LOG_LEVEL = "DEBUG";
+// window.LOG_LEVEL = "DEBUG";
 
 Amplify.configure(
   {
@@ -23,7 +23,7 @@ Amplify.configure(
     userPoolId: "us-east-2_UCbUOtQYX",
     userPoolWebClientId: "3g2pvp6o6eai3rl87h5ifnskrh",
     cookieStorage: {
-      domain: '.cfadesigntechnology.com',
+      domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
       path: '/',
       secure: false,
     },

@@ -2,14 +2,28 @@
   <v-container>
     <v-img src="@/assets/logo.png" contain max-height="120" class="mb-3 mt-8">
     </v-img>
-    <v-text-field v-model="email" label="Email"></v-text-field>
-    <v-text-field v-model="pw" label="Password"></v-text-field>
-    <!-- <amplify-authenticator>
+    <v-row class="justify-center mt-12">
+      <v-card flat width="600px">
+        <v-card-text>
+          <v-text-field v-model="email" label="Email"></v-text-field>
+          <v-text-field
+            v-model="pw"
+            label="Password"
+            type="password"
+          ></v-text-field>
+        </v-card-text>
+
+        <!-- <amplify-authenticator>
       <amplify-sign-in header-text="" hide-sign-up slot="sign-in">
         <div slot="federated-buttons"></div
       ></amplify-sign-in>
     </amplify-authenticator> -->
-    <v-btn @click="signin"> Log in</v-btn>
+
+        <v-card-actions class="justify-center">
+          <v-btn @click="signin" color="primary"> Log in</v-btn>
+        </v-card-actions>
+      </v-card></v-row
+    >
   </v-container>
 </template>
 
@@ -66,7 +80,10 @@ export default {
           await this.$store.dispatch("login", user);
           this.$router.push({ path: "/panolist" });
         })
-        .catch((err) => console.log(err));
+        .catch((err) => {
+          alert(err);
+          console.log(err);
+        });
     },
   },
 
