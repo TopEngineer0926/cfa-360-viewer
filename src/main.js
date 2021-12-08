@@ -12,30 +12,23 @@ import {
 
 import Amplify from 'aws-amplify';
 import awsconfig from './aws-exports';
-import {
-  CookieStorage,
-} from "amazon-cognito-identity-js";
 
 window.LOG_LEVEL = "DEBUG";
 
-console.log('window.location.hostname: ', window.location.hostname);
-console.log('domain: ', window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com');
-Amplify.configure({
-  ...awsconfig,
-  Auth: {
+Amplify.configure(
+  {
     ...awsconfig,
     identityPoolId: 'us-east-2:71d5d37f-833f-4493-870f-44933bddb89d',
-    region: 'us-east-2',
-    identityPoolRegion: 'us-east-2',
-    userPoolId: 'us-east-2_UCbUOtQYX',
-    userPoolWebClientId: '3g2pvp6o6eai3rl87h5ifnskrh',
-    mandatorySignIn: false,
-    Storage: new CookieStorage({
+    region: "us-east-2",
+    userPoolId: "us-east-2_UCbUOtQYX",
+    userPoolWebClientId: "3g2pvp6o6eai3rl87h5ifnskrh",
+    cookieStorage: {
+      domain: '.cfadesigntechnology.com',
+      path: '/',
       secure: false,
-      domain: window.location.hostname === 'localhost' ? window.location.hostname : '.cfadesigntechnology.com',
-    }),
+    },
   }
-});
+);
 
 applyPolyfills().then(() => {
   defineCustomElements(window);
