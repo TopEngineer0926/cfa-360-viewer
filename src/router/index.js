@@ -54,6 +54,7 @@ router.beforeResolve((to, from, next) => {
       .then(async (authData) => {
         if (authData.attributes.email == '360TempSharing@360TempSharing.com') {
           if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
+            await store.dispatch("login", authData);
             next();
           } else {
             store.commit("SET_USER_NULL");
