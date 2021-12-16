@@ -525,40 +525,32 @@ export default {
   },
 
   created() {
-    if (this.user.email == "360TempSharing@360TempSharing.com") {
-      //Guest User
-
-      if (this.$route.params.password) {
-        API.graphql(
-          graphqlOperation(sharingByPassword, {
-            password: this.$route.params.password,
-          })
-        ).then((data) => {
-          let sharingData = data.data.sharingByPassword.items;
-
-          if (
-            sharingData.length > 0 &&
-            sharingData[0].panoID == this.$route.params.id &&
-            new Date() < new Date(sharingData[0].ttl * 1000)
-          ) {
-            this.$root.$dialogLoader.showSnackbar(
-              "Guest Access. Valid until " +
-                new Date(sharingData[0].ttl * 1000).toLocaleString()
-            );
-            this.isGuest = true;
-            this.initData();
-          } else {
-            this.$root.$dialogLoader.showSnackbar("Not authorized");
-            this.$router.push({ path: "/" });
-          }
-        });
-      } else {
-        //Unauth
-        this.$root.$dialogLoader.showSnackbar("Not authorized");
-      }
+    if (this.$route.params.password) {
+      //Check if Guest User
+      API.graphql(
+        graphqlOperation(sharingByPassword, {
+          password: this.$route.params.password,
+        })
+      ).then((data) => {
+        let sharingData = data.data.sharingByPassword.items;
+        if (
+          sharingData.length > 0 &&
+          sharingData[0].panoID == this.$route.params.id &&
+          new Date() < new Date(sharingData[0].ttl * 1000)
+        ) {
+          this.$root.$dialogLoader.showSnackbar(
+            "Guest Access. Valid until " +
+              new Date(sharingData[0].ttl * 1000).toLocaleString()
+          );
+          this.isGuest = true;
+          this.initData();
+        } else {
+          this.$root.$dialogLoader.showSnackbar("Not authorized");
+          this.$router.push({ path: "/" });
+        }
+      });
     } else {
       //login user
-
       API.graphql(
         graphqlOperation(getProjectPermission, { id: this.$route.params.id })
       ).then((res) => {
