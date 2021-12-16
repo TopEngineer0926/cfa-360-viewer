@@ -2,5 +2,25 @@
   "authSelections": "identityPoolAndUserPool",
   "resourceName": "360viewerb3eeeb6b",
   "serviceType": "imported",
-  "region": "us-east-2"
+  "region": "us-east-2",
+  "aliasAttributes": [
+    "preferred_username",
+    "email"
+  ],
+  "authProvidersUserPool": [],
+  "requiredAttributes": [
+    "name",
+    "email"
+  ],
+  "passwordPolicyMinLength": 12,
+  "passwordPolicyCharacters": [
+    "Requires Lowercase",
+    "Requires Uppercase",
+    "Requires Numbers"
+  ],
+  "mfaConfiguration": "OFF",
+  "autoVerifiedAttributes": [
+    "email"
+  ],
+  "mfaTypes": []
 }

@@ -49,19 +49,22 @@ const router = new VueRouter({
 });
 
 router.beforeResolve((to, from, next) => {
-  if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
-    Auth.signIn('360TempSharing', 'bhnjcvP94DFAY6Bn').then(async (authData) => { await store.dispatch("login", authData); next() })
-  }
-  else if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some(record => record.meta.requiresAuth)) {
     Auth.currentAuthenticatedUser()
       .then(async (authData) => {
-
-        if (authData.attributes.email !== '360TempSharing@360TempSharing.com') {
+        if (authData.attributes.email == '360TempSharing@360TempSharing.com') {
+          if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
+            next();
+          } else {
+            store.commit("SET_USER_NULL");
+            next({
+              path: "/"
+            });
+          }
+        } else {
           if (!store.state.user) {
             await store.dispatch("login", authData);
           }
-
-
           //Get Role Defination
           if (!store.state.roleDefinitionTable) {
             let res = await API.graphql(
@@ -72,19 +75,20 @@ router.beforeResolve((to, from, next) => {
               JSON.parse(res.data.getSiteSetting.config).roleTable
             );
           }
-
-
-
           next();
         }
-
       })
       .catch(() => {
-        console.log('unauth');
-        if (store.state.user) { store.commit("SET_USER_NULL") }
-        next({
-          path: "/"
-        });
+        if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
+          Auth.signIn('360TempSharing', 'bhnjcvP94DFAY6Bn').then(async (authData) => { await store.dispatch("login", authData); next() })
+        }
+        else {
+          console.log('unauth');
+          store.commit("SET_USER_NULL");
+          next({
+            path: "/"
+          });
+        }
       });
   } else {
     next();
