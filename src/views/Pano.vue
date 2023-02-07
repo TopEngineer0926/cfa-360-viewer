@@ -98,17 +98,19 @@
                     center-active
                     show-arrows
                   >
-                    <v-chip
-                      v-for="(scene, sceneIndex) in panoSource.sceneArr"
-                      :key="sceneIndex"
-                      active-class="primary"
-                      @click="loadScene(scene.id)"
-                      :close="isEditable"
-                      close-icon="mdi-pencil-outline"
-                      @click:close="initEditScene(scene.id)"
-                    >
-                      {{ scene.title }}
-                    </v-chip>
+                    <draggable v-model="sceneArray" @change="dragFinish">
+                      <v-chip
+                        v-for="(scene, sceneIndex) in sceneArray"
+                        :key="sceneIndex"
+                        active-class="primary"
+                        @click="loadScene(scene.data.id)"
+                        :close="isEditable"
+                        close-icon="mdi-pencil-outline"
+                        @click:close="initEditScene(scene.data.id)"
+                      >
+                        {{ scene.data.title }}
+                      </v-chip>
+                    </draggable>
                   </v-chip-group></v-col
                 >
               </v-row>
@@ -451,11 +453,12 @@ import {
   createEditStatus,
 } from "../graphql/mutations";
 import { nanoid } from "nanoid";
-
+import draggable from "vuedraggable";
 export default {
   name: "Pano",
   components: {
     ContentDisplay: () => import("../components/ContentDisplay"),
+    draggable,
   },
   data: function () {
     return {
@@ -474,6 +477,9 @@ export default {
       viewer: null,
       currentSceneIndex: null,
       layers: [],
+      currentTag: null,
+
+      sceneArray: [],
       editSceneData: {
         dialog: false,
         editValid: false,
@@ -699,6 +705,18 @@ export default {
             prototypeEdition: this.panoSource.prototypeEdition,
             description: this.panoSource.description,
           });
+
+          var array = [];
+          array = this.panoSource.sceneArr;
+          for (let i = 0; i < array.length; i++) {
+            var temp = {
+              id: i,
+              data: array[i],
+              list: i,
+            };
+            this.sceneArray[i] = temp;
+          }
+
           if (!this.panoSource.layers) {
             this.panoSource.layers = [];
           }
@@ -1251,6 +1269,14 @@ export default {
       this.getComments();
       this.editSpotData.newComment = null;
     },
+    dragFinish(item) {
+      let currentSceneID = this.viewer.getScene();
+      this.sceneArray.map((scene, index) => {
+        if (scene.data.id === item.moved.element.data.id && currentSceneID === item.moved.element.data.id) {
+          this.currentSceneIndex = index;
+        }
+      });
+    },
   },
   computed: {
     ...mapState(["user", "roleDefinitionTable"]),
@@ -1281,6 +1307,16 @@ export default {
 /* .pnlm-grab {
   cursor: crosshair !important;
 } */
+.drop-zone {
+  background-color: #eee;
+  margin-right: 5px;
+  padding: 10px;
+}
+.drag-el {
+  background-color: #fff;
+  margin-right: 10px;
+  padding: 5px;
+}
 
 .square-hotspot {
   width: 20px;
