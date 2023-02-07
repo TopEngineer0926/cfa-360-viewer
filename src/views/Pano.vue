@@ -98,17 +98,17 @@
                     center-active
                     show-arrows
                   >
-                    <draggable v-model="sceneArray" @change="dragFinish">
+                    <draggable v-model="panoSource.sceneArr" @change="dragFinish">
                       <v-chip
-                        v-for="(scene, sceneIndex) in sceneArray"
+                        v-for="(scene, sceneIndex) in panoSource.sceneArr"
                         :key="sceneIndex"
                         active-class="primary"
-                        @click="loadScene(scene.data.id)"
+                        @click="loadScene(scene.id)"
                         :close="isEditable"
                         close-icon="mdi-pencil-outline"
-                        @click:close="initEditScene(scene.data.id)"
+                        @click:close="initEditScene(scene.id)"
                       >
-                        {{ scene.data.title }}
+                        {{ scene.title }}
                       </v-chip>
                     </draggable>
                   </v-chip-group></v-col
@@ -477,9 +477,7 @@ export default {
       viewer: null,
       currentSceneIndex: null,
       layers: [],
-      currentTag: null,
 
-      sceneArray: [],
       editSceneData: {
         dialog: false,
         editValid: false,
@@ -705,17 +703,6 @@ export default {
             prototypeEdition: this.panoSource.prototypeEdition,
             description: this.panoSource.description,
           });
-
-          var array = [];
-          array = this.panoSource.sceneArr;
-          for (let i = 0; i < array.length; i++) {
-            var temp = {
-              id: i,
-              data: array[i],
-              list: i,
-            };
-            this.sceneArray[i] = temp;
-          }
 
           if (!this.panoSource.layers) {
             this.panoSource.layers = [];
@@ -1271,10 +1258,17 @@ export default {
     },
     dragFinish(item) {
       let currentSceneID = this.viewer.getScene();
-      this.sceneArray.map((scene, index) => {
-        if (scene.data.id === item.moved.element.data.id && currentSceneID === item.moved.element.data.id) {
+      this.panoSource.sceneArr.map((scene, index) => {
+        if (currentSceneID === scene.id) {
           this.currentSceneIndex = index;
         }
+      });
+
+      API.graphql({
+        query: updatePano,
+        variables: {
+          input: this.panoSource,
+        },
       });
     },
   },
