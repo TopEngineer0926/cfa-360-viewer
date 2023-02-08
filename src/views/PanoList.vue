@@ -15,6 +15,7 @@
     <v-row justify="center" class="my-4">
       <v-col cols="4">
         <v-select
+          v-model = select
           value="All Categories"
           :items="categoryList"
           label="Solo field"
@@ -28,64 +29,81 @@
       v-if="panos && panos.length > 0"
       class="d-flex flex-wrap justify-center"
     >
-      <div v-for="(pano, index) in panosFilter" :key="index">
-        <v-hover v-slot="{ hover }" class="ma-6">
-          <v-card
-            :elevation="hover ? 12 : 2"
-            width="500"
-            height="200"
-            @click="$router.push('/pano/' + pano.id)"
-          >
-            <v-list-item three-line>
-              <v-list-item-content>
-                <div class="overline mb-4">
-                  {{ pano.category ? pano.category : "Category Not Assigned" }}
-                </div>
-                <v-list-item-title class="headline mb-1">
-                  {{ pano.prototypeName }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ pano.prototypeEdition }}</v-list-item-subtitle
+
+    <v-expansion-panels>
+      <v-expansion-panel
+        v-for="(item,i) in expandItems"
+        :key="i"
+        v-if = "select == 'All Categories' || select == item"
+      >
+        <v-expansion-panel-header>
+          {{item}}
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <div style="display : flex;">
+            <div v-for="(pano, index) in panosFilter" :key="index">
+              <v-hover v-slot="{ hover }" class="ma-6">
+                <v-card
+                  :elevation="hover ? 12 : 2"
+                  width="500"
+                  height="200"
+                  @click="$router.push('/pano/' + pano.id)"
+                  v-if = "pano.category == item"
                 >
-                <v-list-item-subtitle>
-                  {{ pano.description }}</v-list-item-subtitle
-                >
-              </v-list-item-content>
+                  <v-list-item three-line>
+                    <v-list-item-content>
+                      <div class="overline mb-4">
+                        {{ pano.category ? pano.category : "Category Not Assigned" }}
+                      </div>
+                      <v-list-item-title class="headline mb-1">
+                        {{ pano.prototypeName }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                        {{ pano.prototypeEdition }}</v-list-item-subtitle
+                      >
+                      <v-list-item-subtitle>
+                        {{ pano.description }}</v-list-item-subtitle
+                      >
+                    </v-list-item-content>
 
-              <v-list-item-avatar tile height="120" width="200" color="grey">
-                <v-img
-                  :src="
-                    pano.thumbnail
-                      ? pano.thumbnailUrl
-                      : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
-                  "
-                >
-                </v-img>
-              </v-list-item-avatar>
-            </v-list-item>
+                    <v-list-item-avatar tile height="120" width="200" color="grey">
+                      <v-img
+                        :src="
+                          pano.thumbnail
+                            ? pano.thumbnailUrl
+                            : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
+                        "
+                      >
+                      </v-img>
+                    </v-list-item-avatar>
+                  </v-list-item>
 
-            <v-card-actions v-if="user.siteAdmin">
-              <v-spacer />
-              <v-btn
-                icon
-                @click.stop="$router.push('/panosetting/' + pano.id)"
-                class="mr-14"
-              >
-                <v-icon>mdi-cog-outline</v-icon>
-              </v-btn>
+                  <v-card-actions v-if="user.siteAdmin">
+                    <v-spacer />
+                    <v-btn
+                      icon
+                      @click.stop="$router.push('/panosetting/' + pano.id)"
+                      class="mr-14"
+                    >
+                      <v-icon>mdi-cog-outline</v-icon>
+                    </v-btn>
 
-              <v-btn icon @click.stop="getTempsharing(pano.id)" class="mr-14"
-                ><v-icon>mdi-share </v-icon>
-              </v-btn>
+                    <v-btn icon @click.stop="getTempsharing(pano.id)" class="mr-14"
+                      ><v-icon>mdi-share </v-icon>
+                    </v-btn>
 
-              <v-btn icon @click.stop="deletePanoConfirm(pano)"
-                ><v-icon>mdi-delete-outline </v-icon>
-              </v-btn>
-              <v-spacer />
-            </v-card-actions>
-          </v-card>
-        </v-hover>
-      </div>
+                    <v-btn icon @click.stop="deletePanoConfirm(pano)"
+                      ><v-icon>mdi-delete-outline </v-icon>
+                    </v-btn>
+                    <v-spacer />
+                  </v-card-actions>
+                </v-card>
+              </v-hover>
+            </div>
+          </div>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
     </div>
     <div v-else-if="panos && panos.length == 0" class="text-center">
       <h3>
@@ -258,9 +276,12 @@ export default {
 
   data: function () {
     return {
+      select : "All Categories",
       panos: null,
       panosFilter: null,
       categoryList: ["All Categories"],
+      expandItems : [],
+      filterItems : [],
       editPano: {
         index: null,
         prototypeEdition: null,
@@ -289,7 +310,7 @@ export default {
       API.graphql(graphqlOperation(listPanos)).then(async (data) => {
         let panosData = data.data.listPanos.items;
         let panosRes = [];
-
+        var arr = [];
         await Promise.all(
           panosData.map(async (pano) => {
             let projectPermission = (
@@ -307,6 +328,7 @@ export default {
                   projectPermission.viewers.includes(this.user.username)))
             ) {
               if (pano.category) {
+                arr.push(pano.category);
                 this.categoryList.push(pano.category);
               }
               if (pano.thumbnail) {
@@ -317,6 +339,8 @@ export default {
               }
               panosRes.push(pano);
             }
+            this.expandItems = [...new Set(arr)];
+            this.expandItems.sort();
           })
         );
 
