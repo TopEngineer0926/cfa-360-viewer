@@ -10,8 +10,7 @@
         "
         color="primary"
         @click="createPanoFunc"
-        >Create</v-btn
-      >
+      >Create</v-btn>
     </v-row>
     <v-row justify="center" class="my-4">
       <v-col cols="4">

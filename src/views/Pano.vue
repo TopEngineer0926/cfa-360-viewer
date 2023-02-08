@@ -445,6 +445,7 @@ import {
   commentsBySpotId,
   editStatusByPano,
   sharingByPassword,
+  sharingByPano,
   getProjectPermission,
 } from "../graphql/queries";
 import {
@@ -501,6 +502,12 @@ export default {
           link: null,
         },
       },
+      sharing: {
+        dialog: false,
+        panoID: null,
+        new: null,
+        list: null,
+      },
       editLayerData: {
         dialog: false,
         layerIndex: null,
@@ -523,8 +530,9 @@ export default {
 
       selectedLayersIndex: [],
       editStatusInterval: null,
-
+      checkStatusInterval : null,
       btnPanel: [],
+      index_Time : null,
     };
   },
 
@@ -663,9 +671,11 @@ export default {
 
   beforeDestroy() {
     clearInterval(this.editStatusInterval);
+    clearInterval(this.checkStatusInterval);
   },
   methods: {
     async initData() {
+
       if (this.canCreateScene || this.canCreateTag) {
         let items = (
           await API.graphql(
@@ -714,6 +724,9 @@ export default {
           }
         });
       }
+
+      this.updateCheckEditStatus();
+      this.updateCheckEditStatusInterval();
     },
     updateEditStatusInterval() {
       this.editStatusInterval = setInterval(() => {
@@ -733,6 +746,38 @@ export default {
         })
       );
     },
+
+    updateCheckEditStatusInterval() {
+      this.checkStatusInterval = setInterval(async () => {
+        if(this.index_Time < 0 || this.index_Time == 0){
+            await this.$store.dispatch("logout");
+            this.$router.push("/");
+          } else {
+            this.index_Time -= 10 * 1000;
+          }
+      }, 1 * 10 * 1000 - 60);
+    },
+
+    updateCheckEditStatus() {
+      this.sharing.panoID = this.$route.params.id;
+      API.graphql({
+        query: sharingByPano,
+        variables: {
+          panoID: this.$route.params.id,
+        },
+      }).then((data) => {
+        this.sharing.list = data.data.sharingByPano.items[0];
+        this.sharing.dialog = true;
+        this.sharing.list.ttl = data.data.sharingByPano.items[0].ttl;
+
+        var ttl_time = new Date(this.sharing.list.ttl * 1000).toLocaleString();
+        var now_time = new Date().toLocaleString();
+        var ttl_date = new Date(ttl_time);
+        var now_date = new Date(now_time);
+        this.index_Time = ttl_date-now_date;
+      });
+    },
+
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {
@@ -1274,6 +1319,7 @@ export default {
   },
   computed: {
     ...mapState(["user", "roleDefinitionTable"]),
+    ...mapState(["userAuth","navbarText"]),
   },
   watch: {
     "editSpotData.dialog": function (val) {
