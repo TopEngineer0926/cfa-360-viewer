@@ -507,6 +507,7 @@ export default {
         panoID: null,
         new: null,
         list: null,
+        password: null,
       },
       editLayerData: {
         dialog: false,
@@ -724,9 +725,13 @@ export default {
           }
         });
       }
-
-      this.updateCheckEditStatus();
-      this.updateCheckEditStatusInterval();
+      if(this.$route.params.password != undefined) {
+        console.log("-------------User------");   
+        this.updateCheckEditStatus();
+        this.updateCheckEditStatusInterval();
+      } else {
+        console.log("-------------Admin------");                     
+      }                          
     },
     updateEditStatusInterval() {
       this.editStatusInterval = setInterval(() => {
@@ -749,32 +754,29 @@ export default {
 
     updateCheckEditStatusInterval() {
       this.checkStatusInterval = setInterval(async () => {
-        if(this.index_Time < 0 || this.index_Time == 0){
+        const cnt_array = new Date().toISOString().substring(0,10).split('-');
+        let cnt_Time = parseInt(cnt_array[0])*10000 + parseInt(cnt_array[1])*100 + parseInt(cnt_array[2]);
+        if(this.index_Time < cnt_Time){
             await this.$store.dispatch("logout");
             this.$router.push("/");
-          } else {
-            this.index_Time -= 10 * 1000;
-          }
-      }, 1 * 10 * 1000 - 60);
+        }
+      }, 1 * 60 * 1000 - 60);
     },
 
     updateCheckEditStatus() {
-      this.sharing.panoID = this.$route.params.id;
+      this.sharing.password = this.$route.params.password;
       API.graphql({
-        query: sharingByPano,
+        query: sharingByPassword,
         variables: {
-          panoID: this.$route.params.id,
+          password: this.$route.params.password,
         },
       }).then((data) => {
         this.sharing.list = data.data.sharingByPano.items[0];
         this.sharing.dialog = true;
         this.sharing.list.ttl = data.data.sharingByPano.items[0].ttl;
 
-        var ttl_time = new Date(this.sharing.list.ttl * 1000).toLocaleString();
-        var now_time = new Date().toLocaleString();
-        var ttl_date = new Date(ttl_time);
-        var now_date = new Date(now_time);
-        this.index_Time = ttl_date-now_date;
+        const ttl_array = this.sharing.list.ttl.split('-')
+        this.index_Time = parseInt(ttl_array[0])*10000 + parseInt(ttl_array[1])*100 + parseInt(ttl_array[2]);
       });
     },
 

@@ -30,7 +30,8 @@
       class="d-flex flex-wrap justify-center"
     >
 
-    <v-expansion-panels>
+    <v-expansion-panels 
+      multiple>
       <v-expansion-panel
         v-for="(item,i) in expandItems"
         :key="i"
@@ -172,50 +173,75 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="600">
+    <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="800">
       <v-card>
-        <v-card-title class="headline"> Temporary sharing Links</v-card-title>
+        <v-card-title class="headline">Temporary sharing Links</v-card-title>
+        <v-row align="center">
+          <v-col cols="8">
+
+          </v-col>
+          <v-col cols="4"> 
+            <v-btn block @click="addTempsharing()">Add a Link</v-btn>
+          </v-col>
+        </v-row>
         <v-card-text>
           <div v-if="sharing.list">
             <div v-for="(sharingitem, index) in sharing.list" :key="index">
               <v-row align="center">
-                <v-col cols="1">
-                  <h3>{{ index + 1 }}</h3>
+                <v-col cols="3">
+                  <v-text-field
+                    label="Link Name"
+                    v-model="linkname"
+                  ></v-text-field>
                 </v-col>
 
-                <v-col>
+                <v-col cols="3">
+                  <v-menu
+                    v-model="menu"
+                    :close-on-content-click="false"
+                    :nudge-right="40"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="linkdate"
+                        label="Picker without buttons"
+                        prepend-icon="mdi-calendar"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      v-model="linkdate"
+                      @input="menu = false"
+                    ></v-date-picker>
+                  </v-menu>
+                </v-col>
+
+                <v-col cols="2">
                   <v-btn
                     text
                     @click="
                       copySharingLink(sharingitem.panoID, sharingitem.password)
                     "
-                    >Copy the Sharing Link</v-btn
+                    >Copy Link</v-btn
                   >
                 </v-col>
 
-                <v-col>
-                  Link Vaild Until
-                  {{ new Date(sharingitem.ttl * 1000).toLocaleString() }}
+                <v-col cols="2">
+                  <v-btn text @click="deleteTempsharing(sharingitem, index)">Delete</v-btn>
                 </v-col>
-                <v-col cols="1">
-                  <v-btn icon @click="deleteTempsharing(sharingitem, index)">
-                    <v-icon>mdi-delete</v-icon></v-btn
-                  >
+
+                <v-col cols="2">
+                  <v-btn text @click="updateTempsharing(sharingitem, index)">Save</v-btn>
                 </v-col>
+
               </v-row>
             </div>
           </div>
-          <h2 class="mt-8">Create a new sharing link</h2>
-          <v-row align="center">
-            <v-col>
-              <v-text-field
-                v-model="sharing.newHours"
-                label="Valid hours from now"
-                type="number"
-              ></v-text-field>
-            </v-col>
-            <v-col> <v-btn block @click="addTempsharing()">Add</v-btn></v-col>
-          </v-row>
 
           <!-- <v-form ref="form" v-model="editPano.editValid" lazy-validation>
             <v-text-field
@@ -255,6 +281,7 @@ import {
   deletePano,
   createTemporarySharing,
   deleteTemporarySharing,
+  updateTemporarySharing,
 } from "../graphql/mutations";
 import {
   listPanos,
@@ -276,6 +303,9 @@ export default {
 
   data: function () {
     return {
+      linkdate: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+      linkname : 'Custom Link',
+      menu: false,
       select : "All Categories",
       panos: null,
       panosFilter: null,
@@ -297,6 +327,7 @@ export default {
         panoID: null,
         new: null,
         list: null,
+        ttl : null,
       },
     };
   },
@@ -533,19 +564,40 @@ export default {
       });
     },
 
-    async addTempsharing() {
+    addTempsharing() {
+      const date = new Date().toISOString().substring(0,10).split('-');
+      this.sharing.ttl = parseInt(date[0])*10000 + parseInt(date[1])*100 + parseInt(date[2]);
       let newSharing = {
         panoID: this.sharing.panoID,
         password: nanoid(),
-        ttl: Math.round(Date.now() / 1000) + this.sharing.newHours * 60 * 60,
+        ttl: this.sharing.ttl,
       };
-      await API.graphql(
+
+      API.graphql(
         graphqlOperation(createTemporarySharing, {
           input: newSharing,
         })
       );
       this.sharing.list.push(newSharing);
       this.sharing.new = null;
+      this.getTempsharing(this.sharing.panoID);
+    },
+
+    updateTempsharing(item, index) {
+      const date = this.linkdate.substring(0,10).split('-');
+      this.sharing.ttl = parseInt(date[0])*10000 + parseInt(date[1])*100 + parseInt(date[2]);
+      let updateSharing = {
+        id : item.id,
+        panoID: item.panoID,
+        password: nanoid(),
+        ttl: this.sharing.ttl,
+      };
+
+      API.graphql(
+        graphqlOperation(updateTemporarySharing, {
+          input: updateSharing,
+        })
+      );
     },
 
     deleteTempsharing(item, index) {
