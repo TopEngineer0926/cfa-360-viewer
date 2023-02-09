@@ -37,7 +37,7 @@
         v-if = "select == 'All Categories' || select == item"
       >
         <v-expansion-panel-header>
-          {{item}}
+          Prototype Edition:{{item}}   (Total : {{filterByCategory1(item)}})
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <div style="display : flex;">
@@ -369,7 +369,16 @@ export default {
         );
       }
     },
-
+    filterByCategory1(category) {
+      if (category === "All Categories") {
+        this.filterItems = this.panos;
+      } else {
+        this.filterItems = this.panos.filter(
+          (pano) => pano.category == category
+        );
+      }
+      return this.filterItems.length;
+    },
     async createPanoFunc() {
       try {
         let newPanoId = await API.graphql(
