@@ -37,7 +37,7 @@
         v-if = "select == 'All Categories' || select == item"
       >
         <v-expansion-panel-header>
-          Prototype Edition:{{item}}   (Total : {{filterByCategory1(item)}})
+          Template Release:{{item}}   (Total : {{filterByCategory1(item)}})
         </v-expansion-panel-header>
         <v-expansion-panel-content>
           <div style="display : flex;">
@@ -137,7 +137,7 @@
             ></v-text-field>
             <v-text-field
               v-model="editPano.prototypeEdition"
-              label="Prototype Edition"
+              label="Template Release"
             ></v-text-field>
             <v-text-field
               v-model="editPano.description"

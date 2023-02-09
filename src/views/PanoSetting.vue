@@ -27,8 +27,8 @@
         <v-text-field
           v-model="panoSource.prototypeEdition"
           require
-          :rules="[(v) => !!v || 'Prototype Edition is required']"
-          label="Prototype Edition"
+          :rules="[(v) => !!v || 'Template Release is required']"
+          label="Template Release"
           @change="savePano"
         ></v-text-field>
         <v-text-field
@@ -70,7 +70,7 @@
                 <v-list-item-title>{{ scene.title }}</v-list-item-title>
               </v-list-item-content>
             </template>
-            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex">
+            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex" style = "margin-left: 25px;">
               <v-list-item
                 link
                 @click="loadSpot(sceneIndex, spotIndex)"

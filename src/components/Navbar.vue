@@ -14,7 +14,7 @@
       </v-col>
 
       <v-col cols="auto">
-        Prototype Edition:
+        Template Release:
         {{ navbarText.prototypeEdition }}
       </v-col>
 
