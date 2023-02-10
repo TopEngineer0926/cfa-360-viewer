@@ -31,6 +31,7 @@
               text
               v-bind="attrs"
               v-on="on"
+              v-show="false"
               @click="getIndexDesignInventory()"
             >
               Related Projects
