@@ -27,8 +27,9 @@
                 text
                 @click.stop="addLayer()"
                 class="ma-1"
-                >add layer</v-btn
               >
+                add layer
+              </v-btn>
 
               <v-btn
                 v-if="isEditable && canCreateTag"
@@ -98,7 +99,22 @@
                     center-active
                     show-arrows
                   >
-                    <draggable v-model="panoSource.sceneArr" @change="dragFinish">
+                    <div v-if="isEditable">
+                      <draggable v-model="panoSource.sceneArr" @change="dragFinish">
+                        <v-chip
+                          v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                          :key="sceneIndex"
+                          active-class="primary"
+                          @click="loadScene(scene.id)"
+                          :close="isEditable"
+                          close-icon="mdi-pencil-outline"
+                          @click:close="initEditScene(scene.id)"
+                        >
+                          {{ scene.title }}
+                        </v-chip>
+                      </draggable>
+                    </div >
+                    <div v-else>
                       <v-chip
                         v-for="(scene, sceneIndex) in panoSource.sceneArr"
                         :key="sceneIndex"
@@ -110,9 +126,9 @@
                       >
                         {{ scene.title }}
                       </v-chip>
-                    </draggable>
-                  </v-chip-group></v-col
-                >
+                    </div>
+                  </v-chip-group>
+                </v-col>
               </v-row>
             </v-expansion-panel-content>
           </v-expansion-panel>
