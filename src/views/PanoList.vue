@@ -176,13 +176,10 @@
     <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="800">
       <v-card>
         <v-card-title class="headline">Temporary sharing Links</v-card-title>
-        <v-row align="center">
-          <v-col cols="8">
-
-          </v-col>
-          <v-col cols="4"> 
+        <v-row align="center" no-gutters style="justify-content: flex-end">
+          <div style="margin-right: 50px"> 
             <v-btn block @click="addTempsharing()">Add a Link</v-btn>
-          </v-col>
+          </div>
         </v-row>
         <v-card-text>
           <div v-if="sharing.list">
@@ -263,9 +260,15 @@
         <v-card-actions>
           <v-spacer></v-spacer>
 
-          <v-btn color="grey" text @click="sharing.dialog = false">
-            Close
-          </v-btn>
+        <v-row align="center" no-gutters style="justify-content: flex-end">
+          <v-col cols="8">
+          </v-col>
+          <v-col cols="3">
+            <v-btn color="grey" text @click="sharing.dialog = false">
+              Close
+            </v-btn>
+          </v-col>
+        </v-row>
         </v-card-actions>
       </v-card>
     </v-dialog>
