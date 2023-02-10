@@ -538,30 +538,35 @@ export default {
   },
 
   created() {
-    if (this.$route.params.password) {
-      //Check if Guest User
-      API.graphql(
-        graphqlOperation(sharingByPassword, {
-          password: this.$route.params.password,
-        })
-      ).then((data) => {
-        let sharingData = data.data.sharingByPassword.items;
-        if (
-          sharingData.length > 0 &&
-          sharingData[0].panoID == this.$route.params.id &&
-          new Date() < new Date(sharingData[0].ttl * 1000)
-        ) {
-          this.$root.$dialogLoader.showSnackbar(
-            "Guest Access. Valid until " +
-              new Date(sharingData[0].ttl * 1000).toLocaleString()
-          );
-          this.isGuest = true;
-          this.initData();
-        } else {
-          this.$root.$dialogLoader.showSnackbar("Not authorized");
-          this.$router.push({ path: "/" });
-        }
-      });
+    if (this.user.email == "360TempSharing@360TempSharing.com") {
+      //Guest User
+
+      if (this.$route.params.password) {
+        API.graphql(
+          graphqlOperation(sharingByPassword, {
+            password: this.$route.params.password,
+          })
+        ).then((data) => {
+          let sharingData = data.data.sharingByPassword.items;
+
+          if (
+            sharingData.length > 0 &&
+            sharingData[0].panoID == this.$route.params.id && sharingData[0].ttl > new Date().getTime()
+          ) {
+            this.index_Time = sharingData[0].ttl;
+            this.updateCheckEditStatusInterval();
+            this.isGuest = true;
+            this.initData();
+          } else {
+            this.$root.$dialogLoader.showSnackbar("Not authorized");
+            this.$router.push({ path: "/" });
+            this.$store.dispatch("logout");
+          }
+        });
+      } else {
+        //Unauth
+        this.$root.$dialogLoader.showSnackbar("Not authorized");
+      }
     } else {
       //login user
       API.graphql(
@@ -696,7 +701,6 @@ export default {
 
           this.$root.$dialogLoader.showSnackbar(items[0].name + " is editing.");
         } else {
-          // console.log("You are editing.");
           this.isEditable = true;
           this.updateEditStatus();
           this.updateEditStatusInterval();
@@ -724,14 +728,7 @@ export default {
             this.$router.push({ path: "/panolist" });
           }
         });
-      }
-      if(this.$route.params.password != undefined) {
-        console.log("-------------User------");   
-        this.updateCheckEditStatus();
-        this.updateCheckEditStatusInterval();
-      } else {
-        console.log("-------------Admin------");                     
-      }                          
+      }                       
     },
     updateEditStatusInterval() {
       this.editStatusInterval = setInterval(() => {
@@ -754,32 +751,12 @@ export default {
 
     updateCheckEditStatusInterval() {
       this.checkStatusInterval = setInterval(async () => {
-        const cnt_array = new Date().toISOString().substring(0,10).split('-');
-        let cnt_Time = parseInt(cnt_array[0])*10000 + parseInt(cnt_array[1])*100 + parseInt(cnt_array[2]);
-        if(this.index_Time < cnt_Time){
+        if(this.index_Time < new Date().getTime()){
             await this.$store.dispatch("logout");
             this.$router.push("/");
         }
       }, 1 * 60 * 1000 - 60);
     },
-
-    updateCheckEditStatus() {
-      this.sharing.password = this.$route.params.password;
-      API.graphql({
-        query: sharingByPassword,
-        variables: {
-          password: this.$route.params.password,
-        },
-      }).then((data) => {
-        this.sharing.list = data.data.sharingByPano.items[0];
-        this.sharing.dialog = true;
-        this.sharing.list.ttl = data.data.sharingByPano.items[0].ttl;
-
-        const ttl_array = this.sharing.list.ttl.split('-')
-        this.index_Time = parseInt(ttl_array[0])*10000 + parseInt(ttl_array[1])*100 + parseInt(ttl_array[2]);
-      });
-    },
-
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {
@@ -1122,7 +1099,6 @@ export default {
     },
 
     savePano() {
-      console.log("save", this.panoSource);
       API.graphql({
         query: updatePano,
         variables: {
