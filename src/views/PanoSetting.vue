@@ -70,7 +70,7 @@
                 <v-list-item-title>{{ scene.title }}</v-list-item-title>
               </v-list-item-content>
             </template>
-            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex" style = "margin-left: 25px;">
+            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex" style = "margin-left: 32px;">
               <v-list-item
                 link
                 @click="loadSpot(sceneIndex, spotIndex)"
