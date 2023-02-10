@@ -405,14 +405,10 @@ export default {
       }
     },
     filterByCategory1(category) {
-      if (category === "All Categories") {
-        this.filterItems = this.panos;
-      } else {
-        this.filterItems = this.panos.filter(
+      let array = this.panos.filter(
           (pano) => pano.category == category
         );
-      }
-      return this.filterItems.length;
+      return array.length;
     },
     async createPanoFunc() {
       try {
