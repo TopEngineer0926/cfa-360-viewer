@@ -188,7 +188,7 @@
                 <v-col cols="3">
                   <v-text-field
                     label="Link Name"
-                    v-model="linkname"
+                    v-model="linknameArray[index]"
                   ></v-text-field>
                 </v-col>
 
@@ -224,7 +224,7 @@
                   <v-btn
                     text
                     @click="
-                      copySharingLink(sharingitem.panoID, sharingitem.password)
+                      copySharingLink(sharingitem.panoID,sharingitem.linkname,sharingitem.password)
                     "
                     >Copy Link</v-btn>
                 </v-col>
@@ -308,7 +308,7 @@ export default {
   data: function () {
     return {
       linkdate: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
-      linkname : 'Custom Link',
+      linknameArray : [],
       linkdateArray : [],
       menuArray : [],
       menu: false,
@@ -562,6 +562,7 @@ export default {
     getTempsharing(panoID) {
       this.linkdateArray.splice(0,this.linkdateArray.length);
       this.menuArray.splice(0,this.menuArray.length);
+      this.linknameArray.splice(0,this.linknameArray.length);
       this.sharing.panoID = panoID;
       API.graphql({
         query: sharingByPano,
@@ -570,10 +571,11 @@ export default {
         },
       }).then((data) => {
         this.sharing.list = data.data.sharingByPano.items;
-        for (let i=0; i<this.sharing.list.length;i++){
+        for (let i=0; i<this.sharing.list.length; i++){
           let ttl_time = this.changeSetTime(this.sharing.list[i].ttl);
           this.sharing.list[i].ttl = ttl_time;
           this.linkdateArray[i] = ttl_time;
+          this.linknameArray[i] = this.sharing.list[i].linkname;
         }
         
         this.sharing.dialog = true;
@@ -584,10 +586,12 @@ export default {
       const date = new Date().getTime();
       this.linkdate = new Date().toISOString().split("T")[0];
       this.linkdateArray.push(this.link);
+      let linkname = "Link"+nanoid();
       let newSharing = {
         panoID: this.sharing.panoID,
         password: nanoid(),
         ttl: date,
+        linkname : linkname,
       };
 
       API.graphql(
@@ -599,6 +603,7 @@ export default {
         panoID: this.sharing.panoID,
         password: nanoid(),
         ttl: this.linkdate,
+        linkname : linkname,
       }
       this.getTempsharing(this.sharing.panoID);
       this.sharing.new = null;
@@ -611,6 +616,7 @@ export default {
         panoID: item.panoID,
         password: nanoid(),
         ttl: date,
+        linkname : this.linknameArray[index],
       };
       API.graphql(
         graphqlOperation(updateTemporarySharing, {
@@ -622,6 +628,7 @@ export default {
         panoID: this.sharing.panoID,
         password: nanoid(),
         ttl: this.linkdateArray[index],
+        linkname : this.linknameArray[index],
       }
       this.sharing.list[index] = modifyItem;
     },
@@ -636,12 +643,12 @@ export default {
       this.sharing.list.splice(index, 1);
     },
 
-    copySharingLink(panoID, password) {
-      let base = window.location.href.replace("panolist", "pano");
+    copySharingLink(panoID,linkname,password) {
+      let base = window.location.href.replace("panolist","sharing");
       this.$root.$dialogLoader.start(
         "Link Copied to the clipboard",
         {},
-        navigator.clipboard.writeText(base + "/" + panoID + "/" + password),
+        navigator.clipboard.writeText(base + "/" + linkname),
         true
       );
     },

@@ -460,7 +460,7 @@ import {
   getPano,
   commentsBySpotId,
   editStatusByPano,
-  sharingByPassword,
+  sharingByLinkname,
   sharingByPano,
   getProjectPermission,
 } from "../graphql/queries";
@@ -550,24 +550,22 @@ export default {
       checkStatusInterval : null,
       btnPanel: [],
       index_Time : null,
+      customID : null,
     };
   },
 
   created() {
-    if (this.user.email == "360TempSharing@360TempSharing.com") {
+    if (this.$route.params.linkname.includes("Link") == true) {
       //Guest User
-
-      if (this.$route.params.password) {
+    
         API.graphql(
-          graphqlOperation(sharingByPassword, {
-            password: this.$route.params.password,
-          })
+          graphqlOperation(sharingByLinkname, {linkname: this.$route.params.linkname,})
         ).then((data) => {
-          let sharingData = data.data.sharingByPassword.items;
-
+          let sharingData = data.data.sharingByLinkname.items;
+          this.customID = sharingData[0].panoID;
           if (
             sharingData.length > 0 &&
-            sharingData[0].panoID == this.$route.params.id && sharingData[0].ttl > new Date().getTime()
+            sharingData[0].linkname == this.$route.params.linkname && sharingData[0].ttl > new Date().getTime()
           ) {
             this.index_Time = sharingData[0].ttl;
             this.updateCheckEditStatusInterval();
@@ -579,12 +577,9 @@ export default {
             this.$store.dispatch("logout");
           }
         });
-      } else {
-        //Unauth
-        this.$root.$dialogLoader.showSnackbar("Not authorized");
-      }
     } else {
       //login user
+      this.customID = this.$route.params.id;
       API.graphql(
         graphqlOperation(getProjectPermission, { id: this.$route.params.id })
       ).then((res) => {
@@ -725,7 +720,7 @@ export default {
 
       if (this.isGuest || this.canReadContent) {
         API.graphql(
-          graphqlOperation(getPano, { id: this.$route.params.id })
+          graphqlOperation(getPano, { id: this.customID })
         ).then((data) => {
           this.panoSource = data.data.getPano;
           this.$store.commit("SET_NAVBAR_TEXT", {

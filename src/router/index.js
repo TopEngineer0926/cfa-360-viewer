@@ -20,25 +20,31 @@ const routes = [
     path: "/panolist",
     name: "PanoList",
     component: PanoList,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: "/pano/:id/:password?",
     name: "Pano",
-    component: () => import('../views/Pano.vue'),
-    meta: { requiresAuth: true, tempLogin: true }
+    component: () => import("../views/Pano.vue"),
+    meta: { requiresAuth: true, tempLogin: true },
+  },
+  {
+    path: "/sharing/:linkname",
+    name: "Pano",
+    component: () => import("../views/Pano.vue"),
+    meta: { requiresAuth: false, tempLogin: false },
   },
   {
     path: "/panosetting/:id",
     name: "PanoSetting",
-    component: () => import('../views/PanoSetting.vue'),
-    meta: { requiresAuth: true }
+    component: () => import("../views/PanoSetting.vue"),
+    meta: { requiresAuth: true },
   },
   {
     path: "/admin",
     name: "Admin",
-    component: () => import('../views/Admin.vue'),
-    meta: { requiresAuth: true }
+    component: () => import("../views/Admin.vue"),
+    meta: { requiresAuth: true },
   },
 ];
 

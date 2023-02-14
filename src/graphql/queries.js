@@ -218,8 +218,8 @@ export const listSiteSettings = /* GraphQL */ `
     }
   }
 `;
-export const commentsBySpotId = /* GraphQL */ `
-  query CommentsBySpotId(
+export const commentsBySpotID = /* GraphQL */ `
+  query CommentsBySpotID(
     $spotID: ID
     $updatedAt: ModelStringKeyConditionInput
     $sortDirection: ModelSortDirection
@@ -320,6 +320,7 @@ export const getTemporarySharing = /* GraphQL */ `
       id
       panoID
       owner
+      linkname
       password
       ttl
       createdAt
@@ -342,6 +343,7 @@ export const listTemporarySharings = /* GraphQL */ `
         id
         panoID
         owner
+        linkname
         password
         ttl
         createdAt
@@ -372,6 +374,7 @@ export const sharingByPano = /* GraphQL */ `
         id
         panoID
         owner
+        linkname
         password
         ttl
         createdAt
@@ -400,6 +403,36 @@ export const sharingByPassword = /* GraphQL */ `
         id
         panoID
         owner
+        linkname
+        password
+        ttl
+        createdAt
+        updatedAt
+      }
+      nextToken
+    }
+  }
+`;
+export const sharingByLinkname = /* GraphQL */ `
+  query SharingByLinkname(
+    $linkname: String
+    $sortDirection: ModelSortDirection
+    $filter: ModelTemporarySharingFilterInput
+    $limit: Int
+    $nextToken: String
+  ) {
+    sharingByLinkname(
+      linkname: $linkname
+      sortDirection: $sortDirection
+      filter: $filter
+      limit: $limit
+      nextToken: $nextToken
+    ) {
+      items {
+        id
+        panoID
+        owner
+        linkname
         password
         ttl
         createdAt
