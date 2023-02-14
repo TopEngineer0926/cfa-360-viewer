@@ -194,7 +194,7 @@
 
                 <v-col cols="3">
                   <v-menu
-                    v-model="menu"
+                    v-model="menuArray[index]"
                     :close-on-content-click="false"
                     :nudge-right="40"
                     transition="scale-transition"
@@ -203,7 +203,7 @@
                   >
                     <template v-slot:activator="{ on, attrs }">
                       <v-text-field
-                        v-model="linkdate"
+                        v-model="linkdateArray[index]"
                         value = "sharingitem.ttl"
                         label="Picker without buttons"
                         prepend-icon="mdi-calendar"
@@ -213,7 +213,7 @@
                       ></v-text-field>
                     </template>
                     <v-date-picker
-                      v-model="linkdate"
+                      v-model="linkdateArray[index]"
                       value = "sharingitem.ttl"
                       @input="menu = false"
                     ></v-date-picker>
@@ -309,6 +309,8 @@ export default {
     return {
       linkdate: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
       linkname : 'Custom Link',
+      linkdateArray : [],
+      menuArray : [],
       menu: false,
       select : "All Categories",
       panos: null,
@@ -558,6 +560,8 @@ export default {
       return date;
     },
     getTempsharing(panoID) {
+      this.linkdateArray.splice(0,this.linkdateArray.length);
+      this.menuArray.splice(0,this.menuArray.length);
       this.sharing.panoID = panoID;
       API.graphql({
         query: sharingByPano,
@@ -569,6 +573,7 @@ export default {
         for (let i=0; i<this.sharing.list.length;i++){
           let ttl_time = this.changeSetTime(this.sharing.list[i].ttl);
           this.sharing.list[i].ttl = ttl_time;
+          this.linkdateArray[i] = ttl_time;
         }
         
         this.sharing.dialog = true;
@@ -578,7 +583,7 @@ export default {
     addTempsharing() {
       const date = new Date().getTime();
       this.linkdate = new Date().toISOString().split("T")[0];
-      let linkdate = new Date().toISOString().split("T")[0];
+      this.linkdateArray.push(this.link);
       let newSharing = {
         panoID: this.sharing.panoID,
         password: nanoid(),
@@ -590,18 +595,17 @@ export default {
           input: newSharing,
         })
       );
-      
       let newItem = {
         panoID: this.sharing.panoID,
         password: nanoid(),
-        ttl: linkdate,
+        ttl: this.linkdate,
       }
       this.getTempsharing(this.sharing.panoID);
       this.sharing.new = null;
     },
 
     updateTempsharing(item, index) {
-      const date = new Date(this.linkdate).getTime();
+      const date = new Date(this.linkdateArray[index]).getTime();
       let updateSharing = {
         id : item.id,
         panoID: item.panoID,
@@ -617,7 +621,7 @@ export default {
         id : item.id,
         panoID: this.sharing.panoID,
         password: nanoid(),
-        ttl: this.linkdate,
+        ttl: this.linkdateArray[index],
       }
       this.sharing.list[index] = modifyItem;
     },
