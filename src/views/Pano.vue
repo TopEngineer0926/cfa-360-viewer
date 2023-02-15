@@ -551,6 +551,7 @@ export default {
       btnPanel: [],
       index_Time : null,
       customID : null,
+      custonUsername : null,
     };
   },
 
@@ -563,6 +564,7 @@ export default {
         ).then((data) => {
           let sharingData = data.data.sharingByLinkname.items;
           this.customID = sharingData[0].panoID;
+          this.custonUsername = this.$route.params.linkname;
           if (
             sharingData.length > 0 &&
             sharingData[0].linkname == this.$route.params.linkname && sharingData[0].ttl > new Date().getTime()
@@ -762,11 +764,18 @@ export default {
 
     updateCheckEditStatusInterval() {
       this.checkStatusInterval = setInterval(async () => {
+        API.graphql(
+          graphqlOperation(sharingByLinkname, {linkname: this.custonUsername,})
+        ).then((data) => {
+          let sharingData = data.data.sharingByLinkname.items;
+          this.index_Time = sharingData[0].ttl;
+        });
         if(this.index_Time < new Date().getTime()){
-            await this.$store.dispatch("logout");
-            this.$router.push("/");
+            this.$root.$dialogLoader.showSnackbar("Time out");
+            this.$router.push({ path: "/" });
+            this.$store.dispatch("logout");
         }
-      }, 1 * 60 * 1000 - 60);
+      }, 1* 5 * 1000 - 60);
     },
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
