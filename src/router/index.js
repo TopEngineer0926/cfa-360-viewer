@@ -32,7 +32,7 @@ const routes = [
     path: "/sharing/:linkname",
     name: "Pano",
     component: () => import("../views/Pano.vue"),
-    meta: { requiresAuth: false, tempLogin: false },
+    meta: { requiresAuth: true, tempLogin: true },
   },
   {
     path: "/panosetting/:id",
