@@ -189,6 +189,7 @@
                   <v-text-field
                     label="Link Name"
                     v-model="linknameArray[index]"
+                    disabled
                   ></v-text-field>
                 </v-col>
 
@@ -605,8 +606,8 @@ export default {
         ttl: this.linkdate,
         linkname : linkname,
       }
-      this.getTempsharing(this.sharing.panoID);
       this.sharing.new = null;
+      this.getTempsharing(this.sharing.panoID);
     },
 
     updateTempsharing(item, index) {
