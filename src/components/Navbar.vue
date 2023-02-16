@@ -113,6 +113,7 @@ export default {
         { text: "City", value: "cfaCity" },
         { text: "County", value: "cfaCounty" },
       ],
+      hide : false,
     };
   },
   methods: {

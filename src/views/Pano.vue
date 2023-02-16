@@ -14,6 +14,15 @@
             <v-expansion-panel-header>
               <v-btn
                 v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
+                @click.stop="initEditPlan(null)"
+                class="ma-1"
+                small
+                text
+              >
+                Add Plan
+              </v-btn>
+              <v-btn
+                v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
                 @click.stop="initEditScene(null)"
                 class="ma-1"
                 small
@@ -22,7 +31,7 @@
                 Add Scene
               </v-btn>
               <v-btn
-                v-if="isEditable && canCreateTag"
+                v-if="isEditable && canCreateTag && isShow == false"
                 small
                 text
                 @click.stop="addLayer()"
@@ -40,7 +49,6 @@
               >
                 Add Tag
               </v-btn>
-
               <v-btn
                 v-if="isEditable || canCreateTag || canCreateScene"
                 small
@@ -54,7 +62,6 @@
               </v-btn>
 
               <v-btn small text class="ma-1">
-                Layers & Scenes
                 <v-icon v-if="btnPanel == 0" class="ml-1">
                   mdi-arrow-expand-down</v-icon
                 >
@@ -62,72 +69,74 @@
               </v-btn>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
-              <v-row
-                v-if="panoSource.layers && panoSource.layers.length > 0"
-                justify="center"
-                align="center"
-                class="ma-0 pa-0"
-              >
-                <v-col cols="1" class="ma-0 pa-0"> Layers </v-col>
-                <v-col cols="10" class="ma-0 pa-0">
-                  <v-chip-group
-                    multiple
-                    show-arrows
-                    center-active
-                    v-model="selectedLayersIndex"
-                    @change="loadLayers()"
-                  >
-                    <v-chip
-                      v-for="(layer, layerIndex) in panoSource.layers"
-                      :key="layerIndex"
-                      active-class="primary"
-                      :close="isEditable"
-                      close-icon="mdi-pencil-outline"
-                      @click:close="initEditLayer(layerIndex)"
-                    >
-                      {{ layer.name }}
-                    </v-chip>
-                  </v-chip-group>
+              <v-row class="ma-0 pa-0">
+                <v-col cols="2" class="ma-0 pa-0">
+                  <v-row style="width:100%">
+                    <v-col cols="12" class="main-plan">
+                      <v-img
+                        v-bind:src="planView.img"
+                        class="rounded-10 plan-view"
+                        height="135"
+                        @click="loadPlan()"
+                      ></v-img>
+                    </v-col>
+                  </v-row>
                 </v-col>
-              </v-row>
-              <v-row justify="center" align="center" class="ma-0 pa-0">
-                <v-col cols="1" class="ma-0 pa-0"> Scenes </v-col>
                 <v-col cols="10" class="ma-0 pa-0">
-                  <v-chip-group
-                    mandatory
-                    v-model="currentSceneIndex"
-                    center-active
-                    show-arrows
-                  >
-                    <div v-if="isEditable">
-                      <draggable v-model="panoSource.sceneArr" @change="dragFinish">
-                        <v-chip
-                          v-for="(scene, sceneIndex) in panoSource.sceneArr"
-                          :key="sceneIndex"
-                          active-class="primary"
-                          @click="loadScene(scene.id)"
-                          :close="isEditable"
-                          close-icon="mdi-pencil-outline"
-                          @click:close="initEditScene(scene.id)"
-                        >
-                          {{ scene.title }}
-                        </v-chip>
-                      </draggable>
-                    </div >
-                    <div v-else>
-                      <v-chip
-                        v-for="(scene, sceneIndex) in panoSource.sceneArr"
-                        :key="sceneIndex"
-                        active-class="primary"
-                        @click="loadScene(scene.id)"
-                        :close="isEditable"
-                        close-icon="mdi-pencil-outline"
-                        @click:close="initEditScene(scene.id)"
-                      >
-                        {{ scene.title }}
-                      </v-chip>
-                    </div>
-                  </v-chip-group>
+                  <v-row justify="center" align="center" class="ma-0 pa-0">
+                    <v-col cols="12" class="ma-0 pa-0">
+                      <div v-if="isEditable">
+                          <v-sheet
+                            class="mx-auto bg-transparent"
+                            elevation="8"
+                            max-width="100%"
+                            style="box-shadow:none !important"
+                          >
+                            <v-slide-group
+                              v-model="panoSource.sceneArr"
+                              show-arrows
+                              center-active
+                            >
+                              <draggable :list="panoSource.sceneArr" class="flex" @change="changePosition($event)">
+                                <v-card
+                                  v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                                  :key="sceneIndex"
+                                  active-class="primary"
+                                  class="plan-thumbnail"
+                                  v-if="sceneIndex > 0"
+                                >
+                                  <v-img :src="scene.thumbnail" alt="" class="rounded-10" width="100" height="100" @click.stop="changeSceneIndex(sceneIndex);loadScene(scene.id);"></v-img>
+                                  <v-btn class="btn-edit" @click.stop="changeSceneIndex(sceneIndex);initEditScene(scene.id)">Edit</v-btn>
+                                </v-card>
+                              </draggable>
+                            </v-slide-group>
+                          </v-sheet>
+                      </div >
+                      <div v-else>
+                        <v-sheet
+                            class="mx-auto bg-transparent"
+                            elevation="2"
+                            style="box-shadow:none !important"
+                          >
+                            <v-slide-group
+                              v-model="currentSceneIndex"
+                              show-arrows
+                              style="margin-top:12px"
+                            >
+                            <div
+                              v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                              :key="sceneIndex"
+                              active-class="primary"
+                              class="plan-thumbnail"
+                              v-if="sceneIndex > 0"
+                            >
+                            <v-img :src="scene.thumbnail" alt="" class="rounded-10" width="100" height="100" @click.stop="loadScene(scene.id);"></v-img>
+                            </div>
+                          </v-slide-group>
+                        </v-sheet>
+                      </div>
+                    </v-col>
+                  </v-row>
                 </v-col>
               </v-row>
             </v-expansion-panel-content>
@@ -482,7 +491,7 @@ export default {
       isProjectAdmin: null,
       isProjectEditor: null,
       isProjectViewer: null,
-
+      isShow : true,
       canCreateScene: null,
       canCreateTag: null,
       canTagComment: null,
@@ -502,6 +511,10 @@ export default {
         sceneIndex: null,
         title: null,
         imgToUpload: null,
+      },
+      planView:{
+        id: null,
+        img: null
       },
       editSpotData: {
         dialog: false,
@@ -550,13 +563,15 @@ export default {
       checkStatusInterval : null,
       btnPanel: [],
       index_Time : null,
+      isPlanView : false,
       customID : null,
       custonUsername : null,
+      plan_thumbnail: null,
     };
   },
 
   created() {
-    if (this.$route.params.linkname.includes("Link") == true) {
+    if (this.$route.path.includes("sharing") == true) {
       //Guest User
     
         API.graphql(
@@ -784,13 +799,21 @@ export default {
           scenes: {},
         };
         await Promise.all(
-          this.panoSource.sceneArr.map(async (scene) => {
+          this.panoSource.sceneArr.map(async (scene, key) => {
             this.pano.scenes[scene.id] = {};
             this.pano.scenes[scene.id].title = scene.title;
-            this.pano.scenes[scene.id].panorama = await Storage.get(
+            let thumb = await Storage.get(
               this.panoSource.id + "/" + scene.img,
               { expires: 432000 }
             );
+
+            this.pano.scenes[scene.id].panorama = thumb;
+            scene.thumbnail = thumb;
+
+            if(key == 0){
+              this.planView.id = scene.id;
+              this.planView.img = thumb;
+            }
           })
         );
 
@@ -798,26 +821,37 @@ export default {
         this.pano.default = {
           firstScene: this.panoSource.sceneArr[0].id,
           autoLoad: true,
+          draggable : true,
+          pitch: 0,
+          "min-pitch": -180,
+          "max-pitch": 180,
+          "min-yaw": -180,
+          "max-yaw": 180,
+          yaw: 20,
         };
 
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
         this.selectedLayersIndex = Array.from(
           Array(this.panoSource.layers.length).keys()
         );
-        this.loadLayers();
+        //this.loadLayers();
       }
     },
 
     loadScene(sceneID) {
+      this.viewer = window.pannellum.viewer(this.$el, this.pano);
       this.viewer.loadScene(sceneID);
       let checkLoad = (viewer) => {
         if (viewer.isLoaded()) {
-          this.loadLayers();
+          // this.loadLayers();
         } else {
           setTimeout(checkLoad, 500, viewer); // setTimeout(func, timeMS, params...)
         }
       };
       checkLoad(this.viewer);
+    },
+    changeSceneIndex(index){
+      this.currentSceneIndex = index;
     },
     initEditLayer(layerIndex) {
       this.editLayerData.layerIndex = layerIndex;
@@ -846,6 +880,9 @@ export default {
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
     },
+    deletePlan() {
+
+    },
     deleteScene() {
       Storage.remove(
         this.panoSource.id +
@@ -863,6 +900,7 @@ export default {
         this.$router.push({ path: "/panolist" });
       }
     },
+
     async saveScene() {
       if (this.$refs.editimgform.validate()) {
         let sceneID = this.editSceneData.sceneID
@@ -907,13 +945,17 @@ export default {
                 this.panoSource.sceneArr[sceneIndex].img
             );
             this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
+
+            let url = await Storage.get(s3link);
+            this.panoSource.sceneArr[sceneIndex].thumbnail = url;
             //edit scene panorama
-            this.pano.scenes[sceneID].panorama = await Storage.get(s3link);
+            this.pano.scenes[sceneID].panorama = url;
             if (this.currentSceneIndex == sceneIndex) {
               this.loadScene(sceneID);
             }
           }
         } else {
+          let panorama_url = await Storage.get(s3link);
           if (!this.pano) {
             // first scene
             this.pano = {
@@ -921,7 +963,7 @@ export default {
               scenes: {
                 [sceneID]: {
                   title: this.editSceneData.title,
-                  panorama: await Storage.get(s3link),
+                  panorama: panorama_url,
                 },
               },
             };
@@ -930,7 +972,7 @@ export default {
             //add scene
             this.viewer.addScene(sceneID, {
               title: this.editSceneData.title,
-              panorama: await Storage.get(s3link),
+              panorama: panorama_url,
             });
           }
           //add sceneArr
@@ -938,6 +980,7 @@ export default {
             this.panoSource.sceneArr = [];
           }
           this.panoSource.sceneArr.push({
+            thumbnail: panorama_url,
             id: sceneID,
             title: this.editSceneData.title,
             img: s3link.split("/")[1],
@@ -1111,23 +1154,30 @@ export default {
           );
         }
 
-        this.loadLayers();
+        // this.loadLayers();
         this.editSpotData.dialog = false;
-
         this.savePano();
       }
     },
 
     savePano() {
+      let saveTopano = JSON.parse(JSON.stringify(this.panoSource));
+      saveTopano.sceneArr.map((scene, key) => {
+        if(key == 0){
+          this.planView.id = scene.id;
+          this.planView.img = scene.thumbnail;
+        }
+        delete scene.thumbnail;
+      })
+
       API.graphql({
         query: updatePano,
         variables: {
-          input: this.panoSource,
+          input: saveTopano,
         },
       });
       // this.$router.go();
     },
-
     showSpot(spot) {
       let addSpot = JSON.parse(JSON.stringify(spot));
       if (this.isEditable) {
@@ -1212,6 +1262,27 @@ export default {
             }
           }
         );
+      }
+    },
+    loadPlan() {
+      this.isPlanView = true;
+      this.viewer = pannellum.viewer(this.$el, {
+        "type": "equirectangular",
+        "draggable" : false,
+        "panorama": this.planView.img,
+        "pitch": 0,
+        "min-pitch": 0,
+        "max-pitch": 0,
+        "min-yaw": 0,
+        "max-yaw": 0,
+        "yaw": 0,
+        "hfov": 200,
+    });
+      // this.viewer = this.planView.img;
+    },
+    changePosition(e){
+      if(e.moved){
+        this.savePano();
       }
     },
     async addNewContent() {
@@ -1409,6 +1480,52 @@ export default {
 */
 .pnlm-panorama-info {
   display: none !important;
+}
+.rounded-10{
+  border-radius: 5px;
+  border: 2px solid white;
+}
+.bg-transparent{
+  background:transparent !important;
+  border-radius: 10px;
+}
+.plan-thumbnail{
+  padding: 5px;
+  border: 2px solid white;
+  border-radius: 10px;
+  margin: 5px;
+  background:transparent !important;
+}
+.plan-view{
+  height: 120px;
+  border: 2px solid #ffffff;
+  border-radius: 10px;
+  margin: 3px;
+  cursor: grab;
+}
+.btn-edit{
+  height: 20px !important;
+  width: 68px;
+  margin-top: 6px;
+  background-color: white!important;
+  border: 2px solid white;
+}
+.btn-plan-edit{
+  height: 25px !important;
+  width: calc(100% - 38px);
+  margin: 3px;
+  border-radius: 8px;
+  background-color: white !important;
+}
+.main-plan{
+  border: 2px solid white;
+  border-radius: 10px;
+  padding: 0px;
+  margin-top: 17px;
+  height: 100%;
+}
+.flex{
+  display: flex;
 }
 </style>
 
