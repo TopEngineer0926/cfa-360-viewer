@@ -14,12 +14,12 @@
             <v-expansion-panel-header>
               <v-btn
                 v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
-                @click.stop="initPano"
+                @click.stop="initEditScene(planView.id)"
                 class="ma-1"
                 small
                 text
               >
-                Plan View
+                Edit Plan
               </v-btn>
               <v-btn
                 v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
@@ -49,15 +49,15 @@
               >
                 Add Pin
               </v-btn>
-              <v-btn
-                v-if="isEditable && canCreateTag && isShow == false"
+              <!-- <v-btn
+                v-if="isEditable && canCreateTag"
                 small
                 text
                 @click="addTagConfig"
                 class="ma-1"
               >
                 Add Tag
-              </v-btn>
+              </v-btn> -->
               <v-btn
                 v-if="isEditable || canCreateTag || canCreateScene"
                 small
@@ -82,9 +82,9 @@
                 <v-col cols="2" class="ma-0 pa-0">
                   <v-row style="width:100%">
                     <v-col cols="12" class="main-plan">
-                      <v-img
-                        v-bind:src="planView.img"
-                        class="rounded-10 plan-view"
+                      <v-img 
+                        v-bind:src="planView.img" 
+                        class="rounded-10 plan-view" 
                         height="135"
                         @click="changeSceneIndex(0); loadScene(planView.id);"
                       ></v-img>
@@ -94,59 +94,66 @@
                 <v-col cols="10" class="ma-0 pa-0">
                   <v-row justify="center" align="center" class="ma-0 pa-0">
                     <v-col cols="12" class="ma-0 pa-0">
-                      <div v-if="isEditable">
-                          <v-sheet
-                            class="mx-auto bg-transparent"
-                            elevation="8"
-                            max-width="100%"
-                            style="box-shadow:none !important"
-                          >
-                            <v-slide-group
-                              v-model="panoSource.sceneArr"
-                              show-arrows
-                              center-active
+                        <div v-if="isEditable">
+                            <v-sheet
+                              class="mx-auto bg-transparent"
+                              elevation="8" 
+                              max-width="100%"
+                              style="box-shadow:none !important"
                             >
+                              <v-slide-group
+                                v-model="panoSource.sceneArr"
+                                show-arrows 
+                                center-active                                
+                              >
                               <draggable :list="panoSource.sceneArr" class="flex" @change="changePosition($event)">
                                 <v-card
                                   v-for="(scene, sceneIndex) in panoSource.sceneArr"
                                   :key="sceneIndex"
-                                  active-class="primary"
+                                  active-class="primary"  
                                   class="plan-thumbnail"
                                   v-if="sceneIndex > 0"
                                 >
-                                  {{scene.title}}
-                                  <v-img :src="scene.thumbnail" alt="" class="rounded-10" width="100" height="100" @click.stop="changeSceneIndex(sceneIndex);loadScene(scene.id);"></v-img>
-                                  <v-btn class="btn-edit" @click.stop="changeSceneIndex(sceneIndex);initEditScene(scene.id)">Edit</v-btn>
+                                  <v-img :src="scene.thumbnail" alt="" 
+                                    class="rounded-10" width="100" height="100"
+                                    @click.stop="changeSceneIndex(sceneIndex);loadScene(scene.id);"
+                                  ></v-img>
+                                  <v-btn 
+                                    class="btn-edit" 
+                                    @click.stop="changeSceneIndex(sceneIndex);initEditScene(scene.id)">Edit
+                                  </v-btn>
                                 </v-card>
                               </draggable>
+                              </v-slide-group>
+                            </v-sheet>                          
+                        </div >
+                        <div v-else>
+                          <v-sheet
+                              class="mx-auto bg-transparent"
+                              elevation="2"
+                              max-width="100%"
+                              style="box-shadow:none !important"
+                            >
+                              <v-slide-group
+                                v-model="currentSceneIndex"
+                                show-arrows
+                                style="margin-top:12px"
+                              >
+                              <v-card
+                                v-for="(scene, sceneIndex) in panoSource.sceneArr"
+                                :key="sceneIndex"
+                                active-class="primary"  
+                                class="plan-thumbnail"
+                                v-if="sceneIndex > 0"
+                              >
+                                <v-img :src="scene.thumbnail" alt="" 
+                                  class="rounded-10" width="100" height="100"
+                                  @click.stop="loadScene(scene.id);"
+                                ></v-img>
+                              </v-card>
                             </v-slide-group>
                           </v-sheet>
-                      </div >
-                      <div v-else>
-                        <v-sheet
-                            class="mx-auto bg-transparent"
-                            elevation="2"
-                            max-width="100%"
-                            style="box-shadow:none !important"
-                          >
-                            <v-slide-group
-                              v-model="currentSceneIndex"
-                              show-arrows
-                              style="margin-top:12px"
-                            >
-                            <v-card
-                              v-for="(scene, sceneIndex) in panoSource.sceneArr"
-                              :key="sceneIndex"
-                              active-class="primary"
-                              class="plan-thumbnail"
-                              v-if="sceneIndex > 0"
-                            >
-                            {{scene.title}}
-                            <v-img :src="scene.thumbnail" alt="" class="rounded-10" width="100" height="100" @click.stop="loadScene(scene.id);"></v-img>
-                            </v-card>
-                          </v-slide-group>
-                        </v-sheet>
-                      </div>
+                        </div>
                     </v-col>
                   </v-row>
                 </v-col>
@@ -156,7 +163,6 @@
         </v-expansion-panels>
       </div>
     </div>
-
     <v-btn v-else @click="initEditScene(null)" class="center">
       Add Image
     </v-btn>
@@ -214,54 +220,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <v-dialog
-      v-if="editLayerData.dialog"
-      v-model="editLayerData.dialog"
-      persistent
-      max-width="600"
-    >
-      <v-card>
-        <v-card-title class="headline">Edit Layer</v-card-title>
-        <v-card-text>
-          <v-text-field
-            v-model="editLayerData.layer.name"
-            require
-            :rules="[(v) => !!v || 'Name is required']"
-            label="Layer Name"
-          ></v-text-field>
-          <v-select
-            v-model="editLayerData.layer.icon"
-            :items="iconStyles"
-            label="Layer Icon"
-          ></v-select>
-        </v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            text
-            @click="
-              loadLayers();
-              savePano();
-              editLayerData.dialog = false;
-            "
-          >
-            Confirm
-          </v-btn>
-
-          <v-btn
-            v-if="panoSource.layers && panoSource.layers.length > 0"
-            color="grey"
-            text
-            @click="deleteLayer()"
-          >
-            Delete
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <v-dialog
       v-if="editSpotData.dialog"
       v-model="editSpotData.dialog"
@@ -560,7 +518,7 @@ export default {
       isProjectAdmin: null,
       isProjectEditor: null,
       isProjectViewer: null,
-      isShow : true,
+
       canCreateScene: null,
       canCreateTag: null,
       canTagComment: null,
@@ -638,12 +596,11 @@ export default {
       checkStatusInterval : null,
       btnPanel: [],
       index_Time : null,
-      isPlanView : false,
+     
       customID : null,
       custonUsername : null,
     };
   },
-
   created() {
     if (this.user.email == "360TempSharing@360TempSharing.com") {
       //Guest User
@@ -888,20 +845,25 @@ export default {
             scene.thumbnail = thumb;
 
             if(key == 0){
-               this.pano.scenes[scene.id].pitch = 5;
-              this.pano.scenes[scene.id].yaw = 5;
-              this.pano.scenes[scene.id].minPitch = 5;
-              this.pano.scenes[scene.id].maxPitch = 5;
-              this.pano.scenes[scene.id].minYaw = 5;
-              this.pano.scenes[scene.id].maxYaw = 5;
+              this.pano.scenes[scene.id].pitch = 0;
+              this.pano.scenes[scene.id].yaw = 0;
+              this.pano.scenes[scene.id].minPitch = 0;
+              this.pano.scenes[scene.id].maxPitch = 0;
+              this.pano.scenes[scene.id].minYaw = 0;
+              this.pano.scenes[scene.id].maxYaw = 0;
+              this.pano.scenes[scene.id].hfov = 120;
+              this.pano.scenes[scene.id].haov = 180;
+              this.pano.scenes[scene.id].vaov = 90;
+              this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.planView.id = scene.id;
               this.planView.img = thumb;
-
+            
               this.loadHotSpots();
             }else{
-              this.pano.scenes[scene.id].hfov = 110;
-              this.pano.scenes[scene.id].pitch = -3;
-              this.pano.scenes[scene.id].yaw = 117;
+              this.pano.scenes[scene.id].hfov = 120;
+              this.pano.scenes[scene.id].sceneFadeDuration = 1000;
+              this.pano.scenes[scene.id].pitch = 0;
+              this.pano.scenes[scene.id].yaw = 0;
             }
           })
         );
@@ -909,14 +871,13 @@ export default {
         this.currentSceneIndex = 0;
         this.pano.default = {
           firstScene: this.panoSource.sceneArr[0].id,
-          autoLoad: true,
+          autoLoad: true
         };
-
+        
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
         this.selectedLayersIndex = Array.from(
-          Array(this.panoSource.layers.length).keys()
+          Array(this.panoSource.layers.length).keys() 
         );
-        //this.loadLayers();
       }
     },
     loadHotSpots(){
@@ -939,28 +900,6 @@ export default {
     changeSceneIndex(index){
       this.currentSceneIndex = index;
     },
-    initEditLayer(layerIndex) {
-      if (!sceneID) {
-        this.editSceneData.sceneID = null;
-        this.editSceneData.sceneIndex = null;
-        this.editSceneData.title = null;
-      } else {
-        this.editSceneData.sceneIndex = this.panoSource.sceneArr.findIndex(
-          (scene) => scene.id == sceneID
-        );
-        this.editSceneData.sceneID = sceneID;
-        this.editSceneData.title =
-          this.panoSource.sceneArr[this.editSceneData.sceneIndex].title;
-      }
-      this.editSceneData.imgToUpload = null;
-      this.editSceneData.dialog = true;
-    },
-    deleteLayer() {
-      this.panoSource.layers.splice(this.editLayerData.layerIndex, 1);
-      this.savePano();
-      this.editLayerData.dialog = false;
-    },
-
     initEditScene(sceneID) {
       if (!sceneID) {
         this.editSceneData.sceneID = null;
@@ -1008,15 +947,15 @@ export default {
       link.classList.add('fa');
       link.classList.add('fa-mail-forward');
       link.classList.add('link');
-
+       
       span.appendChild(pencil);
       span.appendChild(link);
       hotSpotDiv.appendChild(span);
-
+      
       span.style.width = span.scrollWidth - 20 + 'px';
       span.style.marginLeft = -(span.scrollWidth - hotSpotDiv.offsetWidth) / 2 + 'px';
-      span.style.marginTop = -span.scrollHeight - 12 + 'px';
-
+      span.style.marginTop = -span.scrollHeight - 12 + 'px';      
+      
       pencil.addEventListener('click', ()=>this.openDlg(args.index));
       link.addEventListener('click', ()=>this.loadScene(args.sid));
     },
@@ -1143,30 +1082,6 @@ export default {
       document
         .getElementsByClassName("pnlm-ui")[0]
         .style.setProperty("cursor", "");
-    },
-    mouseDownHandler(event) {
-      let coords = this.viewer.mouseEventToCoords(event);
-      this.editSpotData = {
-        dialog: true,
-        editValid: false,
-        spot: {
-          pitch: coords[0],
-          yaw: coords[1],
-          style: "detail",
-          layer: null,
-        },
-        newContent: {
-          type: "img",
-          name: null,
-          thumbnail: null,
-          file: null,
-          link: null,
-        },
-      };
-      this.viewer.off("mousedown", this.mouseDownHandler);
-      document
-        .getElementsByClassName("pnlm-ui")[0]
-        .style.setProperty("cursor", "");
       // let pitch = this.viewer.getPitch();
       // let yaw = this.viewer.getYaw();
       // let hfov = this.viewer.getHfov();
@@ -1178,6 +1093,40 @@ export default {
       //   this.specsDialog.comments = newSpot.comments;
       // };
     },
+    // mouseDownHandler(event) {
+    //   let coords = this.viewer.mouseEventToCoords(event);
+    //   this.editSpotData = {
+    //     dialog: true,
+    //     editValid: false,
+    //     spot: {
+    //       pitch: coords[0],
+    //       yaw: coords[1],
+    //       style: "detail",
+    //       layer: null,
+    //     },
+    //     newContent: {
+    //       type: "img",
+    //       name: null,
+    //       thumbnail: null,
+    //       file: null,
+    //       link: null,
+    //     },
+    //   };
+    //   this.viewer.off("mousedown", this.mouseDownHandler);
+    //   document
+    //     .getElementsByClassName("pnlm-ui")[0]
+    //     .style.setProperty("cursor", "");
+    //   // let pitch = this.viewer.getPitch();
+    //   // let yaw = this.viewer.getYaw();
+    //   // let hfov = this.viewer.getHfov();
+
+    //   // newSpot.clickHandlerFunc = () => {
+    //   //   this.specsDialog.newComment = null;
+    //   //   this.specsDialog.dialog = true;
+    //   //   this.specsDialog.content = newSpot.data;
+    //   //   this.specsDialog.comments = newSpot.comments;
+    //   // };
+    // },
     addPinConfig() {
       document
         .getElementsByClassName("pnlm-ui")[0]
@@ -1268,7 +1217,7 @@ export default {
         if (!this.panoSource.sceneArr[this.currentSceneIndex].spots) {
           this.panoSource.sceneArr[this.currentSceneIndex].spots = [];
         }
-
+        
         if (this.editPinSpotData.spot.id) {
           //edit existing
           this.viewer.removeHotSpot(this.editPinSpotData.spot.id);
@@ -1280,7 +1229,7 @@ export default {
           this.panoSource.sceneArr[0].spots.push(
             this.editPinSpotData.spot
           );
-        }
+        }        
 
         this.loadHotSpots();
 
@@ -1358,13 +1307,11 @@ export default {
             this.editSpotData.spot
           );
         }
-
-        // this.loadLayers();
         this.editSpotData.dialog = false;
+
         this.savePano();
       }
     },
-
     savePano() {
       let saveTopano = JSON.parse(JSON.stringify(this.panoSource));
       saveTopano.sceneArr.map((scene, key) => {
@@ -1381,7 +1328,6 @@ export default {
           input: saveTopano,
         },
       });
-      // this.$router.go();
     },
     showSpot(spot) {
       let addSpot = JSON.parse(JSON.stringify(spot));
@@ -1430,44 +1376,6 @@ export default {
       delete addSpot.style;
       delete addSpot.about;
       this.viewer.addHotSpot(addSpot);
-    },
-
-    loadLayers() {
-      // await new Promise((r) => setTimeout(r, 500));
-      //removeCurrentSpots
-      let currentSceneID = this.viewer.getScene();
-      if (this.pano.scenes[currentSceneID].hotSpots) {
-        let hotSpotsID = this.pano.scenes[currentSceneID].hotSpots.map(
-          (hotSpot) => hotSpot.id
-        );
-        hotSpotsID.forEach((hotSpotID) => {
-          this.viewer.removeHotSpot(hotSpotID);
-        });
-      }
-
-      let selectedLayersID = this.selectedLayersIndex
-        ? this.selectedLayersIndex.map(
-            (index) => this.panoSource.layers[index].id
-          )
-        : [];
-      let allLayersID = this.panoSource.layers.map((layer) => layer.id);
-      let SceneIndex = this.panoSource.sceneArr.findIndex(
-        (scene) => scene.id == currentSceneID
-      );
-
-      if (this.panoSource.sceneArr[SceneIndex].spots) {
-        this.panoSource.sceneArr[SceneIndex].spots.forEach(
-          (spot, spotIndex) => {
-            if (
-              !spot.layer ||
-              selectedLayersID.includes(spot.layer) ||
-              !allLayersID.includes(spot.layer)
-            ) {
-              this.showSpot(spot);
-            }
-          }
-        );
-      }
     },
     changePosition(e){
       if(e.moved){
@@ -1558,22 +1466,7 @@ export default {
 
       this.getComments();
       this.editSpotData.newComment = null;
-    },
-    dragFinish(item) {
-      let currentSceneID = this.viewer.getScene();
-      this.panoSource.sceneArr.map((scene, index) => {
-        if (currentSceneID === scene.id) {
-          this.currentSceneIndex = index;
-        }
-      });
-
-      API.graphql({
-        query: updatePano,
-        variables: {
-          input: this.panoSource,
-        },
-      });
-    },
+    } 
   },
   computed: {
     ...mapState(["user", "roleDefinitionTable"]),
@@ -1597,7 +1490,7 @@ export default {
         //update scene list
         this.allScenes4Pin = [];
 
-        for (let i =1;i<this.panoSource.sceneArr.length;i++ ) {
+        for (let i =1;i<this.panoSource.sceneArr.length;i++ ) {    
           this.allScenes4Pin.push({
             text: this.panoSource.sceneArr[i].title,
             value: this.panoSource.sceneArr[i].id,
@@ -1707,7 +1600,7 @@ export default {
 .btn-edit{
   height: 20px !important;
   width: 68px;
-  margin-top: 6px;
+  margin-top: 6px;  
   background-color: white!important;
   border: 2px solid white;
 }
@@ -1722,12 +1615,13 @@ export default {
   border: 2px solid white;
   border-radius: 10px;
   padding: 0px;
-  margin-top: 30px;
+  margin-top: 17px;
   height: 100%;
 }
 .flex{
   display: flex;
 }
+
 div.custom-tooltip span {
     visibility: hidden;
     position: absolute;
