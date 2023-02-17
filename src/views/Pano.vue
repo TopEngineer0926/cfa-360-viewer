@@ -31,7 +31,7 @@
                 Add Scene
               </v-btn>
               <v-btn
-                v-if="isEditable && canCreateTag && isShow == false"
+                v-if="isEditable && canCreateTag"
                 small
                 text
                 @click.stop="addLayer()"
