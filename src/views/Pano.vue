@@ -1,6 +1,6 @@
 <template>
   <div v-if="isGuest || canReadContent" class="bg">
-    <div v-if="pano" class="vue-pannellum">
+    <div v-if="planView.img" class="vue-pannellum">
       <div class="default-slot">
         <v-expansion-panels
           v-if="panoSource"
@@ -14,12 +14,12 @@
             <v-expansion-panel-header>
               <v-btn
                 v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
-                @click.stop="initEditPlan(null)"
+                @click.stop="initPano"
                 class="ma-1"
                 small
                 text
               >
-                Add Plan
+                Plan View
               </v-btn>
               <v-btn
                 v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
@@ -41,10 +41,19 @@
               </v-btn>
 
               <v-btn
-                v-if="isEditable && canCreateTag"
+                v-if="isEditable && canCreateTag && currentSceneIndex == 0"
                 small
                 text
-                @click.stop="addTagConfig"
+                @click.stop="addPinConfig"
+                class="ma-1"
+              >
+                Add Pin
+              </v-btn>
+              <v-btn
+                v-if="isEditable && canCreateTag && isShow == false"
+                small
+                text
+                @click="addTagConfig"
                 class="ma-1"
               >
                 Add Tag
@@ -77,7 +86,7 @@
                         v-bind:src="planView.img"
                         class="rounded-10 plan-view"
                         height="135"
-                        @click="loadPlan()"
+                        @click="changeSceneIndex(0); loadScene(planView.id);"
                       ></v-img>
                     </v-col>
                   </v-row>
@@ -105,6 +114,7 @@
                                   class="plan-thumbnail"
                                   v-if="sceneIndex > 0"
                                 >
+                                  {{scene.title}}
                                   <v-img :src="scene.thumbnail" alt="" class="rounded-10" width="100" height="100" @click.stop="changeSceneIndex(sceneIndex);loadScene(scene.id);"></v-img>
                                   <v-btn class="btn-edit" @click.stop="changeSceneIndex(sceneIndex);initEditScene(scene.id)">Edit</v-btn>
                                 </v-card>
@@ -116,6 +126,7 @@
                         <v-sheet
                             class="mx-auto bg-transparent"
                             elevation="2"
+                            max-width="100%"
                             style="box-shadow:none !important"
                           >
                             <v-slide-group
@@ -123,15 +134,16 @@
                               show-arrows
                               style="margin-top:12px"
                             >
-                            <div
+                            <v-card
                               v-for="(scene, sceneIndex) in panoSource.sceneArr"
                               :key="sceneIndex"
                               active-class="primary"
                               class="plan-thumbnail"
                               v-if="sceneIndex > 0"
                             >
+                            {{scene.title}}
                             <v-img :src="scene.thumbnail" alt="" class="rounded-10" width="100" height="100" @click.stop="loadScene(scene.id);"></v-img>
-                            </div>
+                            </v-card>
                           </v-slide-group>
                         </v-sheet>
                       </div>
@@ -148,7 +160,6 @@
     <v-btn v-else @click="initEditScene(null)" class="center">
       Add Image
     </v-btn>
-
     <v-dialog
       v-if="editSceneData.dialog"
       v-model="editSceneData.dialog"
@@ -457,6 +468,64 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-if="editPinSpotData.dialog"
+      v-model="editPinSpotData.dialog"
+      persistent
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title v-if="isEditable" class="headline">Edit Pin</v-card-title>
+        <v-card-text>
+          <v-form
+            v-if="isEditable"
+            ref="editpinspotform"
+            v-model="editPinSpotData.editValid"
+            lazy-validation
+          >
+            <v-text-field
+              v-model="editPinSpotData.spot.text"
+              require
+              :rules="[(v) => !!v || 'Pin Name is required']"
+              label="Pin Name"
+            ></v-text-field>
+            <v-select
+              v-model="editPinSpotData.spot.sceneID"
+              :items="allScenes4Pin"
+              label="Target Scene"
+            ></v-select>
+          </v-form>
+          <div>
+            <v-textarea
+              v-model="editPinSpotData.spot.about"
+              label="Description"
+              auto-grow
+              :rows="1"
+              :readonly="!isEditable"
+            ></v-textarea>
+          </div>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            v-if="isEditable"
+            color="primary"
+            text
+            @click="savePinSpot"
+            :disabled="!editPinSpotData.editValid"
+          >
+            Save
+          </v-btn>
+          <v-btn v-if="isEditable" color="grey" text @click="cancelPinSpot">
+            Cancel
+          </v-btn>
+          <v-btn v-else color="grey" text @click="cancelPinSpot"> OK </v-btn>
+          <v-btn v-if="isEditable" color="grey" text @click="deletePinSpot">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -503,6 +572,7 @@ export default {
       viewer: null,
       currentSceneIndex: null,
       layers: [],
+      allScenes4Pin: [],
 
       editSceneData: {
         dialog: false,
@@ -530,6 +600,11 @@ export default {
           file: null,
           link: null,
         },
+      },
+      editPinSpotData: {
+        dialog: false,
+        editValid: false,
+        spot: null
       },
       sharing: {
         dialog: false,
@@ -566,16 +641,15 @@ export default {
       isPlanView : false,
       customID : null,
       custonUsername : null,
-      plan_thumbnail: null,
     };
   },
 
   created() {
-    if (this.$route.path.includes("sharing") == true) {
+    if (this.user.email == "360TempSharing@360TempSharing.com") {
       //Guest User
-    
+      if (this.$route.params.linkname) {
         API.graphql(
-          graphqlOperation(sharingByLinkname, {linkname: this.$route.params.linkname,})
+          graphqlOperation(sharingByLinkname, {linkname: this.$route.params.linkname})
         ).then((data) => {
           let sharingData = data.data.sharingByLinkname.items;
           this.customID = sharingData[0].panoID;
@@ -594,6 +668,10 @@ export default {
             this.$store.dispatch("logout");
           }
         });
+      } else {
+        //Unauth
+        this.$root.$dialogLoader.showSnackbar("Not authorized");
+      }
     } else {
       //login user
       this.customID = this.$route.params.id;
@@ -709,7 +787,6 @@ export default {
   },
   methods: {
     async initData() {
-
       if (this.canCreateScene || this.canCreateTag) {
         let items = (
           await API.graphql(
@@ -811,8 +888,20 @@ export default {
             scene.thumbnail = thumb;
 
             if(key == 0){
+               this.pano.scenes[scene.id].pitch = 5;
+              this.pano.scenes[scene.id].yaw = 5;
+              this.pano.scenes[scene.id].minPitch = 5;
+              this.pano.scenes[scene.id].maxPitch = 5;
+              this.pano.scenes[scene.id].minYaw = 5;
+              this.pano.scenes[scene.id].maxYaw = 5;
               this.planView.id = scene.id;
               this.planView.img = thumb;
+
+              this.loadHotSpots();
+            }else{
+              this.pano.scenes[scene.id].hfov = 110;
+              this.pano.scenes[scene.id].pitch = -3;
+              this.pano.scenes[scene.id].yaw = 117;
             }
           })
         );
@@ -821,13 +910,6 @@ export default {
         this.pano.default = {
           firstScene: this.panoSource.sceneArr[0].id,
           autoLoad: true,
-          draggable : true,
-          pitch: 0,
-          "min-pitch": -180,
-          "max-pitch": 180,
-          "min-yaw": -180,
-          "max-yaw": 180,
-          yaw: 20,
         };
 
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
@@ -837,26 +919,41 @@ export default {
         //this.loadLayers();
       }
     },
-
+    loadHotSpots(){
+      let scene = this.panoSource.sceneArr[0];
+      this.pano.scenes[scene.id].hotSpots = [];
+      scene.spots.map((spot,index) => {
+        let obj = {};
+        obj.pitch = spot.pitch;
+        obj.yaw = spot.yaw;
+        obj.type = 'info';
+        obj.text = spot.text;
+        obj.createTooltipFunc = this.customTooltiphotspot;
+        obj.createTooltipArgs = {index: index, sid: spot.sceneID};
+        this.pano.scenes[scene.id].hotSpots.push(obj);
+      });
+    },
     loadScene(sceneID) {
-      this.viewer = window.pannellum.viewer(this.$el, this.pano);
       this.viewer.loadScene(sceneID);
-      let checkLoad = (viewer) => {
-        if (viewer.isLoaded()) {
-          // this.loadLayers();
-        } else {
-          setTimeout(checkLoad, 500, viewer); // setTimeout(func, timeMS, params...)
-        }
-      };
-      checkLoad(this.viewer);
     },
     changeSceneIndex(index){
       this.currentSceneIndex = index;
     },
     initEditLayer(layerIndex) {
-      this.editLayerData.layerIndex = layerIndex;
-      this.editLayerData.layer = this.panoSource.layers[layerIndex];
-      this.editLayerData.dialog = true;
+      if (!sceneID) {
+        this.editSceneData.sceneID = null;
+        this.editSceneData.sceneIndex = null;
+        this.editSceneData.title = null;
+      } else {
+        this.editSceneData.sceneIndex = this.panoSource.sceneArr.findIndex(
+          (scene) => scene.id == sceneID
+        );
+        this.editSceneData.sceneID = sceneID;
+        this.editSceneData.title =
+          this.panoSource.sceneArr[this.editSceneData.sceneIndex].title;
+      }
+      this.editSceneData.imgToUpload = null;
+      this.editSceneData.dialog = true;
     },
     deleteLayer() {
       this.panoSource.layers.splice(this.editLayerData.layerIndex, 1);
@@ -880,9 +977,6 @@ export default {
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
     },
-    deletePlan() {
-
-    },
     deleteScene() {
       Storage.remove(
         this.panoSource.id +
@@ -900,14 +994,57 @@ export default {
         this.$router.push({ path: "/panolist" });
       }
     },
+    customTooltiphotspot(hotSpotDiv, args){
+      if(!this.isEditable)
+        return;
 
+      hotSpotDiv.classList.add('custom-tooltip');
+      var span = document.createElement('span');
+      var pencil = document.createElement('i');
+      var link = document.createElement('i');
+
+      pencil.classList.add('fa');
+      pencil.classList.add('fa-pencil');
+      link.classList.add('fa');
+      link.classList.add('fa-mail-forward');
+      link.classList.add('link');
+
+      span.appendChild(pencil);
+      span.appendChild(link);
+      hotSpotDiv.appendChild(span);
+
+      span.style.width = span.scrollWidth - 20 + 'px';
+      span.style.marginLeft = -(span.scrollWidth - hotSpotDiv.offsetWidth) / 2 + 'px';
+      span.style.marginTop = -span.scrollHeight - 12 + 'px';
+
+      pencil.addEventListener('click', ()=>this.openDlg(args.index));
+      link.addEventListener('click', ()=>this.loadScene(args.sid));
+    },
+    openDlg(index){
+      let data = this.panoSource.sceneArr[0].spots[index];
+      this.editPinSpotData = {
+        dialog: true,
+        editValid: true,
+        spot: {
+          contents: data.contents,
+          id: data.id,
+          text: data.text,
+          sceneID: data.sceneID,
+          about : data.about,
+          layer: data.layer,
+          link: data.link,
+          pitch: data.pitch,
+          style: data.style,
+          yaw: data.yaw
+        }
+      };
+    },
     async saveScene() {
       if (this.$refs.editimgform.validate()) {
         let sceneID = this.editSceneData.sceneID
           ? this.editSceneData.sceneID
           : nanoid();
         let s3link = null;
-
         if (this.editSceneData.imgToUpload) {
           let imgID = nanoid();
 
@@ -979,7 +1116,7 @@ export default {
           if (!this.panoSource.sceneArr) {
             this.panoSource.sceneArr = [];
           }
-          this.panoSource.sceneArr.push({
+          await this.panoSource.sceneArr.push({
             thumbnail: panorama_url,
             id: sceneID,
             title: this.editSceneData.title,
@@ -990,6 +1127,22 @@ export default {
         this.editSceneData.dialog = false;
       }
       //  this.$forceUpdate();
+    },
+    mousePinDownHandler(event) {
+      let coords = this.viewer.mouseEventToCoords(event);
+      this.editPinSpotData = {
+        dialog: true,
+        editValid: false,
+        spot: {
+          pitch: coords[0],
+          yaw: coords[1],
+          style: "detail",
+        }
+      };
+      this.viewer.off("mousedown", this.mousePinDownHandler);
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "");
     },
     mouseDownHandler(event) {
       let coords = this.viewer.mouseEventToCoords(event);
@@ -1025,6 +1178,12 @@ export default {
       //   this.specsDialog.comments = newSpot.comments;
       // };
     },
+    addPinConfig() {
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "crosshair", "important");
+      this.viewer.on("mousedown", this.mousePinDownHandler);
+    },
     addTagConfig() {
       document
         .getElementsByClassName("pnlm-ui")[0]
@@ -1052,6 +1211,26 @@ export default {
           link: null,
         },
       };
+    },
+    cancelPinSpot() {
+      this.editPinSpotData = {
+        dialog: false,
+        editValid: false,
+        spot: null
+      };
+    },
+    deletePinSpot(){
+      this.viewer.removeHotSpot(this.editPinSpotData.spot.id);
+
+      this.panoSource.sceneArr[0].spots =
+        this.panoSource.sceneArr[0].spots.filter(
+          (spot) => spot.id !== this.editPinSpotData.spot.id
+        );
+
+      this.loadHotSpots();
+      this.savePano();
+      this.loadScene(this.panoSource.sceneArr[0].id);
+      this.editPinSpotData.dialog = false;
     },
     deleteSpot() {
       this.viewer.removeHotSpot(this.editSpotData.spot.id);
@@ -1083,6 +1262,32 @@ export default {
     deleteContent(content) {
       content.delete = true;
       this.$forceUpdate();
+    },
+    async savePinSpot() {
+      if (this.$refs.editpinspotform.validate()) {
+        if (!this.panoSource.sceneArr[this.currentSceneIndex].spots) {
+          this.panoSource.sceneArr[this.currentSceneIndex].spots = [];
+        }
+
+        if (this.editPinSpotData.spot.id) {
+          //edit existing
+          this.viewer.removeHotSpot(this.editPinSpotData.spot.id);
+          let spotIndex = this.panoSource.sceneArr[0].spots.findIndex((spot) => spot.id == this.editPinSpotData.spot.id);
+          this.panoSource.sceneArr[0].spots[spotIndex] = this.editPinSpotData.spot;
+        } else {
+          //create new
+          this.editPinSpotData.spot.id = nanoid();
+          this.panoSource.sceneArr[0].spots.push(
+            this.editPinSpotData.spot
+          );
+        }
+
+        this.loadHotSpots();
+
+        this.savePano();
+        this.loadScene(this.panoSource.sceneArr[this.currentSceneIndex].id);
+        this.editPinSpotData.dialog = false;
+      }
     },
     async saveSpot() {
       if (this.$refs.editspotform.validate()) {
@@ -1264,22 +1469,6 @@ export default {
         );
       }
     },
-    loadPlan() {
-      this.isPlanView = true;
-      this.viewer = pannellum.viewer(this.$el, {
-        "type": "equirectangular",
-        "draggable" : false,
-        "panorama": this.planView.img,
-        "pitch": 0,
-        "min-pitch": 0,
-        "max-pitch": 0,
-        "min-yaw": 0,
-        "max-yaw": 0,
-        "yaw": 0,
-        "hfov": 200,
-    });
-      // this.viewer = this.planView.img;
-    },
     changePosition(e){
       if(e.moved){
         this.savePano();
@@ -1403,7 +1592,19 @@ export default {
         }
       }
     },
+    "editPinSpotData.dialog": function (val) {
+      if (val) {
+        //update scene list
+        this.allScenes4Pin = [];
 
+        for (let i =1;i<this.panoSource.sceneArr.length;i++ ) {
+          this.allScenes4Pin.push({
+            text: this.panoSource.sceneArr[i].title,
+            value: this.panoSource.sceneArr[i].id,
+          });
+        }
+      }
+    },
     isEditable: function () {
       if (this.viewer) {
         this.loadScene(this.viewer.getScene());
@@ -1521,11 +1722,41 @@ export default {
   border: 2px solid white;
   border-radius: 10px;
   padding: 0px;
-  margin-top: 17px;
+  margin-top: 30px;
   height: 100%;
 }
 .flex{
   display: flex;
+}
+div.custom-tooltip span {
+    visibility: hidden;
+    position: absolute;
+    border-radius: 3px;
+    background-color: #1c1b1b9e;
+    color: #fff;
+    text-align: center;
+    width: 50px !important;
+    padding: 5px 10px;
+    margin-left: -220px;
+    cursor: default;
+}
+div.custom-tooltip:hover span{
+    visibility: visible;
+}
+div.custom-tooltip:hover span:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-width: 10px;
+    border-style: solid;
+    border-color: #1c1b1b9e transparent transparent transparent;
+    bottom: -20px;
+    left: -10px;
+    margin: 0 50%;
+}
+.link{
+  margin-left: 15px;
 }
 </style>
 
