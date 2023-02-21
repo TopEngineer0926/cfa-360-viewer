@@ -13,7 +13,7 @@
       >Create</v-btn>
     </v-row>
     <v-row justify="center" class="my-4">
-      <v-col cols="4">
+      <v-col cols="4" style="min-width:195px;">
         <v-select
           v-model = select
           value="All Categories"
@@ -21,6 +21,7 @@
           label="Solo field"
           solo
           @change="filterByCategory"
+          style="min-width:165px;"
         ></v-select>
       </v-col>
     </v-row>
@@ -41,12 +42,11 @@
           Template Release:{{item}}   (Total : {{filterByCategory1(item)}})
         </v-expansion-panel-header>
         <v-expansion-panel-content>
-          <div style="display : flex;">
-            <div v-for="(pano, index) in panosFilter" :key="index">
-              <v-hover v-slot="{ hover }" class="ma-6">
+          <div class="v-row v-row--dense">
+            <div v-for="(pano, index) in panosFilter" :key="index" v-if= "pano.category == item" class="response">
+              <v-hover v-slot="{ hover }">
                 <v-card
                   :elevation="hover ? 12 : 2"
-                  width="500"
                   height="200"
                   @click="$router.push('/pano/' + pano.id)"
                   v-if = "pano.category == item"
@@ -661,4 +661,26 @@ amplify-s3-image {
   --height: 200px;
   --width: 400px;
 }
+.v-row {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    margin: -12px;
+}
+.v-row--dense>.v-col, .v-row--dense>[class*=v-col-] {
+    padding: 5px;
+}
+.response {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+@media (min-width: 600px){
+  .response {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 10px;
+  }
+}
+
+
 </style>

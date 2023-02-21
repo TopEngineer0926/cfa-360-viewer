@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <navbar v-if="user" />
-    <v-main>
+    <v-main style="padding: 0px 0px 0px;">
       <router-view :key="$route.fullPath" />
     </v-main>
     <confirm ref="confirm"></confirm>

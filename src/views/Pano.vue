@@ -12,70 +12,83 @@
             :style="{ 'background-color': 'rgba(255,255,255,0.3)' }"
           >
             <v-expansion-panel-header>
-              <v-btn
-                v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
-                @click.stop="initEditScene(planView.id)"
-                class="ma-1"
-                small
-                text
-              >
-                Edit Plan
-              </v-btn>
-              <v-btn
-                v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
-                @click.stop="initEditScene(null)"
-                class="ma-1"
-                small
-                text
-              >
-                Add Scene
-              </v-btn>
-              <v-btn
-                v-if="isEditable && canCreateTag"
-                small
-                text
-                @click.stop="addLayer()"
-                class="ma-1"
-              >
-                add layer
-              </v-btn>
-
-              <v-btn
-                v-if="isEditable && canCreateTag && currentSceneIndex == 0"
-                small
-                text
-                @click.stop="addPinConfig"
-                class="ma-1"
-              >
-                Add Pin
-              </v-btn>
-              <!-- <v-btn
-                v-if="isEditable && canCreateTag"
-                small
-                text
-                @click="addTagConfig"
-                class="ma-1"
-              >
-                Add Tag
-              </v-btn> -->
-              <v-btn
-                v-if="isEditable || canCreateTag || canCreateScene"
-                small
-                @click.stop="isEditable = !isEditable"
-                text
-                class="ma-1"
-              >
-                {{
-                  isEditable ? "Change to User View" : "Change to Admin View"
-                }}
-              </v-btn>
-
-              <v-btn small text class="ma-1">
-                <v-icon v-if="btnPanel == 0" class="ml-1">
-                  mdi-arrow-expand-down</v-icon
+              <div class="row my-1">
+                <div class="cols-2">
+                  <v-btn
+                    v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
+                    @click.stop="initEditScene(planView.id)"
+                    class="ma-1"
+                    small
+                    text
+                  >
+                    Edit Plan
+                  </v-btn>
+                </div>
+                <div class="cols-2">
+                  <v-btn
+                    v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
+                    @click.stop="initEditScene(null)"
+                    class="ma-1"
+                    small
+                    text
+                  >
+                    Add Scene
+                  </v-btn>
+                </div>
+                <div class="cols-2">
+                  <v-btn
+                    v-if="isEditable && canCreateTag"
+                    small
+                    text
+                    @click.stop="addLayer()"
+                    class="ma-1"
+                  >
+                    add layer
+                  </v-btn>
+                </div>
+                <div class="cols-2">
+                   <v-btn
+                    v-if="isEditable && canCreateTag && currentSceneIndex == 0"
+                    small
+                    text
+                    @click.stop="addPinConfig"
+                    class="ma-1"
+                  >
+                    Add Pin
+                  </v-btn>
+                </div>
+               
+                <!-- <v-btn
+                  v-if="isEditable && canCreateTag"
+                  small
+                  text
+                  @click="addTagConfig"
+                  class="ma-1"
                 >
-                <v-icon v-else class="ml-1"> mdi-arrow-expand-up</v-icon>
-              </v-btn>
+                  Add Tag
+                </v-btn> -->
+                <div class="cols-3">
+                  <v-btn
+                    v-if="isEditable || canCreateTag || canCreateScene"
+                    small
+                    @click.stop="isEditable = !isEditable"
+                    text
+                    class="ma-1"
+                  >
+                    {{
+                      isEditable ? "Change to User View" : "Change to Admin View"
+                    }}
+                  </v-btn>
+                </div>
+                <div class="cols-1">
+                  <v-btn small text class="ma-1">
+                    <v-icon v-if="btnPanel == 0" class="ml-1">
+                      mdi-arrow-expand-down</v-icon
+                    >
+                    <v-icon v-else class="ml-1"> mdi-arrow-expand-up</v-icon>
+                  </v-btn> 
+                </div>
+              </div>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-row class="ma-0 pa-0">
@@ -113,7 +126,9 @@
                                   active-class="primary"  
                                   class="plan-thumbnail"
                                   v-if="sceneIndex > 0"
+                                  v-on:mouseover="mouseOver(scene)"
                                 >
+                                
                                   <v-img :src="scene.thumbnail" alt="" 
                                     class="rounded-10" width="100" height="100"
                                     @click.stop="changeSceneIndex(sceneIndex);loadScene(scene.id);"
@@ -145,7 +160,9 @@
                                 active-class="primary"  
                                 class="plan-thumbnail"
                                 v-if="sceneIndex > 0"
+                                @mouseover="mouseOver(scene)"
                               >
+                                
                                 <v-img :src="scene.thumbnail" alt="" 
                                   class="rounded-10" width="100" height="100"
                                   @click.stop="loadScene(scene.id);"
@@ -158,6 +175,7 @@
                   </v-row>
                 </v-col>
               </v-row>
+              <div v-bind="panotitle" style="text-align: center;">{{panotitle}}</div>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -173,7 +191,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Edit Scene</v-card-title>
+        <v-card-title class="headline">Edit</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"
@@ -487,7 +505,7 @@
   </div>
 </template>
 
-<script>
+<script defer>
 import "pannellum";
 import "pannellum/build/pannellum.css";
 import { mapState } from "vuex";
@@ -531,7 +549,7 @@ export default {
       currentSceneIndex: null,
       layers: [],
       allScenes4Pin: [],
-
+      panotitle : null,
       editSceneData: {
         dialog: false,
         editValid: false,
@@ -826,6 +844,9 @@ export default {
         }
       }, 1* 5 * 1000 - 60);
     },
+    mouseOver(scene){
+      this.panotitle = scene.title;
+    },
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {
@@ -840,10 +861,9 @@ export default {
               this.panoSource.id + "/" + scene.img,
               { expires: 432000 }
             );
-
+            
             this.pano.scenes[scene.id].panorama = thumb;
             scene.thumbnail = thumb;
-
             if(key == 0){
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
@@ -851,33 +871,36 @@ export default {
               this.pano.scenes[scene.id].maxPitch = 0;
               this.pano.scenes[scene.id].minYaw = 0;
               this.pano.scenes[scene.id].maxYaw = 0;
-              this.pano.scenes[scene.id].hfov = 120;
-              this.pano.scenes[scene.id].haov = 180;
-              this.pano.scenes[scene.id].vaov = 90;
+              this.pano.scenes[scene.id].hfov = 2;
+              //this.pano.scenes[scene.id].preview = thumb;
+              this.pano.scenes[scene.id].haov = 20;
+              this.pano.scenes[scene.id].vaov = 20;
+              this.pano.scenes[scene.id].showZoomCtrl = false;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.planView.id = scene.id;
               this.planView.img = thumb;
-            
+              
               this.loadHotSpots();
+              // this.showPlanView();
             }else{
-              this.pano.scenes[scene.id].hfov = 120;
+              this.pano.scenes[scene.id].hfov = 0;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
+              
             }
           })
         );
-
+        
         this.currentSceneIndex = 0;
         this.pano.default = {
           firstScene: this.panoSource.sceneArr[0].id,
           autoLoad: true
         };
-        
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
-        this.selectedLayersIndex = Array.from(
-          Array(this.panoSource.layers.length).keys() 
-        );
+        // this.selectedLayersIndex = Array.from(
+        //   Array(this.panoSource.layers.length).keys() 
+        // );
       }
     },
     loadHotSpots(){
@@ -933,10 +956,20 @@ export default {
         this.$router.push({ path: "/panolist" });
       }
     },
+    showPlanView(){
+      var oImg = document.createElement("img");
+      oImg.setAttribute('src', this.planView.img);
+      oImg.setAttribute('alt', 'na');
+      oImg.setAttribute('height', window.screen.height);
+      oImg.setAttribute('width', window.screen.width);
+      var inviteSection = document.getElementsByClassName("bg")[0];
+      console.log("invitesection-------",inviteSection);
+      inviteSection.appendChild(oImg);
+    },
     customTooltiphotspot(hotSpotDiv, args){
       if(!this.isEditable)
         return;
-
+      hotSpotDiv.setAttribute('z-index', 2);
       hotSpotDiv.classList.add('custom-tooltip');
       var span = document.createElement('span');
       var pencil = document.createElement('i');
@@ -1621,7 +1654,10 @@ export default {
 .flex{
   display: flex;
 }
-
+div.custom-img img{
+  width: 100% !important;
+  height: 100%;
+}
 div.custom-tooltip span {
     visibility: hidden;
     position: absolute;
@@ -1652,6 +1688,42 @@ div.custom-tooltip:hover span:after {
 .link{
   margin-left: 15px;
 }
+
+[class*="col-"] {
+  text-align: center;
+}
+
+.cols-1 {width: 8.33%; text-align: center;}
+.cols-2 {width: 16.66%; text-align: center;}
+.cols-3 {width: 25%; text-align: center;}
+.cols-4 {width: 33.33%;}
+.cols-5 {width: 41.66%;}
+.cols-6 {width: 50%;}
+.cols-7 {width: 58.33%;}
+.cols-8 {width: 66.66%;}
+.cols-9 {width: 75%;}
+.cols-10 {width: 83.33%;}
+.cols-11 {width: 91.66%;}
+.cols-12 {width: 100%;}
+
+@media only screen and (max-width: 740px) {
+  /* For mobile phones: */
+  [class*="cols-"] {
+    width: 50%;
+  }
+}
+@media only screen and (max-width: 400px) {
+  /* For mobile phones: */
+  [class*="cols-"] {
+    width: 100%;
+  }
+}
+.row::after {
+  content: "";
+  clear: both;
+  display: block;
+}
+
 </style>
 
 <style scoped>
