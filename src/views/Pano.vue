@@ -126,7 +126,7 @@
                                   active-class="primary"  
                                   class="plan-thumbnail"
                                   v-if="sceneIndex > 0"
-                                  v-on:mouseover="mouseOver(scene)"
+                                  @mouseover="mouseOver(scene)"
                                 >
                                 
                                   <v-img :src="scene.thumbnail" alt="" 
@@ -175,7 +175,7 @@
                   </v-row>
                 </v-col>
               </v-row>
-              <div v-bind="panotitle" style="text-align: center;">{{panotitle}}</div>
+              <div style="text-align: center;">{{panotitle}}</div>
             </v-expansion-panel-content>
           </v-expansion-panel>
         </v-expansion-panels>
@@ -865,17 +865,19 @@ export default {
             this.pano.scenes[scene.id].panorama = thumb;
             scene.thumbnail = thumb;
             if(key == 0){
+              // this.pano.scenes[scene.id].width = "100%";
+              // this.pano.scenes[scene.id].height = "100%";
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
               this.pano.scenes[scene.id].minPitch = 0;
               this.pano.scenes[scene.id].maxPitch = 0;
               this.pano.scenes[scene.id].minYaw = 0;
               this.pano.scenes[scene.id].maxYaw = 0;
-              this.pano.scenes[scene.id].hfov = 2;
-              //this.pano.scenes[scene.id].preview = thumb;
-              this.pano.scenes[scene.id].haov = 20;
-              this.pano.scenes[scene.id].vaov = 20;
-              this.pano.scenes[scene.id].showZoomCtrl = false;
+              this.pano.scenes[scene.id].hfov = 1;
+              
+              this.pano.scenes[scene.id].haov = 25;
+              this.pano.scenes[scene.id].vaov = 25;
+              this.pano.scenes[scene.id].showZoomCtrl = true;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.planView.id = scene.id;
               this.planView.img = thumb;
@@ -897,10 +899,29 @@ export default {
           firstScene: this.panoSource.sceneArr[0].id,
           autoLoad: true
         };
-        this.viewer = window.pannellum.viewer(this.$el, this.pano);
+        // this.viewer = window.pannellum.viewer(this.$el, this.pano);
         // this.selectedLayersIndex = Array.from(
         //   Array(this.panoSource.layers.length).keys() 
         // );
+        // setTimeout(function() {
+          this.viewer = window.pannellum.viewer(this.$el, this.pano);
+          // const renderer = this.viewer.getRenderer();
+          // console.log("=====", renderer)
+          // renderer.render(
+          //   (this.viewer.getPitch() / 180) * Math.PI,
+          //   (this.viewer.getYaw() / 180) * Math.PI,
+          //   (this.viewer.getHfov() / 180) * Math.PI,
+          //   { returnImage: true },
+          // ).then(img => {
+          //     var canvas = document.createElement('canvas');
+          //     canvas.width = img.width;
+          //     canvas.height = img.height;
+          //     canvas.getContext('2d').drawImage(img, 0, 0);
+          //     html2canvas(document.querySelector(".pnlm-ui"), {canvas: canvas, backgroundColor: 'rgba(0, 0, 0, 0)'}).then(canvas => {
+          //         document.body.appendChild(canvas);
+          //     });
+          // });
+        // }, 5000);
       }
     },
     loadHotSpots(){

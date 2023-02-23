@@ -1,5 +1,5 @@
 <template>
-  <div style="height: 48px;">
+  <div>
     <div class="layout1">
       <v-app-bar app flat dense color="white">
         <v-img
@@ -70,7 +70,6 @@
           <v-btn
             text
             @click="$router.push('/panolist').catch((err) => {})"
-            class="ml-4"
             >Gallery</v-btn
           >
 
@@ -191,12 +190,12 @@
               {{ user.name }}
             </v-list-item>
             <v-list-item>
-              <div v-if="user.masterSiteAdmin">
+              <v-chip v-if="user.masterSiteAdmin" color="primary" class="ml-2" small>
                 Master Site Admin
-              </div>
-              <div v-else-if="user.siteAdmin">
+              </v-chip>
+              <v-chip v-else-if="user.siteAdmin" color="primary" class="ml-2" small>
                 Site Admin
-              </div>
+              </v-chip>
             </v-list-item>
             <v-list-item>
               <v-btn text @click="logout">Logout</v-btn>
@@ -255,12 +254,6 @@ export default {
 };
 </script>
 <style>
-.layout1 {
-    display: block;
-  }
-  .layout2 {
-    display: none;
-  }
 @media only screen and (max-width: 768px) {
 /* For mobile phones: */
   .layout1 {
