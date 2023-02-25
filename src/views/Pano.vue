@@ -1,6 +1,11 @@
 <template>
   <div v-if="isGuest || canReadContent" class="bg">
+    
     <div v-if="planView.img" class="vue-pannellum">
+      
+      <div class="img"></div>
+      <div class="button"></div>
+
       <div class="default-slot">
         <v-expansion-panels
           v-if="panoSource"
@@ -58,15 +63,6 @@
                   </v-btn>
                 </div>
                
-                <!-- <v-btn
-                  v-if="isEditable && canCreateTag"
-                  small
-                  text
-                  @click="addTagConfig"
-                  class="ma-1"
-                >
-                  Add Tag
-                </v-btn> -->
                 <div class="cols-3">
                   <v-btn
                     v-if="isEditable || canCreateTag || canCreateScene"
@@ -267,12 +263,6 @@
               :rules="[(v) => !!v || 'Tag Name is required']"
               label="Tag Name"
             ></v-text-field>
-            <!-- <v-text-field
-              v-model="editSpotData.spot.layer"
-              label="Layer"
-              require
-              :rules="[(v) => !!v || 'Layer is required']"
-            ></v-text-field> -->
             <v-select
               v-model="editSpotData.spot.layer"
               :items="panoSource.layers"
@@ -614,7 +604,7 @@ export default {
       checkStatusInterval : null,
       btnPanel: [],
       index_Time : null,
-     
+      isAddpin : false,
       customID : null,
       custonUsername : null,
     };
@@ -865,8 +855,6 @@ export default {
             this.pano.scenes[scene.id].panorama = thumb;
             scene.thumbnail = thumb;
             if(key == 0){
-              // this.pano.scenes[scene.id].width = "100%";
-              // this.pano.scenes[scene.id].height = "100%";
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
               this.pano.scenes[scene.id].minPitch = 0;
@@ -874,7 +862,6 @@ export default {
               this.pano.scenes[scene.id].minYaw = 0;
               this.pano.scenes[scene.id].maxYaw = 0;
               this.pano.scenes[scene.id].hfov = 1;
-              
               this.pano.scenes[scene.id].haov = 25;
               this.pano.scenes[scene.id].vaov = 25;
               this.pano.scenes[scene.id].showZoomCtrl = true;
@@ -883,7 +870,6 @@ export default {
               this.planView.img = thumb;
               
               this.loadHotSpots();
-              // this.showPlanView();
             }else{
               this.pano.scenes[scene.id].hfov = 0;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
@@ -895,33 +881,92 @@ export default {
         );
         
         this.currentSceneIndex = 0;
-        this.pano.default = {
-          firstScene: this.panoSource.sceneArr[0].id,
-          autoLoad: true
-        };
+        // this.pano.default = {
+        //   firstScene: this.panoSource.sceneArr[0].id,
+        //   autoLoad: true
+        // };
+        this.showPlanView();
+        this.viewer = window.pannellum.viewer(this.$el, this.pano);
+
+        window.addEventListener('resize', ()=>this.resizeWindow());
         // this.viewer = window.pannellum.viewer(this.$el, this.pano);
         // this.selectedLayersIndex = Array.from(
         //   Array(this.panoSource.layers.length).keys() 
         // );
-        // setTimeout(function() {
-          this.viewer = window.pannellum.viewer(this.$el, this.pano);
-          // const renderer = this.viewer.getRenderer();
-          // console.log("=====", renderer)
-          // renderer.render(
-          //   (this.viewer.getPitch() / 180) * Math.PI,
-          //   (this.viewer.getYaw() / 180) * Math.PI,
-          //   (this.viewer.getHfov() / 180) * Math.PI,
-          //   { returnImage: true },
-          // ).then(img => {
-          //     var canvas = document.createElement('canvas');
-          //     canvas.width = img.width;
-          //     canvas.height = img.height;
-          //     canvas.getContext('2d').drawImage(img, 0, 0);
-          //     html2canvas(document.querySelector(".pnlm-ui"), {canvas: canvas, backgroundColor: 'rgba(0, 0, 0, 0)'}).then(canvas => {
-          //         document.body.appendChild(canvas);
-          //     });
-          // });
-        // }, 5000);
+      }
+    },
+    showPlanView(){
+      let div_class = document.getElementsByClassName("img")[0];
+      while (div_class.firstChild) {
+        div_class.removeChild(div_class.lastChild);
+      }
+      var oImg = document.createElement("img");
+      oImg.setAttribute('src', this.planView.img);
+      oImg.setAttribute('alt', 'na');
+      oImg.setAttribute('height', window.screen.height-40);
+      oImg.setAttribute('width', window.screen.width);
+
+      oImg.addEventListener('mousedown', (event)=>this.mousePinDownHandler(event));
+
+      div_class.appendChild(oImg);
+      this.drawButton();
+    },
+    getScenetitlebyID(sceneID){
+      let scene = this.panoSource.sceneArr;
+      var title;
+      scene.map((spot,index) => {
+        if(spot.id == sceneID){
+          title =  spot.title;
+        }
+      });
+      return title;
+    },
+    resizeWindow(){
+      this.showPlanView();
+    },
+    drawButton(){
+      let div_class = document.getElementsByClassName("button")[0];
+      while (div_class.firstChild) {
+        div_class.removeChild(div_class.lastChild);
+      }
+      let scene = this.panoSource.sceneArr[0];
+      scene.spots.map((spot,index) => {
+        let pin = document.createElement('div');
+
+        let button = document.createElement('BUTTON');
+        button.classList.add('ring-button')
+        button.style.position = 'fixed';
+        button.style.left = spot.pitch * window.screen.width + 'px';
+        button.style.top = spot.yaw * window.screen.height + 'px';
+        button.style.width = 20 + 'px';
+        button.style.height = 20 + 'px';
+        button.type = "button";
+        button.addEventListener('click', ()=>{this.changeSceneIndex(index); this.loadScene(spot.sceneID);});
+        button.setAttribute("value","generated button");
+
+        let label = document.createElement('label');
+        label.style.position = 'fixed';
+        label.style.top = spot.yaw * window.screen.height + 25 + 'px';
+        label.style.left = spot.pitch * window.screen.width + 10 + 'px';
+        label.innerHTML = this.getScenetitlebyID(spot.sceneID);
+        label.style.textAlign = "center";
+        label.style.color = "#000000";
+
+        pin.appendChild(button);
+        pin.appendChild(label);
+
+        div_class.appendChild(pin);
+      });
+    },
+    
+    removeChild(){
+      let div_class = document.getElementsByClassName("img")[0];
+      while (div_class.firstChild) {
+        div_class.removeChild(div_class.lastChild);
+      }
+      let div_class1 = document.getElementsByClassName("button")[0];
+      while (div_class1.firstChild) {
+        div_class1.removeChild(div_class1.lastChild);
       }
     },
     loadHotSpots(){
@@ -929,8 +974,8 @@ export default {
       this.pano.scenes[scene.id].hotSpots = [];
       scene.spots.map((spot,index) => {
         let obj = {};
-        obj.pitch = spot.pitch;
-        obj.yaw = spot.yaw;
+        obj.pitch = spot.pitch * window.screen.width;
+        obj.yaw = spot.yaw * window.screen.height;
         obj.type = 'info';
         obj.text = spot.text;
         obj.createTooltipFunc = this.customTooltiphotspot;
@@ -939,7 +984,12 @@ export default {
       });
     },
     loadScene(sceneID) {
-      this.viewer.loadScene(sceneID);
+      if(this.currentSceneIndex == 0){
+        this.showPlanView();
+      } else {
+        this.removeChild();
+        this.viewer.loadScene(sceneID);
+      }
     },
     changeSceneIndex(index){
       this.currentSceneIndex = index;
@@ -976,16 +1026,6 @@ export default {
       } else {
         this.$router.push({ path: "/panolist" });
       }
-    },
-    showPlanView(){
-      var oImg = document.createElement("img");
-      oImg.setAttribute('src', this.planView.img);
-      oImg.setAttribute('alt', 'na');
-      oImg.setAttribute('height', window.screen.height);
-      oImg.setAttribute('width', window.screen.width);
-      var inviteSection = document.getElementsByClassName("bg")[0];
-      console.log("invitesection-------",inviteSection);
-      inviteSection.appendChild(oImg);
     },
     customTooltiphotspot(hotSpotDiv, args){
       if(!this.isEditable)
@@ -1122,70 +1162,21 @@ export default {
       //  this.$forceUpdate();
     },
     mousePinDownHandler(event) {
-      let coords = this.viewer.mouseEventToCoords(event);
-      this.editPinSpotData = {
-        dialog: true,
-        editValid: false,
-        spot: {
-          pitch: coords[0],
-          yaw: coords[1],
-          style: "detail",
-        }
-      };
-      this.viewer.off("mousedown", this.mousePinDownHandler);
-      document
-        .getElementsByClassName("pnlm-ui")[0]
-        .style.setProperty("cursor", "");
-      // let pitch = this.viewer.getPitch();
-      // let yaw = this.viewer.getYaw();
-      // let hfov = this.viewer.getHfov();
-
-      // newSpot.clickHandlerFunc = () => {
-      //   this.specsDialog.newComment = null;
-      //   this.specsDialog.dialog = true;
-      //   this.specsDialog.content = newSpot.data;
-      //   this.specsDialog.comments = newSpot.comments;
-      // };
+      if(this.isAddpin == true){
+        this.editPinSpotData = {
+          dialog: true,
+          editValid: false,
+          spot: {
+            pitch: event.pageX/window.screen.width,
+            yaw: event.pageY/window.screen.height,
+            style: "detail",
+          }
+        };
+        this.isAddpin = false;
+      }
     },
-    // mouseDownHandler(event) {
-    //   let coords = this.viewer.mouseEventToCoords(event);
-    //   this.editSpotData = {
-    //     dialog: true,
-    //     editValid: false,
-    //     spot: {
-    //       pitch: coords[0],
-    //       yaw: coords[1],
-    //       style: "detail",
-    //       layer: null,
-    //     },
-    //     newContent: {
-    //       type: "img",
-    //       name: null,
-    //       thumbnail: null,
-    //       file: null,
-    //       link: null,
-    //     },
-    //   };
-    //   this.viewer.off("mousedown", this.mouseDownHandler);
-    //   document
-    //     .getElementsByClassName("pnlm-ui")[0]
-    //     .style.setProperty("cursor", "");
-    //   // let pitch = this.viewer.getPitch();
-    //   // let yaw = this.viewer.getYaw();
-    //   // let hfov = this.viewer.getHfov();
-
-    //   // newSpot.clickHandlerFunc = () => {
-    //   //   this.specsDialog.newComment = null;
-    //   //   this.specsDialog.dialog = true;
-    //   //   this.specsDialog.content = newSpot.data;
-    //   //   this.specsDialog.comments = newSpot.comments;
-    //   // };
-    // },
     addPinConfig() {
-      document
-        .getElementsByClassName("pnlm-ui")[0]
-        .style.setProperty("cursor", "crosshair", "important");
-      this.viewer.on("mousedown", this.mousePinDownHandler);
+      this.isAddpin = true;
     },
     addTagConfig() {
       document
@@ -1471,23 +1462,6 @@ export default {
             link: this.editSpotData.newContent.link,
           });
         }
-        // let fileType = this.editSpotData.newContent.link.type;
-
-        // if (fileType.includes("image")) {
-        //   this.editSpotData.spot.contents.push({
-        //     type: "img",
-        //     name: this.editSpotData.newContent.name,
-        //     link: this.editSpotData.newContent.link,
-        //     // thumbnail: "String",
-        //     s3Upload: true,
-        //   });
-        // }
-
-        // else if (fileType.includes("pdf")) {
-        //   //+++generate thumbnail
-
-        // }
-
         this.$refs.newContentForm.reset();
         this.editSpotData.newContent.type = "img";
         this.$forceUpdate();
@@ -1743,6 +1717,76 @@ div.custom-tooltip:hover span:after {
   content: "";
   clear: both;
   display: block;
+}
+
+.ring-button {
+  min-width: 30px;
+  min-height: 30px;
+  background: #4FD1C5;
+  background: linear-gradient(90deg, rgba(129,230,217,1) 0%, rgba(79,209,197,1) 100%);
+  border: none;
+  border-radius: 1000px;
+  box-shadow: 12px 12px 24px rgba(79,209,197,.64);
+  transition: all 0.3s ease-in-out 0s;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  padding: 10px;
+  }
+
+.ring-button::before {
+content: '';
+  border-radius: 1000px;
+  min-width: calc(50px + 12px);
+  min-height: calc(50px + 12px);
+  border: 6px solid #00FFCB;
+  box-shadow: 0 0 50px rgba(0,255,203,.64);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: all .3s ease-in-out 0s;
+}
+
+.ring-button:hover, .ring-button:focus {
+  color: #313133;
+  transform: translateY(-6px);
+}
+
+.ring-button:hover::before, .ring-button:focus::before {
+  opacity: 1;
+}
+
+.ring-button::after {
+  content: '';
+  width: 30px; height: 30px;
+  border-radius: 100%;
+  border: 6px solid #00FFCB;
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  animation: ring 1.5s infinite;
+}
+
+.ring-button:hover::after, .ring-button:focus::after {
+  animation: none;
+  display: none;
+}
+
+@keyframes ring {
+  0% {
+    width: 30px;
+    height: 30px;
+    opacity: 1;
+  }
+  100% {
+    width: 30px;
+    height: 30px;
+    opacity: 0;
+  }
 }
 
 </style>
