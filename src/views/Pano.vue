@@ -610,7 +610,7 @@ export default {
       oldExpandHeight: 0
     };
   },
-  created() {
+  async created() {
     if (this.user.email == "360TempSharing@360TempSharing.com") {
       //Guest User
       if (this.$route.params.linkname) {
@@ -640,9 +640,18 @@ export default {
       }
     } else {
       //login user
-      this.customID = this.$route.params.id;
+      if (this.$route.params.linkname) {
+        let data = await API.graphql(
+          graphqlOperation(sharingByLinkname, {linkname: this.$route.params.linkname})
+        )
+        let sharingData = data.data.sharingByLinkname.items;
+        this.customID = sharingData[0].panoID;
+      } else {
+        this.customID = this.$route.params.id;
+      }
+
       API.graphql(
-        graphqlOperation(getProjectPermission, { id: this.$route.params.id })
+        graphqlOperation(getProjectPermission, { id: this.customID })
       ).then((res) => {
         let projectPermission = res.data.getProjectPermission;
 
@@ -757,7 +766,7 @@ export default {
         let items = (
           await API.graphql(
             graphqlOperation(editStatusByPano, {
-              panoID: this.$route.params.id,
+              panoID: this.customID,
               sortDirection: "DESC",
             })
           )
