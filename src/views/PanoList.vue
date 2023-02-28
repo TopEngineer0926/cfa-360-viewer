@@ -187,9 +187,16 @@
               <v-row align="center">
                 <v-col cols="3">
                   <v-text-field
+                    v-if = "sharingitem.linkname != ' '"
                     label="Link Name"
                     v-model="linknameArray[index]"
                     disabled
+                  ></v-text-field>
+                  <v-text-field
+                    v-else
+                    label="Link Name"
+                    v-model="linknameArray[index]"
+                    :rules="rules"
                   ></v-text-field>
                 </v-col>
 
@@ -274,7 +281,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-
+    <v-snackbar
+      v-model="snakeBar.snackbar"
+      :bottom="snakeBar.y === 'bottom'"
+      :color="snakeBar.color"
+      :left="snakeBar.x === 'left'"
+      :multi-line="snakeBar.mode === 'multi-line'"
+      :right="snakeBar.x === 'right'"
+      :timeout="snakeBar.timeout"
+      :top="snakeBar.y === 'top'"
+      :vertical="snakeBar.mode === 'vertical'"
+    >
+      {{ snakeBar.text }}
+    </v-snackbar>
     <foot />
   </v-container>
 </template>
@@ -319,6 +338,15 @@ export default {
       categoryList: ["All Categories"],
       expandItems : [],
       filterItems : [],
+      snakeBar : {
+        color: '',
+        mode: '',
+        snackbar: false,
+        text: '',
+        timeout: 4000,
+        x: null,
+        y: 'bottom',
+      },
       editPano: {
         index: null,
         prototypeEdition: null,
@@ -329,6 +357,9 @@ export default {
         imgToUpload: null,
         thumbnailToUpload: null,
       },
+      rules: [
+        value => (!!value || value == ' ') || 'Required.',
+      ],
       sharing: {
         dialog: false,
         panoID: null,
@@ -490,28 +521,6 @@ export default {
         if (this.editPano.prototypeEdition) {
           newPano.prototypeEdition = this.editPano.prototypeEdition;
         }
-        // if (this.editPano.imgToUpload) {
-        //   let imgId = nanoid();
-        //   newPano.img = (
-        //     await Storage.put(imgId, this.editPano.imgToUpload, {
-        //       level: "protected",
-        //       contentType: this.editPano.imgToUpload.type,
-        //       metadata: { user: this.user.email },
-        //     })
-        //   ).key;
-        //   //delete org img
-        //   if (this.panos[this.editPano.index].img) {
-        //     Storage.remove(this.pano.img, { level: "protected" });
-        //   }
-        // }
-
-        // if (
-        //   !this.editPano.thumbnailToUpload &&
-        //   !this.panos[this.editPano.index].thumbnail &&
-        //   this.editPano.imgToUpload
-        // ) {
-        //   this.editPano.thumbnailToUpload = this.editPano.imgToUpload;
-        // }
 
         if (this.editPano.thumbnailToUpload) {
           //Compressor
@@ -583,19 +592,19 @@ export default {
       });
     },
 
-    addTempsharing() {
+    async addTempsharing() {
       const date = new Date().getTime();
       this.linkdate = new Date().toISOString().split("T")[0];
       this.linkdateArray.push(this.link);
-      let linkname = "Link"+nanoid();
+      let linkname = ' ';
       let newSharing = {
         panoID: this.sharing.panoID,
         password: nanoid(),
         ttl: date,
-        linkname : linkname,
+        linkname : ' ',
       };
 
-      API.graphql(
+      await API.graphql(
         graphqlOperation(createTemporarySharing, {
           input: newSharing,
         })
@@ -610,48 +619,77 @@ export default {
       this.getTempsharing(this.sharing.panoID);
     },
 
-    updateTempsharing(item, index) {
+    async updateTempsharing(item, index) {
       const date = new Date(this.linkdateArray[index]).getTime();
-      let updateSharing = {
-        id : item.id,
-        panoID: item.panoID,
-        password: nanoid(),
-        ttl: date,
-        linkname : this.linknameArray[index],
-      };
-      API.graphql(
-        graphqlOperation(updateTemporarySharing, {
-          input: updateSharing,
-        })
-      );
-      let modifyItem = {
-        id : item.id,
-        panoID: this.sharing.panoID,
-        password: nanoid(),
-        ttl: this.linkdateArray[index],
-        linkname : this.linknameArray[index],
-      }
-      this.sharing.list[index] = modifyItem;
-    },
+      let linkname = this.linknameArray[index];
+      let check_item = true;
+      if(linkname == ' ' ||linkname == ''){
 
-    deleteTempsharing(item, index) {
-      API.graphql(
+        this.snakeBar.color = "error";
+        this.snakeBar.text = "Linkname is must required!";
+        this.snakeBar.snackbar = true;
+
+      } else {
+        this.sharing.list.map((shareItem, key) => {
+          if(shareItem.linkname == linkname){
+            check_item = false;
+          }
+        })
+        if (check_item == true){
+          let updateSharing = {
+            id : item.id,
+            panoID: item.panoID,
+            password: nanoid(),
+            ttl: date,
+            linkname : linkname,
+          };
+          await API.graphql(
+            graphqlOperation(updateTemporarySharing, {
+              input: updateSharing,
+            })
+          );
+          let modifyItem = {
+            id : item.id,
+            panoID: this.sharing.panoID,
+            password: nanoid(),
+            ttl: this.linkdateArray[index],
+            linkname : linkname,
+          }
+          this.sharing.list[index] = modifyItem;
+          this.getTempsharing(this.sharing.panoID);
+        } else {
+          this.snakeBar.color = "error";
+          this.snakeBar.text = "Linkname is not invalid!";
+          this.snakeBar.snackbar = true;
+        }
+      }
+    },
+    async deleteTempsharing(item, index) {
+      await API.graphql(
         graphqlOperation(deleteTemporarySharing, {
           input: { id: item.id },
         })
       );
-
+      await this.getTempsharing(this.sharing.panoID);
       this.sharing.list.splice(index, 1);
     },
 
     copySharingLink(panoID,linkname,password) {
-      let base = window.location.href.replace("panolist","sharing");
-      this.$root.$dialogLoader.start(
-        "Link Copied to the clipboard",
-        {},
-        navigator.clipboard.writeText(base + "/" + linkname),
-        true
-      );
+      if(linkname == ' ' ||linkname == ''){
+
+        this.snakeBar.color = "error";
+        this.snakeBar.text = "Linkname is must requarid!";
+        this.snakeBar.snackbar = true;
+
+      } else {
+        let base = window.location.href.replace("panolist","sharing");
+        this.$root.$dialogLoader.start(
+          "Link Copied to the clipboard",
+          {},
+          navigator.clipboard.writeText(base + "/" + linkname),
+          true
+        );
+      }
     },
   },
 };
