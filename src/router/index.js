@@ -55,17 +55,20 @@ const router = new VueRouter({
 });
 
 router.beforeResolve((to, from, next) => {
-  if (to.matched.some(record => record.meta.requiresAuth)) {
+  if (to.matched.some((record) => record.meta.requiresAuth)) {
     Auth.currentAuthenticatedUser()
       .then(async (authData) => {
-        if (authData.attributes.email == '360TempSharing@360TempSharing.com') {
-          if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
+        if (authData.attributes.email == "360TempSharing@360TempSharing.com") {
+          if (
+            to.matched.some((record) => record.meta.tempLogin) &&
+            to.params.linkname
+          ) {
             await store.dispatch("login", authData);
             next();
           } else {
             store.commit("SET_USER_NULL");
             next({
-              path: "/"
+              path: "/",
             });
           }
         } else {
@@ -76,7 +79,7 @@ router.beforeResolve((to, from, next) => {
           if (!store.state.roleDefinitionTable) {
             let res = await API.graphql(
               graphqlOperation(getSiteSetting, { type: "role-definition" })
-            )
+            );
             store.commit(
               "SET_ROLE_DEFINATION_TABLE",
               JSON.parse(res.data.getSiteSetting.config).roleTable
@@ -86,14 +89,21 @@ router.beforeResolve((to, from, next) => {
         }
       })
       .catch(() => {
-        if (to.matched.some(record => record.meta.tempLogin) && to.params.password) {
-          Auth.signIn('360TempSharing', 'bhnjcvP94DFAY6Bn').then(async (authData) => { await store.dispatch("login", authData); next() })
-        }
-        else {
-          console.log('unauth');
+        if (
+          to.matched.some((record) => record.meta.tempLogin) &&
+          to.params.linkname
+        ) {
+          Auth.signIn("360TempSharing", "bhnjcvP94DFAY6Bn").then(
+            async (authData) => {
+              await store.dispatch("login", authData);
+              next();
+            }
+          );
+        } else {
+          console.log("unauth");
           store.commit("SET_USER_NULL");
           next({
-            path: "/"
+            path: "/",
           });
         }
       });

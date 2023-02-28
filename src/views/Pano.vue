@@ -611,33 +611,28 @@ export default {
     };
   },
   async created() {
-    if (this.user.email == "360TempSharing@360TempSharing.com") {
-      //Guest User
-      if (this.$route.params.linkname) {
-        API.graphql(
-          graphqlOperation(sharingByLinkname, {linkname: this.$route.params.linkname})
-        ).then((data) => {
-          let sharingData = data.data.sharingByLinkname.items;
-          this.customID = sharingData[0].panoID;
-          this.custonUsername = this.$route.params.linkname;
-          if (
-            sharingData.length > 0 &&
-            sharingData[0].linkname == this.$route.params.linkname && sharingData[0].ttl > new Date().getTime()
-          ) {
-            this.index_Time = sharingData[0].ttl;
-            this.updateCheckEditStatusInterval();
-            this.isGuest = true;
-            this.initData();
-          } else {
-            this.$root.$dialogLoader.showSnackbar("Not authorized");
-            this.$router.push({ path: "/" });
-            this.$store.dispatch("logout");
-          }
-        });
-      } else {
-        //Unauth
-        this.$root.$dialogLoader.showSnackbar("Not authorized");
-      }
+    if (this.$route.params.linkname) {
+      //Check if Guest User
+      API.graphql(
+        graphqlOperation(sharingByLinkname, {linkname: this.$route.params.linkname})
+      ).then((data) => {
+        let sharingData = data.data.sharingByLinkname.items;
+        this.customID = sharingData[0].panoID;
+        this.custonUsername = this.$route.params.linkname;
+        if (
+          sharingData.length > 0 &&
+          sharingData[0].linkname == this.$route.params.linkname && sharingData[0].ttl > new Date().getTime()
+        ) {
+          this.index_Time = sharingData[0].ttl;
+          this.updateCheckEditStatusInterval();
+          this.isGuest = true;
+          this.initData();
+        } else {
+          this.$root.$dialogLoader.showSnackbar("Not authorized");
+          this.$router.push({ path: "/" });
+          this.$store.dispatch("logout");
+        }
+      });
     } else {
       //login user
       if (this.$route.params.linkname) {
@@ -1036,12 +1031,10 @@ export default {
       }
 
       if(this.currentSceneIndex == 0){
-        console.log("1")
         div_slot.style.zIndex = 0;
         div_slot.style.position = "fixed";
         this.showPlanView();
       } else {
-        console.log("2")
         this.pano = {
           title: this.panoSource.prototypeName,
           scenes: {},
