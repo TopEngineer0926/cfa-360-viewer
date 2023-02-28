@@ -161,7 +161,7 @@
                                 
                                 <v-img :src="scene.thumbnail" alt="" 
                                   class="rounded-10" width="100" height="100"
-                                  @click.stop="loadScene(scene.id);"
+                                  @click.stop="changeSceneIndex(sceneIndex); loadScene(scene.id);"
                                 ></v-img>
                               </v-card>
                             </v-slide-group>
@@ -1027,10 +1027,12 @@ export default {
       }
 
       if(this.currentSceneIndex == 0){
+        console.log("1")
         div_slot.style.zIndex = 0;
         div_slot.style.position = "fixed";
         this.showPlanView();
       } else {
+        console.log("2")
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
         this.removeChild();
         div_slot.style.zIndex = 2;
