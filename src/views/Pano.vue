@@ -1015,7 +1015,7 @@ export default {
         this.pano.scenes[scene.id].hotSpots.push(obj);
       });
     },
-    loadScene(sceneID) {
+    async loadScene(sceneID) {
       let div_slot = document.getElementsByClassName("default-slot")[0];
 
       let div,div1;
@@ -1033,6 +1033,28 @@ export default {
         this.showPlanView();
       } else {
         console.log("2")
+        this.pano = {
+          title: this.panoSource.prototypeName,
+          scenes: {},
+        };
+        await Promise.all(
+          this.panoSource.sceneArr.map(async (scene, key) => {
+            this.pano.scenes[scene.id] = {};
+            this.pano.scenes[scene.id].title = scene.title;
+            let thumb = await Storage.get(
+              this.panoSource.id + "/" + scene.img,
+              { expires: 432000 }
+            );
+
+            this.pano.scenes[scene.id].panorama = thumb;
+            scene.thumbnail = thumb;
+
+              this.pano.scenes[scene.id].hfov = 0;
+              this.pano.scenes[scene.id].sceneFadeDuration = 1000;
+              this.pano.scenes[scene.id].pitch = 0;
+              this.pano.scenes[scene.id].yaw = 0;
+          })
+        );
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
         this.removeChild();
         div_slot.style.zIndex = 2;
