@@ -13,22 +13,14 @@
           ></v-text-field>
         </v-card-text>
 
-        <!-- <amplify-authenticator>
-      <amplify-sign-in header-text="" hide-sign-up slot="sign-in">
-        <div slot="federated-buttons"></div
-      ></amplify-sign-in>
-    </amplify-authenticator> -->
-
         <v-card-actions class="justify-center">
           <v-btn @click="signin" color="primary"> Log in</v-btn>
         </v-card-actions>
-      </v-card></v-row
-    >
+      </v-card></v-row>
   </v-container>
 </template>
 
 <script>
-// import { AuthState, onAuthUIStateChange } from "@aws-amplify/ui-components";
 import { Auth } from "aws-amplify";
 import { mapState } from "vuex";
 
@@ -57,19 +49,6 @@ export default {
         }
       })
       .catch((err) => console.log(err));
-
-    // this.unsubscribeAuth = onAuthUIStateChange(
-    //   async (nextAuthState, authData) => {
-    //     console.log("nextAuthState, authData", nextAuthState, authData);
-    //     if (nextAuthState === AuthState.SignedIn) {
-    //       await this.$store.dispatch("login", authData);
-    //       this.$router.push({ path: "/panolist" });
-    //     }
-    //     if (!authData) {
-    //       this.$store.commit("SET_USER_NULL");
-    //     }
-    //   }
-    // );
   },
 
   methods: {
