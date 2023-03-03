@@ -185,9 +185,9 @@
           <div v-if="sharing.list">
             <div v-for="(sharingitem, index) in sharing.list" :key="index">
               <v-row align="center">
-                <v-col cols="3">
+                <v-col cols="2">
                   <v-text-field
-                    v-if = "sharingitem.linkname != ' '"
+                    v-if = "sharingitem.linkname != 'LINK_'"
                     label="Link Name"
                     v-model="linknameArray[index]"
                     disabled
@@ -228,21 +228,27 @@
                   </v-menu>
                 </v-col>
 
-                <v-col cols="2">
+                <v-col cols="1">
                   <v-btn
                     text
                     @click="
                       copySharingLink(sharingitem.panoID,sharingitem.linkname,sharingitem.password)
                     "
-                    >Copy Link</v-btn>
+                    >Copy</v-btn>
                 </v-col>
 
-                <v-col cols="2">
+                <v-col cols="2" align="center">
                   <v-btn text @click="deleteTempsharing(sharingitem, index)">Delete</v-btn>
                 </v-col>
 
-                <v-col cols="2">
-                  <v-btn text @click="updateTempsharing(sharingitem, index)">Save</v-btn>
+                <v-col cols="2" align="center">
+                  <v-btn v-if = "sharingitem.linkname != 'LINK_'" disabled text @click="createTempsharing(sharingitem, index)">Create</v-btn>
+                  <v-btn v-else text @click="createTempsharing(sharingitem, index)">Create</v-btn>
+                </v-col>
+
+                <v-col cols="2" align="center">
+                  <v-btn v-if = "sharingitem.linkname == 'LINK_'" disabled text @click="updateTempsharing(sharingitem, index)">Update</v-btn>
+                  <v-btn v-else text @click="updateTempsharing(sharingitem, index)">Update</v-btn>
                 </v-col>
 
               </v-row>
@@ -593,37 +599,31 @@ export default {
     },
 
     async addTempsharing() {
-      const date = new Date().getTime();
-      this.linkdate = new Date().toISOString().split("T")[0];
-      this.linkdateArray.push(this.link);
-      let linkname = ' ';
-      let newSharing = {
-        panoID: this.sharing.panoID,
-        password: nanoid(),
-        ttl: date,
-        linkname : ' ',
-      };
+      let current_date = new Date();
+      current_date.setHours(24);
+      const date = current_date.getTime();
 
-      await API.graphql(
-        graphqlOperation(createTemporarySharing, {
-          input: newSharing,
-        })
-      );
+      this.linkdate = new Date().toISOString().split("T")[0];
+
+      let linkname = 'LINK_';
       let newItem = {
         panoID: this.sharing.panoID,
         password: nanoid(),
         ttl: this.linkdate,
         linkname : linkname,
       }
+      this.linkdateArray.push(this.linkdate);
+      this.linknameArray.push(linkname);
+      this.sharing.list.push(newItem);
+      console.log("33333=========",this.sharing.list);
       this.sharing.new = null;
-      this.getTempsharing(this.sharing.panoID);
     },
 
-    async updateTempsharing(item, index) {
+    async createTempsharing(item, index) {
       const date = new Date(this.linkdateArray[index]).getTime();
       let linkname = this.linknameArray[index];
       let check_item = true;
-      if(linkname == ' ' ||linkname == ''){
+      if(linkname == 'LINK_' ||linkname == ''){
 
         this.snakeBar.color = "error";
         this.snakeBar.text = "Linkname is must required!";
@@ -636,6 +636,43 @@ export default {
           }
         })
         if (check_item == true){
+          let newSharing = {
+            panoID: item.panoID,
+            password: nanoid(),
+            ttl: date,
+            linkname : linkname,
+          };
+          await API.graphql(
+            graphqlOperation(createTemporarySharing, {
+              input: newSharing,
+            })
+          );
+          let modifyItem = {
+            id : item.id,
+            panoID: this.sharing.panoID,
+            password: nanoid(),
+            ttl: this.linkdateArray[index],
+            linkname : linkname,
+          }
+          this.sharing.list[index] = modifyItem;
+          this.getTempsharing(this.sharing.panoID);
+        } else {
+          this.snakeBar.color = "error";
+          this.snakeBar.text = "Linkname is not invalid!";
+          this.snakeBar.snackbar = true;
+        }
+      }
+    },
+    async updateTempsharing(item, index) {
+      const date = new Date(this.linkdateArray[index]).getTime();
+      let linkname = this.linknameArray[index];
+      let check_item = true;
+      this.sharing.list.map((shareItem, key) => {
+          if(shareItem.linkname == linkname){
+            check_item = false;
+          }
+        })
+        if (check_item == false){
           let updateSharing = {
             id : item.id,
             panoID: item.panoID,
@@ -662,7 +699,6 @@ export default {
           this.snakeBar.text = "Linkname is not invalid!";
           this.snakeBar.snackbar = true;
         }
-      }
     },
     async deleteTempsharing(item, index) {
       await API.graphql(
@@ -675,7 +711,7 @@ export default {
     },
 
     copySharingLink(panoID,linkname,password) {
-      if(linkname == ' ' ||linkname == ''){
+      if(linkname == 'LINK_' ||linkname == ''){
 
         this.snakeBar.color = "error";
         this.snakeBar.text = "Linkname is must requarid!";
