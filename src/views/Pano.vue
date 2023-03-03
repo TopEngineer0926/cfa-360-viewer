@@ -453,6 +453,7 @@
             lazy-validation
           >
             <v-text-field
+              v-show="false"
               v-model="editPinSpotData.spot.text"
               require
               :rules="[(v) => !!v || 'Pin Name is required']"
@@ -466,6 +467,7 @@
           </v-form>
           <div>
             <v-textarea
+              v-show="false"
               v-model="editPinSpotData.spot.about"
               label="Description"
               auto-grow
@@ -1010,18 +1012,22 @@ export default {
           button.style.top = (spot.yaw * this.image_height + start_Ypos) + 'px';
           button.style.width = 20 + 'px';
           button.style.height = 20 + 'px';
-
+          button.title = this.getScenetitlebyID(spot.sceneID);
           button.addEventListener('click', ()=>{
-            this.currentSceneID = spot.sceneID;
-            this.nextSceneID = index + 1;
-            this.isAddpin = false;
-            this.editPinSpotData = {
-              dialog: true,
-              editValid: false,
-              spot: spot
-            };
+            if(this.isEditable == true){
+              this.currentSceneID = spot.sceneID;
+              this.nextSceneID = index + 1;
+              this.isAddpin = false;
+              this.editPinSpotData = {
+                dialog: true,
+                editValid: false,
+                spot: spot
+              };
+            } else {
+              this.changeSceneIndex(index + 1); 
+              this.loadScene(spot.sceneID);
+            }
           })
-
           div_button.appendChild(button);
         });
       }
