@@ -3,7 +3,10 @@
     
     <div v-if="planView.img" class="vue-pannellum">
       
-      <div class="img"></div>
+      <div class="img-container">
+        <div class="img"></div>
+      </div>
+
       <div class="button"></div>
 
       <div class="default-slot">
@@ -126,7 +129,7 @@
                                 >
                                 
                                   <v-img :src="scene.thumbnail" alt="" 
-                                    class="rounded-10" width="100" height="100"
+                                    class="rounded-10" width="100" height="100" style="width: 100px; height: 100px;"
                                     @click.stop="changeSceneIndex(sceneIndex);loadScene(scene.id);"
                                   ></v-img>
                                   <v-btn 
@@ -472,6 +475,9 @@
           </div>
         </v-card-text>
         <v-card-actions>
+          <v-btn v-show="isAddpin == false" color="grey" text @click="changeSceneIndex(nextSceneID); loadScene(currentSceneID);">
+            Go Scene
+          </v-btn>
           <v-spacer></v-spacer>
           <v-btn
             v-if="isEditable"
@@ -607,7 +613,10 @@ export default {
       isAddpin : false,
       customID : null,
       custonUsername : null,
-      oldExpandHeight: 0
+      currentSceneID : null,
+      nextSceneID : null,
+      image_width: 0,
+      image_height: 0,
     };
   },
   async created() {
@@ -891,36 +900,51 @@ export default {
         //   autoLoad: true
         // };
 
-        this.showPlanView();
         window.addEventListener('resize', ()=>this.resizeWindow());
+        this.showPlanView();
       }
     },
-
+    getContainedSize(img) {
+      var ratio = img.naturalWidth/img.naturalHeight;
+      var width = img.height*ratio
+      var height = img.height
+      if (width > img.width) {
+        width = img.width
+        height = img.width/ratio
+      }
+      this.image_width = width;
+      this.image_height = height;
+    },
     showPlanView(){
       if(this.currentSceneIndex == 0){
         this.viewer = null;
-        let div_class = document.getElementsByClassName("img")[0];
+        let div_container = document.getElementsByClassName("img-container")[0];
+        let div_img = document.getElementsByClassName("img")[0];
         let div_expand = document.getElementsByClassName("default-slot")[0];
         let div_bg = document.getElementsByClassName("bg")[0];
-        while (div_class.firstChild) {
-          div_class.removeChild(div_class.lastChild);
+
+        if (div_img) {
+          while (div_img.firstChild) {
+            div_img.removeChild(div_img.lastChild);
+          }
         }
+
         var oImg = document.createElement("img");
+        oImg.src = this.planView.img
+        oImg.style.objectFit = 'contain'
+        oImg.style.height = '100%'
 
-        oImg.setAttribute('src', this.planView.img);
-        oImg.setAttribute('alt', 'na');
-        oImg.setAttribute('height', 'auto');
-
-        oImg.setAttribute('width', div_bg.getBoundingClientRect().width);
-        oImg.setAttribute('height', div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height);
-
+        div_container.style.width = div_bg.getBoundingClientRect().width + 'px';
+        div_container.style.height = (div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height) + 'px';
+        div_img.style.height = '100%'
         oImg.addEventListener('mousedown', (event)=>this.mousePinDownHandler(event));
 
-        div_class.style.top = 0;
-        div_class.style.left = 0;
-
-        div_class.appendChild(oImg);
-        this.drawButton();
+        oImg.onload = () => {
+          this.getContainedSize(oImg)
+          this.drawButton();
+        }
+        
+        div_img.appendChild(oImg);
       }
     },
     getScenetitlebyID(sceneID){
@@ -941,68 +965,80 @@ export default {
       }
     },
     resizeExpand(){
-      if(this.currentSceneIndex == 0){
-        let div_class = document.getElementsByClassName("img")[0];
+        let div_container = document.getElementsByClassName("img-container")[0];
         let div_expand = document.getElementsByClassName("default-slot")[0]; 
         let div_bg = document.getElementsByClassName("bg")[0];
-        let oImg = div_class.firstChild;
         let vm = this;
+
         const resize_ob = new ResizeObserver(function (entries) {
-          oImg.setAttribute('width', div_bg.getBoundingClientRect().width);
-          oImg.setAttribute('height', div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height);
-          vm.drawButton();
+          if(vm.currentSceneIndex == 0){
+            div_container.style.width = div_bg.getBoundingClientRect().width + 'px';
+            div_container.style.height = (div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height) + 'px';
+
+            vm.showPlanView()
+          } else {
+            div_container.style.height = '0px';
+          }
         });
+
         resize_ob.observe(div_expand);
-      } else {
-        return;
-      }
     },
     drawButton(){
       if(this.currentSceneIndex == 0){
-        let div_class = document.getElementsByClassName("button")[0];
-        let div_bg = document.getElementsByClassName("img")[0];
-        let div_img = div_bg.firstChild;
-        while (div_class.firstChild) {
-          div_class.removeChild(div_class.lastChild);
+        let div_container = document.getElementsByClassName("img-container")[0];
+        let div_button = document.getElementsByClassName("button")[0];
+
+        if (div_button) {
+          while (div_button.firstChild) {
+            div_button.removeChild(div_button.lastChild);
+          }
+        } else {
+          return;
         }
+
         let scene = this.panoSource.sceneArr[0];
         scene.spots.map((spot,index) => {
-          let pin = document.createElement('div');
+          let start_Xpos, start_Ypos;
+          start_Xpos = div_container.getBoundingClientRect().width/2 - this.image_width/2;
+          start_Ypos = div_container.getBoundingClientRect().height/2 - this.image_height/2;
+          
           let button = document.createElement('BUTTON');
-          button.classList.add('ring-button')
+          button.style.backgroundColor = 'cyan'
+          button.style.borderRadius = '50%'
           button.style.position = 'fixed';
-          button.style.left = spot.pitch * div_img.getBoundingClientRect().width + 'px';
-          button.style.top = spot.yaw * div_img.getBoundingClientRect().height + 'px';
+          button.style.left = (spot.pitch * this.image_width + start_Xpos) + 'px';
+          button.style.top = (spot.yaw * this.image_height + start_Ypos) + 'px';
           button.style.width = 20 + 'px';
           button.style.height = 20 + 'px';
-          button.type = "button";
-          button.addEventListener('click', ()=>{this.changeSceneIndex(index); this.loadScene(spot.sceneID);});
-          button.setAttribute("value","generated button");
 
-          let label = document.createElement('label');
-          label.style.position = 'fixed';
-          label.style.top = spot.yaw * div_img.getBoundingClientRect().height + 25 + 'px';
-          label.style.left = spot.pitch * div_img.getBoundingClientRect().width + 10 + 'px';
-          label.innerHTML = this.getScenetitlebyID(spot.sceneID);
-          label.style.textAlign = "center";
-          label.style.color = "#000000";
+          button.addEventListener('click', ()=>{
+            this.currentSceneID = spot.sceneID;
+            this.nextSceneID = index + 1;
+            this.isAddpin = false;
+            this.editPinSpotData = {
+              dialog: true,
+              editValid: false,
+              spot: spot
+            };
+          })
 
-          pin.appendChild(button);
-          pin.appendChild(label);
-
-          div_class.appendChild(pin);
+          div_button.appendChild(button);
         });
       }
     },
     
     removeChild(){
-      let div_class = document.getElementsByClassName("img")[0];
-      while (div_class.firstChild) {
-        div_class.removeChild(div_class.lastChild);
+      let div_class = document.getElementsByClassName("img-container")[0];
+      div_class.style.height = '0px';
+
+      let div_img = document.getElementsByClassName("img")[0];
+      while (div_img.firstChild) {
+        div_img.removeChild(div_img.lastChild);
       }
-      let div_class1 = document.getElementsByClassName("button")[0];
-      while (div_class1.firstChild) {
-        div_class1.removeChild(div_class1.lastChild);
+
+      let div_button = document.getElementsByClassName("button")[0];
+      while (div_button.firstChild) {
+        div_button.removeChild(div_button.lastChild);
       }
     },
     loadHotSpots(){
@@ -1010,8 +1046,8 @@ export default {
       this.pano.scenes[scene.id].hotSpots = [];
       scene.spots.map((spot,index) => {
         let obj = {};
-        obj.pitch = spot.pitch * window.screen.width;
-        obj.yaw = spot.yaw * window.screen.height;
+        obj.pitch = spot.pitch;
+        obj.yaw = spot.yaw;
         obj.type = 'info';
         obj.text = spot.text;
         obj.createTooltipFunc = this.customTooltiphotspot;
@@ -1020,20 +1056,25 @@ export default {
       });
     },
     async loadScene(sceneID) {
+      this.cancelPinSpot();
       let div_slot = document.getElementsByClassName("default-slot")[0];
 
       let div,div1;
       div = document.getElementsByClassName("pnlm-ui pnlm-grab")[0];
       div1 = document.getElementsByClassName("pnlm-render-container")[0];
-      if(div != null || div1 != null){
+
+      if(div){
         div.remove();
+      }
+
+      if(div1){
         div1.remove();
       }
 
       if(this.currentSceneIndex == 0){
         div_slot.style.zIndex = 0;
         div_slot.style.position = "fixed";
-        this.showPlanView();
+        this.resizeWindow();
       } else {
         this.pano = {
           title: this.panoSource.prototypeName,
@@ -1235,14 +1276,23 @@ export default {
       //  this.$forceUpdate();
     },
     mousePinDownHandler(event) {
-      let div_bg = document.getElementsByClassName("bg")[0];
+      this.getContainedSize(event.target);
+      let div_container = document.getElementsByClassName("img-container")[0];
+      let start_Xpos, start_Ypos;
+
+      start_Xpos = div_container.getBoundingClientRect().width/2 - this.image_width/2;
+      start_Ypos = div_container.getBoundingClientRect().height/2 - this.image_height/2;
+      
       if(this.isAddpin == true){
+        let lenX,lenY;
+        lenX = (event.pageX - start_Xpos)/this.image_width;
+        lenY = (event.pageY - start_Ypos)/this.image_height;
         this.editPinSpotData = {
           dialog: true,
           editValid: false,
           spot: {
-            pitch: event.pageX/div_bg.getBoundingClientRect().width,
-            yaw: event.pageY/div_bg.getBoundingClientRect().height,
+            pitch: lenX,
+            yaw: lenY,
             style: "detail",
           }
         };
@@ -1288,8 +1338,6 @@ export default {
       };
     },
     deletePinSpot(){
-      this.viewer.removeHotSpot(this.editPinSpotData.spot.id);
-
       this.panoSource.sceneArr[0].spots =
         this.panoSource.sceneArr[0].spots.filter(
           (spot) => spot.id !== this.editPinSpotData.spot.id
@@ -1339,7 +1387,6 @@ export default {
         
         if (this.editPinSpotData.spot.id) {
           //edit existing
-          this.viewer.removeHotSpot(this.editPinSpotData.spot.id);
           let spotIndex = this.panoSource.sceneArr[0].spots.findIndex((spot) => spot.id == this.editPinSpotData.spot.id);
           this.panoSource.sceneArr[0].spots[spotIndex] = this.editPinSpotData.spot;
         } else {
@@ -1568,7 +1615,7 @@ export default {
 
       this.getComments();
       this.editSpotData.newComment = null;
-    } 
+    },
   },
   computed: {
     ...mapState(["user", "roleDefinitionTable"]),
@@ -1679,7 +1726,6 @@ export default {
 }
 .rounded-10{
   border-radius: 5px;
-  border: 2px solid white;
 }
 .bg-transparent{
   background:transparent !important;
@@ -1793,76 +1839,6 @@ div.custom-tooltip:hover span:after {
   display: block;
 }
 
-.ring-button {
-  min-width: 30px;
-  min-height: 30px;
-  background: #4FD1C5;
-  background: linear-gradient(90deg, rgba(129,230,217,1) 0%, rgba(79,209,197,1) 100%);
-  border: none;
-  border-radius: 1000px;
-  box-shadow: 12px 12px 24px rgba(79,209,197,.64);
-  transition: all 0.3s ease-in-out 0s;
-  cursor: pointer;
-  outline: none;
-  position: relative;
-  padding: 10px;
-  }
-
-.ring-button::before {
-content: '';
-  border-radius: 1000px;
-  min-width: calc(50px + 12px);
-  min-height: calc(50px + 12px);
-  border: 6px solid #00FFCB;
-  box-shadow: 0 0 50px rgba(0,255,203,.64);
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  opacity: 0;
-  transition: all .3s ease-in-out 0s;
-}
-
-.ring-button:hover, .ring-button:focus {
-  color: #313133;
-  transform: translateY(-6px);
-}
-
-.ring-button:hover::before, .ring-button:focus::before {
-  opacity: 1;
-}
-
-.ring-button::after {
-  content: '';
-  width: 30px; height: 30px;
-  border-radius: 100%;
-  border: 6px solid #00FFCB;
-  position: absolute;
-  z-index: -1;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  animation: ring 1.5s infinite;
-}
-
-.ring-button:hover::after, .ring-button:focus::after {
-  animation: none;
-  display: none;
-}
-
-@keyframes ring {
-  0% {
-    width: 30px;
-    height: 30px;
-    opacity: 1;
-  }
-  100% {
-    width: 30px;
-    height: 30px;
-    opacity: 0;
-  }
-}
-
 </style>
 
 <style scoped>
@@ -1873,6 +1849,18 @@ content: '';
 }
 
 .vue-pannellum {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.img {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.img-container {
   display: flex;
   flex-direction: column;
   justify-content: center;
