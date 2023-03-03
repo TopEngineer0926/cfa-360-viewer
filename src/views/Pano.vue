@@ -1003,7 +1003,7 @@ export default {
           start_Ypos = div_container.getBoundingClientRect().height/2 - this.image_height/2;
           
           let button = document.createElement('BUTTON');
-          button.style.backgroundColor = 'cyan'
+          button.style.backgroundColor = 'red'
           button.style.borderRadius = '50%'
           button.style.position = 'fixed';
           button.style.left = (spot.pitch * this.image_width + start_Xpos) + 'px';
