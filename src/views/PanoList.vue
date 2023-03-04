@@ -599,10 +599,6 @@ export default {
     },
 
     async addTempsharing() {
-      let current_date = new Date();
-      current_date.setHours(24);
-      const date = current_date.getTime();
-
       this.linkdate = new Date().toISOString().split("T")[0];
 
       let linkname = 'LINK_';
@@ -615,12 +611,11 @@ export default {
       this.linkdateArray.push(this.linkdate);
       this.linknameArray.push(linkname);
       this.sharing.list.push(newItem);
-      console.log("33333=========",this.sharing.list);
       this.sharing.new = null;
     },
 
     async createTempsharing(item, index) {
-      const date = new Date(this.linkdateArray[index]).getTime();
+      const date = new Date(this.linkdateArray[index]).setHours(23, 59, 59);
       let linkname = this.linknameArray[index];
       let check_item = true;
       if(linkname == 'LINK_' ||linkname == ''){
@@ -664,7 +659,7 @@ export default {
       }
     },
     async updateTempsharing(item, index) {
-      const date = new Date(this.linkdateArray[index]).getTime();
+      const date = new Date(this.linkdateArray[index]).setHours(23, 59, 59);
       let linkname = this.linknameArray[index];
       let check_item = true;
       this.sharing.list.map((shareItem, key) => {
