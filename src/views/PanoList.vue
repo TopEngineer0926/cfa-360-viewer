@@ -213,7 +213,7 @@
                       <v-text-field
                         v-model="linkdateArray[index]"
                         value = "sharingitem.ttl"
-                        label="Picker without buttons"
+                        label="Expiration Date"
                         prepend-icon="mdi-calendar"
                         readonly
                         v-bind="attrs"
