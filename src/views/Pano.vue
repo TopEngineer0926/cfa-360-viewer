@@ -917,7 +917,7 @@ export default {
               this.pano.scenes[scene.id].maxPitch = 0;
               this.pano.scenes[scene.id].minYaw = 0;
               this.pano.scenes[scene.id].maxYaw = 0;
-              this.pano.scenes[scene.id].hfov = 1;
+              this.pano.scenes[scene.id].hfov = 120;
               this.pano.scenes[scene.id].haov = 25;
               this.pano.scenes[scene.id].vaov = 25;
               this.pano.scenes[scene.id].showZoomCtrl = true;
@@ -927,7 +927,7 @@ export default {
               
               this.loadHotSpots();
             }else{
-              this.pano.scenes[scene.id].hfov = 0;
+              this.pano.scenes[scene.id].hfov = 120;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
@@ -1185,7 +1185,7 @@ export default {
             this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
 
-              this.pano.scenes[scene.id].hfov = 0;
+              this.pano.scenes[scene.id].hfov = 120;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
