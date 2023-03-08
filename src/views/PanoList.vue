@@ -243,15 +243,13 @@
                 </v-col>
 
                 <v-col cols="2" align="center">
-                  <v-btn v-if = "sharingitem.linkname != 'LINK_'" disabled text @click="createTempsharing(sharingitem, index)">Create</v-btn>
-                  <v-btn v-else text @click="createTempsharing(sharingitem, index)">Create</v-btn>
+                  <div v-if = "sharingitem.linkname != 'LINK_'">
+                    <v-btn text @click="updateTempsharing(sharingitem, index)">Update</v-btn>
+                  </div>
+                  <div v-else>
+                    <v-btn text @click="createTempsharing(sharingitem, index)">Create</v-btn>
+                  </div>
                 </v-col>
-
-                <v-col cols="2" align="center">
-                  <v-btn v-if = "sharingitem.linkname == 'LINK_'" disabled text @click="updateTempsharing(sharingitem, index)">Update</v-btn>
-                  <v-btn v-else text @click="updateTempsharing(sharingitem, index)">Update</v-btn>
-                </v-col>
-
               </v-row>
             </div>
           </div>
