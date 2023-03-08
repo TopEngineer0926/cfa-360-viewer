@@ -1030,7 +1030,6 @@ export default {
       if(this.currentSceneIndex == 0){
         let div_container = document.getElementsByClassName("img-container")[0];
         let div_button = document.getElementsByClassName("button")[0];
-
         if (div_button) {
           while (div_button.firstChild) {
             div_button.removeChild(div_button.lastChild);
@@ -1044,16 +1043,23 @@ export default {
           let start_Xpos, start_Ypos;
           start_Xpos = div_container.getBoundingClientRect().width/2 - this.image_width/2;
           start_Ypos = div_container.getBoundingClientRect().height/2 - this.image_height/2;
-          
+
           let button = document.createElement('BUTTON');
+          let button_group = document.createElement('div');
+          let text = document.createElement('p');
+
+          button_group.style.position = 'fixed';
+          button_group.style.left = (spot.pitch * this.image_width + start_Xpos) + 'px';
+          button_group.style.top = (spot.yaw * this.image_height + start_Ypos) + 'px';
+
+          text.innerHTML = this.getScenetitlebyID(spot.sceneID);
+          text.style.color = 'red';
+          text.style.marginLeft = - (text.outerText.length * 4) + 'px';
+
           button.style.backgroundColor = 'red'
           button.style.borderRadius = '50%'
-          button.style.position = 'fixed';
-          button.style.left = (spot.pitch * this.image_width + start_Xpos) + 'px';
-          button.style.top = (spot.yaw * this.image_height + start_Ypos) + 'px';
           button.style.width = 20 + 'px';
           button.style.height = 20 + 'px';
-          button.title = this.getScenetitlebyID(spot.sceneID);
           button.addEventListener('click', ()=>{
             if(this.isEditable == true){
               this.currentSceneID = spot.sceneID;
@@ -1069,7 +1075,11 @@ export default {
               this.loadScene(spot.sceneID);
             }
           })
-          div_button.appendChild(button);
+
+          button_group.appendChild(button);
+          button_group.appendChild(text);
+
+          div_button.appendChild(button_group);
         });
       }
     },
@@ -1438,6 +1448,8 @@ export default {
             pitch: lenX,
             yaw: lenY,
             style: "detail",
+            about : " ",
+            text : " "
           }
         };
         this.isAddpin = false;
