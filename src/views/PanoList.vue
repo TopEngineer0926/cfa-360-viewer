@@ -29,6 +29,7 @@
     <div
       v-if="panos && panos.length > 0"
       class="d-flex flex-wrap justify-center"
+      style="margin-bottom: 50px;"
     >
 
     <v-expansion-panels 
