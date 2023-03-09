@@ -9,7 +9,7 @@
               .createProject)
         "
         color="primary"
-        @click="createPanoFunc"
+        @click="confirmPanoDlg = true"
       >Create</v-btn>
     </v-row>
     <v-row justify="center" class="my-4">
@@ -168,6 +168,31 @@
             Save
           </v-btn>
           <v-btn color="grey" text @click="editPano.dialog = false">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-dialog
+      v-if="confirmPanoDlg"
+      v-model="confirmPanoDlg"
+      persistent
+      max-width="350"
+    >
+      <v-card>
+        <v-card-title class="headline"> Create Pano </v-card-title>
+        <v-card-text>Are you sure to create new pano ?</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="createPanoFunc"
+          >
+            Confirm
+          </v-btn>
+          <v-btn color="grey" text @click="confirmPanoDlg = false">
             Cancel
           </v-btn>
         </v-card-actions>
@@ -372,6 +397,7 @@ export default {
         list: null,
         ttl : null,
       },
+      confirmPanoDlg: false
     };
   },
   computed: mapState(["user", "roleDefinitionTable"]),
@@ -463,7 +489,7 @@ export default {
         console.error("createPano", error);
       }
     },
-    deletePanoFunc(pano) {
+    async deletePanoFunc(pano) {
       //delete thumbnail
       if (pano.thumbnail) {
         Storage.remove(pano.id + "/" + pano.thumbnail);
@@ -477,7 +503,7 @@ export default {
       }
 
       //delete pano
-      API.graphql(
+      await API.graphql(
         graphqlOperation(deletePano, {
           input: { id: pano.id },
         })
@@ -495,6 +521,8 @@ export default {
         this.panosFilter.findIndex((e) => e.id == pano.id),
         1
       );
+
+      this.loadPanos();
     },
     async deletePanoConfirm(pano) {
       if (
