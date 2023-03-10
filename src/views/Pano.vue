@@ -190,7 +190,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Edit</v-card-title>
+        <v-card-title class="headline">Scene</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"
@@ -214,6 +214,14 @@
           </v-form>
         </v-card-text>
         <v-card-actions>
+          <v-btn
+            color="primary"
+            text
+            @click="snapshotDialog = true"
+            :disabled="!editSceneData.imgToUpload"
+          >
+            Set thumbnail
+          </v-btn>
           <v-spacer></v-spacer>
           <v-btn
             color="primary"
@@ -500,6 +508,31 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-show="snapshotDialog"
+      v-model="snapshotDialog"
+      persistent
+      ref="snapshot"
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline">Set the Thumbnail</v-card-title>
+        <div id="pannellum-container"></div>
+        <div id="output"></div>
+        <v-card-actions>
+          <v-btn color="primary" text @click="loadPanorama">
+            Load
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click="captureSnapshot">
+            Capture
+          </v-btn>
+          <v-btn color="grey" text @click="snapshotDialog = false">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -619,6 +652,9 @@ export default {
       nextSceneID : null,
       image_width: 0,
       image_height: 0,
+      snapshotDialog: false,
+      dlgViewer: null,
+      thumbImg: null
     };
   },
   async created() {
@@ -863,12 +899,16 @@ export default {
           this.panoSource.sceneArr.map(async (scene, key) => {
             this.pano.scenes[scene.id] = {};
             this.pano.scenes[scene.id].title = scene.title;
-            let thumb = await Storage.get(
+            let panorama = await Storage.get(
               this.panoSource.id + "/" + scene.img,
               { expires: 432000 }
             );
+            let thumb = await Storage.get(
+              this.panoSource.id + "/" + scene.img + "/thumbnail",
+              { expires: 432000 }
+            );
             
-            this.pano.scenes[scene.id].panorama = thumb;
+            this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
             if(key == 0){
               this.pano.scenes[scene.id].pitch = 0;
@@ -883,7 +923,7 @@ export default {
               this.pano.scenes[scene.id].showZoomCtrl = true;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.planView.id = scene.id;
-              this.planView.img = thumb;
+              this.planView.img = panorama;
               
               this.loadHotSpots();
             }else{
@@ -903,6 +943,7 @@ export default {
         // };
 
         window.addEventListener('resize', ()=>this.resizeWindow());
+        this.removeChild(0);
         this.showPlanView();
       }
     },
@@ -1033,18 +1074,60 @@ export default {
       }
     },
     
-    removeChild(){
-      let div_class = document.getElementsByClassName("img-container")[0];
-      div_class.style.height = '0px';
+    removeChild(status){
+      if(status == 0){
+        let div_class = document.getElementsByClassName("img-container")[0];
+        if(div_class){
+          div_class.style.height = '0px';
+        }
 
-      let div_img = document.getElementsByClassName("img")[0];
-      while (div_img.firstChild) {
-        div_img.removeChild(div_img.lastChild);
-      }
+        let div_img = document.getElementsByClassName("img")[0];
+        if(div_img){
+          while (div_img.firstChild) {
+            div_img.removeChild(div_img.lastChild);
+          }
+        }
 
-      let div_button = document.getElementsByClassName("button")[0];
-      while (div_button.firstChild) {
-        div_button.removeChild(div_button.lastChild);
+        let div_button = document.getElementsByClassName("button")[0];
+        if(div_button){
+          while (div_button.firstChild) {
+            div_button.removeChild(div_button.lastChild);
+          }
+        }
+        let div = document.getElementsByClassName("pnlm-ui pnlm-grab")[0];
+        let div1 = document.getElementsByClassName("pnlm-render-container")[0];
+        let div2 = document.getElementsByClassName("pnlm-ui")[0];
+
+        if(div){
+          div.remove();
+        }
+
+        if(div1){
+          div1.remove();
+        }
+        if(div2){
+          div2.remove();
+        }
+
+      } else if(status == 1) {
+        let div_class = document.getElementsByClassName("img-container")[0];
+        if(div_class){
+          div_class.style.height = '0px';
+        }
+
+        let div_img = document.getElementsByClassName("img")[0];
+        if(div_img){
+          while (div_img.firstChild) {
+            div_img.removeChild(div_img.lastChild);
+          }
+        }
+
+        let div_button = document.getElementsByClassName("button")[0];
+        if(div_button){
+          while (div_button.firstChild) {
+            div_button.removeChild(div_button.lastChild);
+          }
+        }
       }
     },
     loadHotSpots(){
@@ -1090,12 +1173,16 @@ export default {
           this.panoSource.sceneArr.map(async (scene, key) => {
             this.pano.scenes[scene.id] = {};
             this.pano.scenes[scene.id].title = scene.title;
-            let thumb = await Storage.get(
+            let panorama = await Storage.get(
               this.panoSource.id + "/" + scene.img,
               { expires: 432000 }
             );
+            let thumb = await Storage.get(
+              this.panoSource.id + "/" + scene.img + "/thumbnail",
+              { expires: 432000 }
+            );
 
-            this.pano.scenes[scene.id].panorama = thumb;
+            this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
 
               this.pano.scenes[scene.id].hfov = 0;
@@ -1105,7 +1192,7 @@ export default {
           })
         );
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
-        this.removeChild();
+        this.removeChild(1);
         div_slot.style.zIndex = 2;
         div_slot.style.position = "absolute";
         this.viewer.loadScene(sceneID);
@@ -1130,19 +1217,27 @@ export default {
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
     },
-    deleteScene() {
-      Storage.remove(
+    async deleteScene() {
+      await Storage.remove(
         this.panoSource.id +
           "/" +
           this.panoSource.sceneArr[this.editSceneData.sceneIndex].img
       );
+      await Storage.remove(
+        this.panoSource.id +
+          "/" +
+          this.panoSource.sceneArr[this.editSceneData.sceneIndex].img +
+          "/thumbnail"
+      );
+
       //+++remove content
       this.panoSource.sceneArr.splice(this.editSceneData.sceneIndex, 1);
-      this.viewer.removeScene(this.editSceneData.sceneID);
+ 
       this.savePano();
       this.editSceneData.dialog = false;
       if (this.panoSource.sceneArr.length > 0) {
-        this.loadScene(this.panoSource.sceneArr[0].id);
+        this.currentSceneIndex = 0;
+        this.initPano();
       } else {
         this.$router.push({ path: "/panolist" });
       }
@@ -1192,12 +1287,23 @@ export default {
         }
       };
     },
+    srcToFile(src, fileName, mimeType){
+        return (fetch(src)
+            .then(function(res){return res.arrayBuffer();})
+            .then(function(buf){return new File([buf], fileName, {type:mimeType});})
+        );
+    },
     async saveScene() {
+      if (this.thumbImg === null) {
+        this.$root.$dialogLoader.showSnackbar("Set the thumbnail!", {color: 'error'});
+        return;
+      }
       if (this.$refs.editimgform.validate()) {
         let sceneID = this.editSceneData.sceneID
           ? this.editSceneData.sceneID
           : nanoid();
         let s3link = null;
+        let s3ThumbLink = null;
         if (this.editSceneData.imgToUpload) {
           let imgID = nanoid();
 
@@ -1215,6 +1321,24 @@ export default {
               }
             )
           ).key;
+
+          let vm = this;
+          await this.srcToFile(
+            this.thumbImg,
+            this.editSceneData.imgToUpload.name,
+            'image/png'
+          )
+          .then(async function(thumbFile){
+            s3ThumbLink = (
+              await Storage.put(
+                vm.panoSource.id + "/" + imgID + "/thumbnail",
+                thumbFile,
+                {
+                  contentType: "image/png"
+                }
+              )
+            ).key;
+          })
         }
         if (this.editSceneData.sceneID) {
           let sceneIndex = this.panoSource.sceneArr.findIndex(
@@ -1229,23 +1353,36 @@ export default {
 
           if (s3link) {
             //edit sceneArr img
-            Storage.remove(
+            await Storage.remove(
               this.panoSource.id +
                 "/" +
                 this.panoSource.sceneArr[sceneIndex].img
             );
+            await Storage.remove(
+              this.panoSource.id +
+                "/" +
+                this.panoSource.sceneArr[sceneIndex].img +
+                "/thumbnail"
+            );
+
             this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
 
             let url = await Storage.get(s3link);
-            this.panoSource.sceneArr[sceneIndex].thumbnail = url;
+            let thumb_url = await Storage.get(s3ThumbLink);
+
+            this.panoSource.sceneArr[sceneIndex].thumbnail = thumb_url;
             //edit scene panorama
             this.pano.scenes[sceneID].panorama = url;
-            if (this.currentSceneIndex == sceneIndex) {
-              this.loadScene(sceneID);
-            }
+            // if (this.currentSceneIndex == sceneIndex) {
+            //   this.currentSceneIndex = 0;
+            //   this.loadScene(sceneID);
+            // }
           }
         } else {
           let panorama_url = await Storage.get(s3link);
+          let thumb_url = await Storage.get(s3ThumbLink);
+          this.viewer = window.pannellum.viewer(this.$el, this.pano);
+
           if (!this.pano) {
             // first scene
             this.pano = {
@@ -1257,7 +1394,6 @@ export default {
                 },
               },
             };
-            this.viewer = window.pannellum.viewer(this.$el, this.pano);
           } else {
             //add scene
             this.viewer.addScene(sceneID, {
@@ -1270,7 +1406,7 @@ export default {
             this.panoSource.sceneArr = [];
           }
           await this.panoSource.sceneArr.push({
-            thumbnail: panorama_url,
+            thumbnail: thumb_url,
             id: sceneID,
             title: this.editSceneData.title,
             img: s3link.split("/")[1],
@@ -1278,6 +1414,8 @@ export default {
         }
         this.savePano();
         this.editSceneData.dialog = false;
+        this.thumbImg = null;
+        this.initPano();
       }
       //  this.$forceUpdate();
     },
@@ -1622,6 +1760,25 @@ export default {
       this.getComments();
       this.editSpotData.newComment = null;
     },
+    loadPanorama() {
+      let el = document.getElementById('pannellum-container');
+
+      this.dlgViewer = window.pannellum.viewer(el, {
+        "type": 'equirectangular',
+        "panorama": `${URL.createObjectURL(this.editSceneData.imgToUpload)}`,
+        "autoLoad": true
+      });
+    },
+    captureSnapshot() {
+      this.thumbImg = this.dlgViewer.getRenderer().render(
+        this.dlgViewer.getPitch() / 180 * Math.PI,
+        this.dlgViewer.getYaw() / 180 * Math.PI,
+        this.dlgViewer.getHfov() / 180 * Math.PI,
+        {'returnImage': true}
+      );
+
+      this.snapshotDialog = false;
+    }
   },
   computed: {
     ...mapState(["user", "roleDefinitionTable"]),
@@ -1845,6 +2002,10 @@ div.custom-tooltip:hover span:after {
   display: block;
 }
 
+#pannellum-container {
+  width: 100%;
+  height: 400px;
+}
 </style>
 
 <style scoped>
