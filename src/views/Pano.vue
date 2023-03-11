@@ -218,7 +218,7 @@
             color="primary"
             text
             @click="snapshotDialog = true"
-            :disabled="!editSceneData.imgToUpload"
+            :disabled="!editSceneData.imgToUpload && !this.editSceneData.panorama"
           >
             Set thumbnail
           </v-btn>
@@ -520,19 +520,17 @@
         <div id="pannellum-container"></div>
         <div id="output"></div>
         <v-card-actions>
-          <v-btn color="primary" text @click="loadPanorama">
-            Load
-          </v-btn>
           <v-spacer></v-spacer>
           <v-btn color="primary" text @click="captureSnapshot">
             Capture
           </v-btn>
-          <v-btn color="grey" text @click="snapshotDialog = false">
+          <v-btn color="grey" text @click="cancelSnapshotDialog">
             Cancel
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <div class="hidden-thumbnail"></div>
   </div>
 </template>
 
@@ -588,6 +586,7 @@ export default {
         sceneIndex: null,
         title: null,
         imgToUpload: null,
+        panorama: null
       },
       planView:{
         id: null,
@@ -1211,11 +1210,12 @@ export default {
     changeSceneIndex(index){
       this.currentSceneIndex = index;
     },
-    initEditScene(sceneID) {
+    async initEditScene(sceneID) {
       if (!sceneID) {
         this.editSceneData.sceneID = null;
         this.editSceneData.sceneIndex = null;
         this.editSceneData.title = null;
+        this.editSceneData.panorama = null;
       } else {
         this.editSceneData.sceneIndex = this.panoSource.sceneArr.findIndex(
           (scene) => scene.id == sceneID
@@ -1223,6 +1223,12 @@ export default {
         this.editSceneData.sceneID = sceneID;
         this.editSceneData.title =
           this.panoSource.sceneArr[this.editSceneData.sceneIndex].title;
+
+        let panorama = await Storage.get(
+          this.panoSource.id + "/" + this.panoSource.sceneArr[this.editSceneData.sceneIndex].img,
+          { expires: 432000 }
+        );
+        this.editSceneData.panorama = panorama;
       }
       this.editSceneData.imgToUpload = null;
       this.editSceneData.dialog = true;
@@ -1304,19 +1310,15 @@ export default {
         );
     },
     async saveScene() {
-      if (this.thumbImg === null) {
-        this.$root.$dialogLoader.showSnackbar("Set the thumbnail!", {color: 'error'});
-        return;
-      }
       if (this.$refs.editimgform.validate()) {
         let sceneID = this.editSceneData.sceneID
           ? this.editSceneData.sceneID
           : nanoid();
         let s3link = null;
         let s3ThumbLink = null;
-        if (this.editSceneData.imgToUpload) {
-          let imgID = nanoid();
+        let imgID = nanoid();
 
+        if (this.editSceneData.imgToUpload) {
           s3link = (
             await Storage.put(
               this.panoSource.id + "/" + imgID,
@@ -1332,24 +1334,60 @@ export default {
             )
           ).key;
 
-          let vm = this;
-          await this.srcToFile(
-            this.thumbImg,
-            this.editSceneData.imgToUpload.name,
-            'image/png'
-          )
-          .then(async function(thumbFile){
+          if (this.thumbImg === null) {
             s3ThumbLink = (
               await Storage.put(
-                vm.panoSource.id + "/" + imgID + "/thumbnail",
-                thumbFile,
+                this.panoSource.id + "/" + imgID + "/thumbnail",
+                this.editSceneData.imgToUpload,
                 {
-                  contentType: "image/png"
+                  contentType: this.editSceneData.imgToUpload ? this.editSceneData.imgToUpload.type : "image/png",
                 }
               )
             ).key;
-          })
-        }
+          } else {
+            let vm = this;
+            await this.srcToFile(
+              this.thumbImg,
+              "thumbnail.png",
+              'image/png'
+            )
+            .then(async function(thumbFile){
+              s3ThumbLink = (
+                await Storage.put(
+                  vm.panoSource.id + "/" + imgID + "/thumbnail",
+                  thumbFile,
+                  {
+                    contentType: "image/png"
+                  }
+                )
+              ).key;
+            })
+          }
+        } else {
+          if (this.thumbImg !== null) {
+            let sceneIndex = this.panoSource.sceneArr.findIndex(
+              (scene) => scene.id == sceneID
+            );
+            let vm = this;
+            await this.srcToFile(
+              this.thumbImg,
+              "thumbnail.png",
+              'image/png'
+            )
+            .then(async function(thumbFile){
+              s3ThumbLink = (
+                await Storage.put(
+                  vm.panoSource.id + "/" + vm.panoSource.sceneArr[sceneIndex].img + "/thumbnail",
+                  thumbFile,
+                  {
+                    contentType: "image/png"
+                  }
+                )
+              ).key;
+            })
+          }
+        } 
+
         if (this.editSceneData.sceneID) {
           let sceneIndex = this.panoSource.sceneArr.findIndex(
             (scene) => scene.id == sceneID
@@ -1368,19 +1406,23 @@ export default {
                 "/" +
                 this.panoSource.sceneArr[sceneIndex].img
             );
-            await Storage.remove(
-              this.panoSource.id +
-                "/" +
-                this.panoSource.sceneArr[sceneIndex].img +
-                "/thumbnail"
-            );
+
+            if (s3ThumbLink) {
+              await Storage.remove(
+                this.panoSource.id +
+                  "/" +
+                  this.panoSource.sceneArr[sceneIndex].img +
+                  "/thumbnail"
+              );
+
+              let thumb_url = await Storage.get(s3ThumbLink);
+              this.panoSource.sceneArr[sceneIndex].thumbnail = thumb_url;
+            }
 
             this.panoSource.sceneArr[sceneIndex].img = s3link.split("/")[1];
 
             let url = await Storage.get(s3link);
-            let thumb_url = await Storage.get(s3ThumbLink);
 
-            this.panoSource.sceneArr[sceneIndex].thumbnail = thumb_url;
             //edit scene panorama
             this.pano.scenes[sceneID].panorama = url;
             // if (this.currentSceneIndex == sceneIndex) {
@@ -1774,12 +1816,16 @@ export default {
     },
     loadPanorama() {
       let el = document.getElementById('pannellum-container');
+      let div_el = document.createElement('div');
 
-      this.dlgViewer = window.pannellum.viewer(el, {
+      this.dlgViewer = window.pannellum.viewer(div_el, {
         "type": 'equirectangular',
-        "panorama": `${URL.createObjectURL(this.editSceneData.imgToUpload)}`,
-        "autoLoad": true
+        "panorama": this.editSceneData.imgToUpload ? `${URL.createObjectURL(this.editSceneData.imgToUpload)}` : this.editSceneData.panorama,
+        "autoLoad": true,
+        "hfov": 120
       });
+
+      el.appendChild(div_el);
     },
     captureSnapshot() {
       this.thumbImg = this.dlgViewer.getRenderer().render(
@@ -1789,6 +1835,18 @@ export default {
         {'returnImage': true}
       );
 
+      this.snapshotDialog = false;
+
+      let el = document.getElementById('pannellum-container');
+      while (el.firstChild)
+        el.removeChild(el.lastChild);
+    },
+    cancelSnapshotDialog() {
+      let el = document.getElementById('pannellum-container');
+      while (el.firstChild)
+        el.removeChild(el.lastChild);
+
+      this.dlgViewer = null;
       this.snapshotDialog = false;
     }
   },
@@ -1827,6 +1885,16 @@ export default {
         this.loadScene(this.viewer.getScene());
       }
     },
+    snapshotDialog: function (dialogState) {
+     if (dialogState) {
+        // At this point you dialog state should have opened Now you can call your function
+        // But to be sure you can check for DOM update
+        this.$nextTick(() => {
+          // Call your method, as it's completely gurantees if the DOM get updated
+          this.loadPanorama();
+        })
+      }
+    }
   },
 };
 </script>
