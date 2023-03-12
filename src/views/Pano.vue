@@ -64,6 +64,15 @@
                   >
                     Add Pin
                   </v-btn>
+                  <v-btn
+                    v-if="isEditable && canCreateTag && currentSceneIndex != 0"
+                    small
+                    text
+                    @click.stop="addTagConfig"
+                    class="ma-1"
+                  >
+                    Add Tag
+                  </v-btn>
                 </div>
                
                 <div class="cols-3">
@@ -239,6 +248,52 @@
             color="grey"
             text
             @click="deleteScene"
+          >
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog
+      v-if="editLayerData.dialog"
+      v-model="editLayerData.dialog"
+      persistent
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline">Edit Layer</v-card-title>
+        <v-card-text>
+          <v-text-field
+            v-model="editLayerData.layer.name"
+            require
+            :rules="[(v) => !!v || 'Name is required']"
+            label="Layer Name"
+          ></v-text-field>
+          <v-select
+            v-model="editLayerData.layer.icon"
+            :items="iconStyles"
+            label="Layer Icon"
+          ></v-select>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="
+              loadLayers();
+              savePano();
+              editLayerData.dialog = false;
+            "
+          >
+            Confirm
+          </v-btn>
+
+          <v-btn
+            v-if="panoSource.layers && panoSource.layers.length > 0"
+            color="grey"
+            text
+            @click="deleteLayer()"
           >
             Delete
           </v-btn>
@@ -573,6 +628,7 @@ export default {
       isGuest: null,
       isEditable: false,
       pano: null,
+      panoPin : null,
       panoSource: null,
       viewer: null,
       currentSceneIndex: null,
@@ -599,6 +655,7 @@ export default {
         comments: null,
         newComment: null,
         newContentValid: true,
+        status : 1,
         newContent: {
           type: "img",
           name: null,
@@ -610,7 +667,8 @@ export default {
       editPinSpotData: {
         dialog: false,
         editValid: false,
-        spot: null
+        spot: null,
+        status : 0
       },
       sharing: {
         dialog: false,
@@ -910,37 +968,19 @@ export default {
             this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
             if(key == 0){
-              this.pano.scenes[scene.id].pitch = 0;
-              this.pano.scenes[scene.id].yaw = 0;
-              this.pano.scenes[scene.id].minPitch = 0;
-              this.pano.scenes[scene.id].maxPitch = 0;
-              this.pano.scenes[scene.id].minYaw = 0;
-              this.pano.scenes[scene.id].maxYaw = 0;
-              this.pano.scenes[scene.id].hfov = 120;
-              this.pano.scenes[scene.id].haov = 25;
-              this.pano.scenes[scene.id].vaov = 25;
-              this.pano.scenes[scene.id].showZoomCtrl = true;
-              this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.planView.id = scene.id;
               this.planView.img = panorama;
-              
-              this.loadHotSpots();
             }else{
               this.pano.scenes[scene.id].hfov = 120;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
-              
             }
+            // this.loadHotSpots(key);
           })
         );
         
         this.currentSceneIndex = 0;
-        // this.pano.default = {
-        //   firstScene: this.panoSource.sceneArr[0].id,
-        //   autoLoad: true
-        // };
-
         window.addEventListener('resize', ()=>this.resizeWindow());
         this.removeChild(0);
         this.showPlanView();
@@ -1025,6 +1065,16 @@ export default {
 
         resize_ob.observe(div_expand);
     },
+    getCurrentIndexById(id){
+      let scene = this.panoSource.sceneArr;
+      let scene_index;
+      scene.map((scene,index) => {
+        if(scene.id == id){
+          scene_index =  index;
+        }
+      });
+      return scene_index;
+    },
     drawButton(){
       if(this.currentSceneIndex == 0){
         let div_container = document.getElementsByClassName("img-container")[0];
@@ -1052,7 +1102,8 @@ export default {
           button_group.style.top = (spot.yaw * this.image_height + start_Ypos) + 'px';
 
           text.innerHTML = this.getScenetitlebyID(spot.sceneID);
-          text.style.color = 'red';
+          text.style.color = 'white';
+          text.style.backgroundColor = 'red';
           text.style.marginLeft = - (text.outerText.length * 4) + 'px';
 
           button.style.backgroundColor = 'red'
@@ -1062,7 +1113,7 @@ export default {
           button.addEventListener('click', ()=>{
             if(this.isEditable == true){
               this.currentSceneID = spot.sceneID;
-              this.nextSceneID = index + 1;
+              this.nextSceneID = this.getCurrentIndexById(spot.sceneID);
               this.isAddpin = false;
               this.editPinSpotData = {
                 dialog: true,
@@ -1139,20 +1190,23 @@ export default {
         }
       }
     },
-    loadHotSpots(){
-      let scene = this.panoSource.sceneArr[0];
-      this.pano.scenes[scene.id].hotSpots = [];
-      scene.spots.map((spot,index) => {
-        let obj = {};
-        obj.pitch = spot.pitch;
-        obj.yaw = spot.yaw;
-        obj.type = 'info';
-        obj.text = spot.text;
-        obj.createTooltipFunc = this.customTooltiphotspot;
-        obj.createTooltipArgs = {index: index, sid: spot.sceneID};
-        this.pano.scenes[scene.id].hotSpots.push(obj);
-      });
-    },
+    // loadHotSpots(index){
+    //   let scene = this.panoSource.sceneArr[index];
+    //   this.pano.scenes[scene.id].hotSpots = [];
+    //   if(scene.spots){
+    //     scene.spots.map((spot,index) => {
+    //       let obj = {};
+    //       obj.pitch = spot.pitch;
+    //       obj.yaw = spot.yaw;
+    //       obj.type = 'info';
+    //       obj.text = spot.text;
+    //       obj.sceneID = spot.sceneID;
+    //       obj.createTooltipFunc = this.customTooltiphotspot;
+    //       obj.createTooltipArgs = {index: index, sid: spot.sceneID};
+    //       this.pano.scenes[scene.id].hotSpots.push(obj);
+    //     });
+    //   }
+    // },
     async loadScene(sceneID) {
       this.cancelPinSpot();
       let div_slot = document.getElementsByClassName("default-slot")[0];
@@ -1205,7 +1259,29 @@ export default {
         div_slot.style.zIndex = 2;
         div_slot.style.position = "absolute";
         this.viewer.loadScene(sceneID);
+        this.selectedLayersIndex = Array.from(
+          Array(this.panoSource.layers.length).keys()
+        );
+
+        let checkLoad = (viewer) => {
+          if (viewer.isLoaded()) {
+            this.loadLayers();
+          } else {
+            setTimeout(checkLoad, 500, viewer); // setTimeout(func, timeMS, params...)
+          }
+        };
+        checkLoad(this.viewer);
       }
+    },
+    initEditLayer(layerIndex) {
+      this.editLayerData.layerIndex = layerIndex;
+      this.editLayerData.layer = this.panoSource.layers[layerIndex];
+      this.editLayerData.dialog = true;
+    },
+    deleteLayer() {
+      this.panoSource.layers.splice(this.editLayerData.layerIndex, 1);
+      this.savePano();
+      this.editLayerData.dialog = false;
     },
     changeSceneIndex(index){
       this.currentSceneIndex = index;
@@ -1256,6 +1332,42 @@ export default {
         this.initPano();
       } else {
         this.$router.push({ path: "/panolist" });
+      }
+    },
+    loadLayers() {
+      //removeCurrentSpots
+      let currentSceneID = this.viewer.getScene();
+      if (this.pano.scenes[currentSceneID].hotSpots) {
+        let hotSpotsID = this.pano.scenes[currentSceneID].hotSpots.map(
+          (hotSpot) => hotSpot.id
+        );
+        hotSpotsID.forEach((hotSpotID) => {
+          this.viewer.removeHotSpot(hotSpotID);
+        });
+      }
+
+      let selectedLayersID = this.selectedLayersIndex
+        ? this.selectedLayersIndex.map(
+            (index) => this.panoSource.layers[index].id
+          )
+        : [];
+      let allLayersID = this.panoSource.layers.map((layer) => layer.id);
+      let SceneIndex = this.panoSource.sceneArr.findIndex(
+        (scene) => scene.id == currentSceneID
+      );
+
+      if (this.panoSource.sceneArr[SceneIndex].spots) {
+        this.panoSource.sceneArr[SceneIndex].spots.forEach(
+          (spot, spotIndex) => {
+            if (
+              !spot.layer ||
+              selectedLayersID.includes(spot.layer) ||
+              !allLayersID.includes(spot.layer)
+            ) {
+              this.showSpot(spot);
+            }
+          }
+        );
       }
     },
     customTooltiphotspot(hotSpotDiv, args){
@@ -1425,10 +1537,6 @@ export default {
 
             //edit scene panorama
             this.pano.scenes[sceneID].panorama = url;
-            // if (this.currentSceneIndex == sceneIndex) {
-            //   this.currentSceneIndex = 0;
-            //   this.loadScene(sceneID);
-            // }
           }
         } else {
           let panorama_url = await Storage.get(s3link);
@@ -1497,6 +1605,30 @@ export default {
         this.isAddpin = false;
       }
     },
+    mouseDownHandler(event) {
+      let coords = this.viewer.mouseEventToCoords(event);
+      this.editSpotData = {
+        dialog: true,
+        editValid: false,
+        spot: {
+          pitch: coords[0],
+          yaw: coords[1],
+          style: "detail",
+          layer: null,
+        },
+        newContent: {
+          type: "img",
+          name: null,
+          thumbnail: null,
+          file: null,
+          link: null,
+        },
+      };
+      this.viewer.off("mousedown", this.mouseDownHandler);
+      document
+        .getElementsByClassName("pnlm-ui")[0]
+        .style.setProperty("cursor", "");
+    },
     addPinConfig() {
       this.isAddpin = true;
     },
@@ -1540,8 +1672,10 @@ export default {
         this.panoSource.sceneArr[0].spots.filter(
           (spot) => spot.id !== this.editPinSpotData.spot.id
         );
-
-      this.loadHotSpots();
+      // for(let i=0;i<this.panoSource.sceneArr.length;i++){
+      //   this.loadHotSpots(i);
+      // }
+      
       this.savePano();
       this.loadScene(this.panoSource.sceneArr[0].id);
       this.editPinSpotData.dialog = false;
@@ -1595,7 +1729,9 @@ export default {
           );
         }        
 
-        this.loadHotSpots();
+        // for(let i=0;i<this.panoSource.sceneArr.length;i++){
+        //   this.loadHotSpots(i);
+        // }
 
         this.savePano();
         this.loadScene(this.panoSource.sceneArr[this.currentSceneIndex].id);
@@ -1667,29 +1803,30 @@ export default {
         } else {
           //create new
           this.editSpotData.spot.id = nanoid();
+          console.log("=1===", this.panoSource);
           this.panoSource.sceneArr[this.currentSceneIndex].spots.push(
             this.editSpotData.spot
           );
         }
         this.editSpotData.dialog = false;
 
+        console.log("==2==", this.panoSource);
         this.savePano();
       }
     },
     savePano() {
-      let saveTopano = JSON.parse(JSON.stringify(this.panoSource));
-      saveTopano.sceneArr.map((scene, key) => {
-        if(key == 0){
-          this.planView.id = scene.id;
-          this.planView.img = scene.thumbnail;
-        }
-        delete scene.thumbnail;
-      })
-
+      // let saveTopano = JSON.parse(JSON.stringify(this.panoSource));
+      // saveTopano.sceneArr.map((scene, key) => {
+      //   if(key == 0){
+      //     this.planView.id = scene.id;
+      //     this.planView.img = scene.thumbnail;
+      //   }
+      //   delete scene.thumbnail;
+      // })
       API.graphql({
         query: updatePano,
         variables: {
-          input: saveTopano,
+          input: this.panoSource,
         },
       });
     },
