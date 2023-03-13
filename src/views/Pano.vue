@@ -1579,7 +1579,7 @@ export default {
           if (!this.panoSource.sceneArr) {
             this.panoSource.sceneArr = [];
           }
-          await this.panoSource.sceneArr.push({
+          this.panoSource.sceneArr.push({
             thumbnail: thumb_url,
             id: sceneID,
             title: this.editSceneData.title,
@@ -1817,30 +1817,25 @@ export default {
         } else {
           //create new
           this.editSpotData.spot.id = nanoid();
-          console.log("=1===", this.panoSource);
           this.panoSource.sceneArr[this.currentSceneIndex].spots.push(
             this.editSpotData.spot
           );
         }
+        this.loadLayers();
         this.editSpotData.dialog = false;
 
-        console.log("==2==", this.panoSource);
         this.savePano();
       }
     },
     savePano() {
-      // let saveTopano = JSON.parse(JSON.stringify(this.panoSource));
-      // saveTopano.sceneArr.map((scene, key) => {
-      //   if(key == 0){
-      //     this.planView.id = scene.id;
-      //     this.planView.img = scene.thumbnail;
-      //   }
-      //   delete scene.thumbnail;
-      // })
+      let saveTopano = JSON.parse(JSON.stringify(this.panoSource));
+      saveTopano.sceneArr.map((scene, key) => {
+        delete scene.thumbnail;
+      })
       API.graphql({
         query: updatePano,
         variables: {
-          input: this.panoSource,
+          input: saveTopano,
         },
       });
     },
