@@ -10,6 +10,18 @@
       <div class="button"></div>
 
       <div class="default-slot">
+        <div class="home-button">
+          <v-btn
+            color="black-white"
+            fab
+            small
+            dark
+            @click="changeSceneIndex(0); loadScene(planView.id);"
+          >
+            <v-icon>mdi-domain</v-icon>
+          </v-btn>
+        </div>
+
         <v-expansion-panels
           v-if="panoSource"
           v-model="btnPanel"
@@ -24,7 +36,7 @@
                 <div class="cols-2">
                   <v-btn
                     v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
-                    @click.stop="initEditScene(planView.id)"
+                    @click.stop="isPlan = true; initEditScene(planView.id)"
                     class="ma-1"
                     small
                     text
@@ -100,19 +112,7 @@
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-row class="ma-0 pa-0">
-                <v-col cols="2" class="ma-0 pa-0">
-                  <v-row style="width:100%">
-                    <v-col cols="12" class="main-plan">
-                      <v-img 
-                        v-bind:src="planView.img" 
-                        class="rounded-10 plan-view" 
-                        height="135"
-                        @click="changeSceneIndex(0); loadScene(planView.id);"
-                      ></v-img>
-                    </v-col>
-                  </v-row>
-                </v-col>
-                <v-col cols="10" class="ma-0 pa-0">
+                <v-col cols="12" class="ma-0 pa-0">
                   <v-row justify="center" align="center" class="ma-0 pa-0">
                     <v-col cols="12" class="ma-0 pa-0">
                         <div v-if="isEditable">
@@ -199,7 +199,7 @@
       max-width="600"
     >
       <v-card>
-        <v-card-title class="headline">Scene</v-card-title>
+        <v-card-title class="headline">{{ isPlan ? "Floor Plan" : "Scene" }}</v-card-title>
         <v-card-text>
           <v-form
             ref="editimgform"
@@ -213,6 +213,16 @@
               label="Title"
             ></v-text-field>
             <v-file-input
+              v-if="isPlan"
+              v-model="editSceneData.imgToUpload"
+              accept="image/*"
+              label="Select floor plan"
+              :rules="[
+                (v) => !!(editSceneData.sceneID || v) || 'Image is required',
+              ]"
+            ></v-file-input>
+            <v-file-input
+              v-else
               v-model="editSceneData.imgToUpload"
               accept="image/*"
               label="Select panorama image"
@@ -224,6 +234,7 @@
         </v-card-text>
         <v-card-actions>
           <v-btn
+            v-if="!isPlan"
             color="primary"
             text
             @click="snapshotDialog = true"
@@ -235,19 +246,19 @@
           <v-btn
             color="primary"
             text
-            @click="saveScene"
+            @click="saveScene(); isPlan = false;"
             :disabled="!editSceneData.editValid"
           >
             Save
           </v-btn>
-          <v-btn color="grey" text @click="editSceneData.dialog = false">
+          <v-btn color="grey" text @click="editSceneData.dialog = false; isPlan = false;">
             Cancel
           </v-btn>
           <v-btn
             v-if="panoSource.sceneArr && panoSource.sceneArr.length > 0"
             color="grey"
             text
-            @click="deleteScene"
+            @click="deleteScene(); isPlan = false;"
           >
             Delete
           </v-btn>
@@ -585,7 +596,6 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-    <div class="hidden-thumbnail"></div>
   </div>
 </template>
 
@@ -711,7 +721,8 @@ export default {
       image_height: 0,
       snapshotDialog: false,
       dlgViewer: null,
-      thumbImg: null
+      thumbImg: null,
+      isPlan: false
     };
   },
   async created() {
@@ -983,6 +994,7 @@ export default {
         this.currentSceneIndex = 0;
         window.addEventListener('resize', ()=>this.resizeWindow());
         this.removeChild(0);
+        this.resizeExpand();
         this.showPlanView();
       }
     },
@@ -1050,12 +1062,14 @@ export default {
         let div_container = document.getElementsByClassName("img-container")[0];
         let div_expand = document.getElementsByClassName("default-slot")[0]; 
         let div_bg = document.getElementsByClassName("bg")[0];
+        let home_button = document.getElementsByClassName("home-button")[0]; 
         let vm = this;
 
         const resize_ob = new ResizeObserver(function (entries) {
           if(vm.currentSceneIndex == 0){
             div_container.style.width = div_bg.getBoundingClientRect().width + 'px';
             div_container.style.height = (div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height) + 'px';
+            home_button.style.bottom = div_expand.getBoundingClientRect().height + 10 + 'px';
 
             vm.showPlanView()
           } else {
@@ -2148,6 +2162,7 @@ export default {
 }
 .flex{
   display: flex;
+  justify-content: center;
 }
 div.custom-img img{
   width: 100% !important;
@@ -2230,6 +2245,11 @@ div.custom-tooltip:hover span:after {
   width: 100%;
   height: 100%;
   background-color: lightgray;
+}
+
+.home-button {
+  position: absolute;
+  left: 10px;
 }
 
 .vue-pannellum {
