@@ -32,7 +32,7 @@
             :style="{ 'background-color': 'rgba(255,255,255,0.3)' }"
           >
             <v-expansion-panel-header hide-actions>
-              <div class="row my-1">
+              <div class="row my-1" style="justify-content: space-between;">
                 <div class="cols-2">
                   <v-btn
                     v-if="isEditable && (user.masterSiteAdmin || canCreateScene)"
@@ -55,7 +55,7 @@
                     Add Scene
                   </v-btn>
                 </div>
-                <div class="cols-2">
+                <div class="cols-2" v-if="currentSceneIndex !== 0">
                   <v-btn
                     v-if="isEditable && canCreateTag"
                     small
@@ -63,7 +63,7 @@
                     @click.stop="addLayer()"
                     class="ma-1"
                   >
-                    add layer
+                    Add Layer
                   </v-btn>
                 </div>
                 <div class="cols-2">
@@ -112,7 +112,7 @@
             </v-expansion-panel-header>
             <v-expansion-panel-content>
               <v-row
-                v-if="panoSource.layers && panoSource.layers.length > 0"
+                v-if="panoSource.layers && panoSource.layers.length > 0 && currentSceneIndex !== 0"
                 justify="space-between"
                 align="center"
                 class="ma-0 pa-0"
@@ -1098,12 +1098,13 @@ export default {
           if(vm.currentSceneIndex == 0){
             div_container.style.width = div_bg.getBoundingClientRect().width + 'px';
             div_container.style.height = (div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height) + 'px';
-            home_button.style.bottom = div_expand.getBoundingClientRect().height + 10 + 'px';
 
             vm.showPlanView()
           } else {
             div_container.style.height = '0px';
           }
+
+          home_button.style.bottom = div_expand.getBoundingClientRect().height + 10 + 'px';
         });
 
         resize_ob.observe(div_expand);
