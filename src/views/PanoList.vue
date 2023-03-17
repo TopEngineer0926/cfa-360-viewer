@@ -9,7 +9,7 @@
               .createProject)
         "
         color="primary"
-        @click="confirmPanoDlg = true"
+        @click="createPanoFunc"
       >Create</v-btn>
     </v-row>
     <v-row justify="center" class="my-4">
@@ -168,31 +168,6 @@
             Save
           </v-btn>
           <v-btn color="grey" text @click="editPano.dialog = false">
-            Cancel
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <v-dialog
-      v-if="confirmPanoDlg"
-      v-model="confirmPanoDlg"
-      persistent
-      max-width="350"
-    >
-      <v-card>
-        <v-card-title class="headline"> Create Pano </v-card-title>
-        <v-card-text>Are you sure to create new pano ?</v-card-text>
-        <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="primary"
-            text
-            @click="createPanoFunc"
-          >
-            Confirm
-          </v-btn>
-          <v-btn color="grey" text @click="confirmPanoDlg = false">
             Cancel
           </v-btn>
         </v-card-actions>
@@ -397,7 +372,6 @@ export default {
         list: null,
         ttl : null,
       },
-      confirmPanoDlg: false
     };
   },
   computed: mapState(["user", "roleDefinitionTable"]),
