@@ -2,7 +2,9 @@
   <v-app>
     <navbar v-if="user" />
     <v-main style="padding: 45px 0px 0px;">
-      <router-view :key="$route.fullPath" />
+      <div style="height: calc(100vh - 45px);">
+        <router-view :key="$route.fullPath" />
+      </div>
     </v-main>
     <confirm ref="confirm"></confirm>
     <dialog-loader ref="dialogLoader"></dialog-loader>
