@@ -111,10 +111,39 @@
               </div>
             </v-expansion-panel-header>
             <v-expansion-panel-content>
+              <v-row
+                v-if="panoSource.layers && panoSource.layers.length > 0"
+                justify="space-between"
+                align="center"
+                class="ma-0 pa-0"
+              >
+                <v-col cols="1" class="ma-0 pa-0 layer-label"> Layers </v-col>
+                <v-col cols="10" class="ma-0 pa-0">
+                  <v-chip-group
+                    multiple
+                    show-arrows
+                    center-active
+                    v-model="selectedLayersIndex"
+                    @change="loadLayers()"
+                  >
+                    <v-chip
+                      v-for="(layer, layerIndex) in panoSource.layers"
+                      :key="layerIndex"
+                      active-class="primary"
+                      :close="isEditable"
+                      close-icon="mdi-pencil-outline"
+                      @click:close="initEditLayer(layerIndex)"
+                    >
+                      {{ layer.name }}
+                    </v-chip>
+                  </v-chip-group>
+                </v-col>
+              </v-row>
               <v-row class="ma-0 pa-0">
                 <v-col cols="12" class="ma-0 pa-0">
-                  <v-row justify="center" align="center" class="ma-0 pa-0">
-                    <v-col cols="12" class="ma-0 pa-0">
+                  <v-row justify="space-between" align="center" class="ma-0 pa-0">
+                    <v-col cols="1" class="ma-0 pa-0 layer-label"> Scenes </v-col>
+                    <v-col cols="10" class="ma-0 pa-0">
                         <div v-if="isEditable">
                             <v-sheet
                               class="mx-auto bg-transparent"
@@ -2232,6 +2261,12 @@ div.custom-tooltip:hover span:after {
 #pannellum-container {
   width: 100%;
   height: 400px;
+}
+
+.layer-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
 
