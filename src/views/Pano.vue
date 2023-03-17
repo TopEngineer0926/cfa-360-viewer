@@ -2241,16 +2241,30 @@ div.custom-tooltip:hover span:after {
 .cols-11 {width: 91.66%;}
 .cols-12 {width: 100%;}
 
+.layer-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 @media only screen and (max-width: 740px) {
   /* For mobile phones: */
   [class*="cols-"] {
     width: 50%;
+  }
+
+  .layer-label {
+    display: none;
   }
 }
 @media only screen and (max-width: 400px) {
   /* For mobile phones: */
   [class*="cols-"] {
     width: 100%;
+  }
+
+  .layer-label {
+    display: none;
   }
 }
 .row::after {
@@ -2264,11 +2278,6 @@ div.custom-tooltip:hover span:after {
   height: 400px;
 }
 
-.layer-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 </style>
 
 <style scoped>
