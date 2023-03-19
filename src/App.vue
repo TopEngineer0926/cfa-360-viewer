@@ -1,8 +1,8 @@
 <template>
   <v-app>
     <navbar v-if="user" />
-    <v-main style="padding: 45px 0px 0px;">
-      <div style="height: calc(100vh - 45px);">
+    <v-main style="padding: 45px 0px 0px; position: fixed; width: 100%;">
+      <div style="height: calc(100vh - 115px); overflow-y: auto;">
         <router-view :key="$route.fullPath" />
       </div>
     </v-main>
@@ -32,6 +32,10 @@ export default {
 };
 </script>
 <style>
+html {
+  overflow-y: hidden;
+}
+
 .center {
   text-align: center;
   position: absolute;
