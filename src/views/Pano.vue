@@ -236,6 +236,7 @@
             lazy-validation
           >
             <v-text-field
+              v-if="!isPlan"
               v-model="editSceneData.title"
               require
               :rules="[(v) => !!v || 'Title is required']"
@@ -275,7 +276,7 @@
           <v-btn
             color="primary"
             text
-            @click="saveScene(); isPlan = false;"
+            @click="saveScene(); editSceneData.dialog = false; isPlan = false;"
             :disabled="!editSceneData.editValid"
           >
             Save
@@ -931,6 +932,19 @@ export default {
           graphqlOperation(getPano, { id: this.customID })
         ).then((data) => {
           this.panoSource = data.data.getPano;
+          if (this.panoSource && this.panoSource.sceneArr.length > 0) {
+            if (!this.panoSource.sceneArr[0].title || this.panoSource.sceneArr[0].title !== 'Plan Image') {
+              this.panoSource.sceneArr = [
+                {
+                  id : null,
+                  img : null,
+                  spots : null,
+                  title : "Plan Image"
+                },
+                ...this.panoSource.sceneArr
+              ]
+            }
+          }
           this.$store.commit("SET_NAVBAR_TEXT", {
             prototypeName: this.panoSource.prototypeName,
             category: this.panoSource.category,
@@ -994,6 +1008,13 @@ export default {
         };
         await Promise.all(
           this.panoSource.sceneArr.map(async (scene, key) => {
+            if (key === 0) {
+              if (scene.title === 'Plan Image') {
+                this.planView.id = null;
+                this.planView.img = ' ';
+                return;
+              }
+            }
             this.pano.scenes[scene.id] = {};
             this.pano.scenes[scene.id].title = scene.title;
             let panorama = await Storage.get(
@@ -1056,6 +1077,8 @@ export default {
         oImg.src = this.planView.img
         oImg.style.objectFit = 'contain'
         oImg.style.height = '100%'
+        if (this.planView.img == ' ')
+          oImg.style.backgroundColor = 'white'
 
         div_container.style.width = div_bg.getBoundingClientRect().width + 'px';
         div_container.style.height = (div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height) + 'px';
@@ -1278,6 +1301,11 @@ export default {
         };
         await Promise.all(
           this.panoSource.sceneArr.map(async (scene, key) => {
+            if (key === 0) {
+              if (scene.title === 'Plan Image') {
+                return;
+              }
+            }
             this.pano.scenes[scene.id] = {};
             this.pano.scenes[scene.id].title = scene.title;
             let panorama = await Storage.get(

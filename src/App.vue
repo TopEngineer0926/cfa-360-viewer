@@ -41,22 +41,6 @@ html {
   overflow-y: auto;
 }
 
-@media only screen and (max-width: 740px) {
-  /* For mobile phones: */
-  .main_container {
-    height: calc(100vh - 115px);
-    overflow-y: auto;
-  }
-}
-
-@media only screen and (max-width: 400px) {
-  /* For mobile phones: */
-  .main_container {
-    height: calc(100vh - 115px);
-    overflow-y: auto;
-  }
-}
-
 .center {
   text-align: center;
   position: absolute;
@@ -84,11 +68,5 @@ html {
 }
 .mdi-chevron-left {
   color: #e51636 !important;
-}
-</style>
-<style scoped>
-.main_container {
-  height: calc(100vh - 115px);
-  overflow-y: auto;
 }
 </style>
