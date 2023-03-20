@@ -342,7 +342,7 @@ export default {
     },
     async savePano() {
       console.log("save", this.panoSource);
-      await uploadThumbnail();
+      await this.uploadThumbnail();
       await API.graphql({
         query: updatePano,
         variables: {
@@ -350,7 +350,7 @@ export default {
         },
       });
 
-      $router.push('/panolist').catch((err) => {})
+      this.$router.push('/panolist').catch((err) => {})
       // this.$router.go();
     },
 
