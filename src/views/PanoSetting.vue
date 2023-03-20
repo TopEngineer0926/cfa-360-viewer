@@ -15,35 +15,30 @@
           require
           :rules="[(v) => !!v || 'Category is required']"
           label="Category"
-          @change="savePano"
         ></v-text-field>
         <v-text-field
           v-model="panoSource.prototypeName"
           require
           :rules="[(v) => !!v || 'Prototype Name is required']"
           label="Prototype Name"
-          @change="savePano"
         ></v-text-field>
         <v-text-field
           v-model="panoSource.prototypeEdition"
           require
-          :rules="[(v) => !!v || 'Prototype Edition is required']"
-          label="Prototype Edition"
-          @change="savePano"
+          :rules="[(v) => !!v || 'Template Release is required']"
+          label="Template Release"
         ></v-text-field>
         <v-text-field
           v-model="panoSource.description"
           require
           :rules="[(v) => !!v || 'Description is required']"
           label="Description"
-          @change="savePano"
         ></v-text-field>
 
         <v-file-input
           v-model="thumbnailToUpload"
           accept="image/*"
           label="Upload thumbnail"
-          @change="uploadThumbnail"
         ></v-file-input>
       </v-col>
     </v-row>
@@ -70,7 +65,7 @@
                 <v-list-item-title>{{ scene.title }}</v-list-item-title>
               </v-list-item-content>
             </template>
-            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex">
+            <div v-for="(spot, spotIndex) in scene.spots" :key="spotIndex" style = "margin-left: 32px;">
               <v-list-item
                 link
                 @click="loadSpot(sceneIndex, spotIndex)"
@@ -100,7 +95,6 @@
                 require
                 :rules="[(v) => !!v || 'Title is required']"
                 label="Tag Title"
-                @change="savePano"
               ></v-text-field>
             </v-row>
             <v-row align="center" justify="center">
@@ -109,7 +103,6 @@
                 label="Description"
                 auto-grow
                 :rows="1"
-                @change="savePano"
               ></v-textarea
             ></v-row>
             <div v-if="spot.contents && spot.contents.length > 0">
@@ -131,7 +124,6 @@
                   <v-text-field
                     v-model="content.name"
                     label="Content Name"
-                    @change="savePano"
                   ></v-text-field>
                   <v-btn
                     icon
@@ -196,11 +188,36 @@
       </v-col>
       <v-col v-else cols="8"></v-col>
     </v-row>
-    <v-row justify="center" class="ma-8">
-      <v-btn @click="$router.push('/panolist').catch((err) => {})"
-        >Return</v-btn
-      ></v-row
+    <v-row justify="center" class="ma-8" style="gap: 20px">
+      <v-btn @click="confirmPanoDlg = true">Create</v-btn>
+      <v-btn @click="$router.push('/panolist').catch((err) => {})">Return</v-btn>
+    </v-row>
+
+    <v-dialog
+      v-if="confirmPanoDlg"
+      v-model="confirmPanoDlg"
+      persistent
+      max-width="350"
     >
+      <v-card>
+        <v-card-title class="headline"> Create Pano </v-card-title>
+        <v-card-text>Are you sure to create new pano ?</v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="primary"
+            text
+            @click="savePano"
+          >
+            Confirm
+          </v-btn>
+          <v-btn color="grey" text @click="confirmPanoDlg = false">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
   </v-container>
 </template>
 
@@ -242,6 +259,7 @@ export default {
         file: null,
       },
       thumbnailToUpload: null,
+      confirmPanoDlg: false
     };
   },
   created: function () {
@@ -322,14 +340,17 @@ export default {
 
       this.$forceUpdate();
     },
-    savePano() {
+    async savePano() {
       console.log("save", this.panoSource);
-      API.graphql({
+      await uploadThumbnail();
+      await API.graphql({
         query: updatePano,
         variables: {
           input: this.panoSource,
         },
       });
+
+      $router.push('/panolist').catch((err) => {})
       // this.$router.go();
     },
 

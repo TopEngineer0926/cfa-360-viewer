@@ -1,8 +1,10 @@
 <template>
   <v-app>
     <navbar v-if="user" />
-    <v-main>
-      <router-view :key="$route.fullPath" />
+    <v-main style="padding: 45px 0px 0px; position: fixed; width: 100%;">
+      <div class="main_container">
+        <router-view :key="$route.fullPath" />
+      </div>
     </v-main>
     <confirm ref="confirm"></confirm>
     <dialog-loader ref="dialogLoader"></dialog-loader>
@@ -30,6 +32,31 @@ export default {
 };
 </script>
 <style>
+html {
+  overflow-y: hidden;
+}
+
+.main_container {
+  height: calc(100vh - 45px);
+  overflow-y: auto;
+}
+
+@media only screen and (max-width: 740px) {
+  /* For mobile phones: */
+  .main_container {
+    height: calc(100vh - 115px);
+    overflow-y: auto;
+  }
+}
+
+@media only screen and (max-width: 400px) {
+  /* For mobile phones: */
+  .main_container {
+    height: calc(100vh - 115px);
+    overflow-y: auto;
+  }
+}
+
 .center {
   text-align: center;
   position: absolute;
@@ -57,5 +84,11 @@ export default {
 }
 .mdi-chevron-left {
   color: #e51636 !important;
+}
+</style>
+<style scoped>
+.main_container {
+  height: calc(100vh - 115px);
+  overflow-y: auto;
 }
 </style>

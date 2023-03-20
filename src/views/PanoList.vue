@@ -10,17 +10,18 @@
         "
         color="primary"
         @click="createPanoFunc"
-        >Create</v-btn
-      >
+      >Create</v-btn>
     </v-row>
     <v-row justify="center" class="my-4">
-      <v-col cols="4">
+      <v-col cols="4" style="min-width:195px;">
         <v-select
+          v-model = select
           value="All Categories"
           :items="categoryList"
           label="Solo field"
           solo
           @change="filterByCategory"
+          style="min-width:165px;"
         ></v-select>
       </v-col>
     </v-row>
@@ -28,65 +29,83 @@
     <div
       v-if="panos && panos.length > 0"
       class="d-flex flex-wrap justify-center"
+      style="margin-bottom: 50px;"
     >
-      <div v-for="(pano, index) in panosFilter" :key="index">
-        <v-hover v-slot="{ hover }" class="ma-6">
-          <v-card
-            :elevation="hover ? 12 : 2"
-            width="500"
-            height="200"
-            @click="$router.push('/pano/' + pano.id)"
-          >
-            <v-list-item three-line>
-              <v-list-item-content>
-                <div class="overline mb-4">
-                  {{ pano.category ? pano.category : "Category Not Assigned" }}
-                </div>
-                <v-list-item-title class="headline mb-1">
-                  {{ pano.prototypeName }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ pano.prototypeEdition }}</v-list-item-subtitle
+
+    <v-expansion-panels 
+      multiple>
+      <v-expansion-panel
+        v-for="(item,i) in expandItems"
+        :key="i"
+        v-if = "select == 'All Categories' || select == item"
+      >
+        <v-expansion-panel-header>
+          Template Release:{{item}}   (Total : {{filterByCategory1(item)}})
+        </v-expansion-panel-header>
+        <v-expansion-panel-content>
+          <div class="v-row v-row--dense">
+            <div v-for="(pano, index) in panosFilter" :key="index" v-if= "pano.category == item" class="response">
+              <v-hover v-slot="{ hover }">
+                <v-card
+                  :elevation="hover ? 12 : 2"
+                  height="200"
+                  @click="$router.push('/pano/' + pano.id)"
+                  v-if = "pano.category == item"
                 >
-                <v-list-item-subtitle>
-                  {{ pano.description }}</v-list-item-subtitle
-                >
-              </v-list-item-content>
+                  <v-list-item three-line>
+                    <v-list-item-content>
+                      <div class="overline mb-4">
+                        {{ pano.category ? pano.category : "Category Not Assigned" }}
+                      </div>
+                      <v-list-item-title class="headline mb-1">
+                        {{ pano.prototypeName }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                        {{ pano.prototypeEdition }}</v-list-item-subtitle
+                      >
+                      <v-list-item-subtitle>
+                        {{ pano.description }}</v-list-item-subtitle
+                      >
+                    </v-list-item-content>
 
-              <v-list-item-avatar tile height="120" width="200" color="grey">
-                <v-img
-                  :src="
-                    pano.thumbnail
-                      ? pano.thumbnailUrl
-                      : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
-                  "
-                >
-                </v-img>
-              </v-list-item-avatar>
-            </v-list-item>
+                    <v-list-item-avatar tile height="120" width="200" color="grey">
+                      <v-img
+                        :src="
+                          pano.thumbnail
+                            ? pano.thumbnailUrl
+                            : 'data:image/gif;base64,R0lGODlhAQABAIAAAMLCwgAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw=='
+                        "
+                      >
+                      </v-img>
+                    </v-list-item-avatar>
+                  </v-list-item>
 
-            <v-card-actions v-if="user.siteAdmin">
-              <v-spacer />
-              <v-btn
-                icon
-                @click.stop="$router.push('/panosetting/' + pano.id)"
-                class="mr-14"
-              >
-                <v-icon>mdi-cog-outline</v-icon>
-              </v-btn>
+                  <v-card-actions v-if="user.siteAdmin">
+                    <v-spacer />
+                    <v-btn
+                      icon
+                      @click.stop="$router.push('/panosetting/' + pano.id)"
+                      class="mr-14"
+                    >
+                      <v-icon>mdi-cog-outline</v-icon>
+                    </v-btn>
 
-              <v-btn icon @click.stop="getTempsharing(pano.id)" class="mr-14"
-                ><v-icon>mdi-share </v-icon>
-              </v-btn>
+                    <v-btn icon @click.stop="getTempsharing(pano.id)" class="mr-14"
+                      ><v-icon>mdi-share </v-icon>
+                    </v-btn>
 
-              <v-btn icon @click.stop="deletePanoConfirm(pano)"
-                ><v-icon>mdi-delete-outline </v-icon>
-              </v-btn>
-              <v-spacer />
-            </v-card-actions>
-          </v-card>
-        </v-hover>
-      </div>
+                    <v-btn icon @click.stop="deletePanoConfirm(pano)"
+                      ><v-icon>mdi-delete-outline </v-icon>
+                    </v-btn>
+                    <v-spacer />
+                  </v-card-actions>
+                </v-card>
+              </v-hover>
+            </div>
+          </div>
+        </v-expansion-panel-content>
+      </v-expansion-panel>
+    </v-expansion-panels>
     </div>
     <div v-else-if="panos && panos.length == 0" class="text-center">
       <h3>
@@ -120,7 +139,7 @@
             ></v-text-field>
             <v-text-field
               v-model="editPano.prototypeEdition"
-              label="Prototype Edition"
+              label="Template Release"
             ></v-text-field>
             <v-text-field
               v-model="editPano.description"
@@ -155,50 +174,85 @@
       </v-card>
     </v-dialog>
 
-    <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="600">
+    <v-dialog v-if="sharing.dialog" v-model="sharing.dialog" max-width="800">
       <v-card>
-        <v-card-title class="headline"> Temporary sharing Links</v-card-title>
+        <v-card-title class="headline">Temporary sharing Links</v-card-title>
+        <v-row align="center" no-gutters style="justify-content: flex-end">
+          <div style="margin-right: 50px"> 
+            <v-btn block @click="addTempsharing()">Add a Link</v-btn>
+          </div>
+        </v-row>
         <v-card-text>
           <div v-if="sharing.list">
             <div v-for="(sharingitem, index) in sharing.list" :key="index">
               <v-row align="center">
-                <v-col cols="1">
-                  <h3>{{ index + 1 }}</h3>
+                <v-col cols="2">
+                  <v-text-field
+                    v-if = "sharingitem.linkname != 'LINK_'"
+                    label="Link Name"
+                    v-model="linknameArray[index]"
+                    disabled
+                  ></v-text-field>
+                  <v-text-field
+                    v-else
+                    label="Link Name"
+                    v-model="linknameArray[index]"
+                    :rules="rules"
+                  ></v-text-field>
                 </v-col>
 
-                <v-col>
+                <v-col cols="3">
+                  <v-menu
+                    v-model="menuArray[index]"
+                    :close-on-content-click="false"
+                    :nudge-right="40"
+                    transition="scale-transition"
+                    offset-y
+                    min-width="auto"
+                  >
+                    <template v-slot:activator="{ on, attrs }">
+                      <v-text-field
+                        v-model="linkdateArray[index]"
+                        value = "sharingitem.ttl"
+                        label="Expiration Date"
+                        prepend-icon="mdi-calendar"
+                        readonly
+                        v-bind="attrs"
+                        v-on="on"
+                      ></v-text-field>
+                    </template>
+                    <v-date-picker
+                      v-model="linkdateArray[index]"
+                      value = "sharingitem.ttl"
+                      @input="menu = false"
+                    ></v-date-picker>
+                  </v-menu>
+                </v-col>
+
+                <v-col cols="1">
                   <v-btn
                     text
                     @click="
-                      copySharingLink(sharingitem.panoID, sharingitem.password)
+                      copySharingLink(sharingitem.panoID,sharingitem.linkname,sharingitem.password)
                     "
-                    >Copy the Sharing Link</v-btn
-                  >
+                    >Copy</v-btn>
                 </v-col>
 
-                <v-col>
-                  Link Vaild Until
-                  {{ new Date(sharingitem.ttl * 1000).toLocaleString() }}
+                <v-col cols="2" align="center">
+                  <v-btn text @click="deleteTempsharing(sharingitem, index)">Delete</v-btn>
                 </v-col>
-                <v-col cols="1">
-                  <v-btn icon @click="deleteTempsharing(sharingitem, index)">
-                    <v-icon>mdi-delete</v-icon></v-btn
-                  >
+
+                <v-col cols="2" align="center">
+                  <div v-if = "sharingitem.linkname != 'LINK_'">
+                    <v-btn text @click="updateTempsharing(sharingitem, index)">Update</v-btn>
+                  </div>
+                  <div v-else>
+                    <v-btn text @click="createTempsharing(sharingitem, index)">Create</v-btn>
+                  </div>
                 </v-col>
               </v-row>
             </div>
           </div>
-          <h2 class="mt-8">Create a new sharing link</h2>
-          <v-row align="center">
-            <v-col>
-              <v-text-field
-                v-model="sharing.newHours"
-                label="Valid hours from now"
-                type="number"
-              ></v-text-field>
-            </v-col>
-            <v-col> <v-btn block @click="addTempsharing()">Add</v-btn></v-col>
-          </v-row>
 
           <!-- <v-form ref="form" v-model="editPano.editValid" lazy-validation>
             <v-text-field
@@ -220,13 +274,31 @@
         <v-card-actions>
           <v-spacer></v-spacer>
 
-          <v-btn color="grey" text @click="sharing.dialog = false">
-            Close
-          </v-btn>
+        <v-row align="center" no-gutters style="justify-content: flex-end">
+          <v-col cols="8">
+          </v-col>
+          <v-col cols="3">
+            <v-btn color="grey" text @click="sharing.dialog = false">
+              Close
+            </v-btn>
+          </v-col>
+        </v-row>
         </v-card-actions>
       </v-card>
     </v-dialog>
-
+    <v-snackbar
+      v-model="snakeBar.snackbar"
+      :bottom="snakeBar.y === 'bottom'"
+      :color="snakeBar.color"
+      :left="snakeBar.x === 'left'"
+      :multi-line="snakeBar.mode === 'multi-line'"
+      :right="snakeBar.x === 'right'"
+      :timeout="snakeBar.timeout"
+      :top="snakeBar.y === 'top'"
+      :vertical="snakeBar.mode === 'vertical'"
+    >
+      {{ snakeBar.text }}
+    </v-snackbar>
     <foot />
   </v-container>
 </template>
@@ -238,6 +310,7 @@ import {
   deletePano,
   createTemporarySharing,
   deleteTemporarySharing,
+  updateTemporarySharing,
 } from "../graphql/mutations";
 import {
   listPanos,
@@ -259,9 +332,26 @@ export default {
 
   data: function () {
     return {
+      linkdate: (new Date(Date.now() - (new Date()).getTimezoneOffset() * 60000)).toISOString().substr(0, 10),
+      linknameArray : [],
+      linkdateArray : [],
+      menuArray : [],
+      menu: false,
+      select : "All Categories",
       panos: null,
       panosFilter: null,
       categoryList: ["All Categories"],
+      expandItems : [],
+      filterItems : [],
+      snakeBar : {
+        color: '',
+        mode: '',
+        snackbar: false,
+        text: '',
+        timeout: 4000,
+        x: null,
+        y: 'bottom',
+      },
       editPano: {
         index: null,
         prototypeEdition: null,
@@ -272,11 +362,15 @@ export default {
         imgToUpload: null,
         thumbnailToUpload: null,
       },
+      rules: [
+        value => (!!value || value == ' ') || 'Required.',
+      ],
       sharing: {
         dialog: false,
         panoID: null,
         new: null,
         list: null,
+        ttl : null,
       },
     };
   },
@@ -290,7 +384,7 @@ export default {
       API.graphql(graphqlOperation(listPanos)).then(async (data) => {
         let panosData = data.data.listPanos.items;
         let panosRes = [];
-
+        var arr = [];
         await Promise.all(
           panosData.map(async (pano) => {
             let projectPermission = (
@@ -308,6 +402,7 @@ export default {
                   projectPermission.viewers.includes(this.user.username)))
             ) {
               if (pano.category) {
+                arr.push(pano.category);
                 this.categoryList.push(pano.category);
               }
               if (pano.thumbnail) {
@@ -318,6 +413,8 @@ export default {
               }
               panosRes.push(pano);
             }
+            this.expandItems = [...new Set(arr)];
+            this.expandItems.sort();
           })
         );
 
@@ -346,7 +443,12 @@ export default {
         );
       }
     },
-
+    filterByCategory1(category) {
+      let array = this.panos.filter(
+          (pano) => pano.category == category
+        );
+      return array.length;
+    },
     async createPanoFunc() {
       try {
         let newPanoId = await API.graphql(
@@ -361,7 +463,7 @@ export default {
         console.error("createPano", error);
       }
     },
-    deletePanoFunc(pano) {
+    async deletePanoFunc(pano) {
       //delete thumbnail
       if (pano.thumbnail) {
         Storage.remove(pano.id + "/" + pano.thumbnail);
@@ -375,7 +477,7 @@ export default {
       }
 
       //delete pano
-      API.graphql(
+      await API.graphql(
         graphqlOperation(deletePano, {
           input: { id: pano.id },
         })
@@ -393,6 +495,8 @@ export default {
         this.panosFilter.findIndex((e) => e.id == pano.id),
         1
       );
+
+      this.loadPanos();
     },
     async deletePanoConfirm(pano) {
       if (
@@ -424,28 +528,6 @@ export default {
         if (this.editPano.prototypeEdition) {
           newPano.prototypeEdition = this.editPano.prototypeEdition;
         }
-        // if (this.editPano.imgToUpload) {
-        //   let imgId = nanoid();
-        //   newPano.img = (
-        //     await Storage.put(imgId, this.editPano.imgToUpload, {
-        //       level: "protected",
-        //       contentType: this.editPano.imgToUpload.type,
-        //       metadata: { user: this.user.email },
-        //     })
-        //   ).key;
-        //   //delete org img
-        //   if (this.panos[this.editPano.index].img) {
-        //     Storage.remove(this.pano.img, { level: "protected" });
-        //   }
-        // }
-
-        // if (
-        //   !this.editPano.thumbnailToUpload &&
-        //   !this.panos[this.editPano.index].thumbnail &&
-        //   this.editPano.imgToUpload
-        // ) {
-        //   this.editPano.thumbnailToUpload = this.editPano.imgToUpload;
-        // }
 
         if (this.editPano.thumbnailToUpload) {
           //Compressor
@@ -477,7 +559,7 @@ export default {
             );
           }
         }
-        console.log("updatePano", newPano);
+
         await API.graphql({
           query: updatePano,
           variables: {
@@ -488,7 +570,16 @@ export default {
         this.editPano.dialog = false;
       }
     },
+    changeSetTime(time){
+      const d = new Date();
+      d.setTime(time);   
+      let date = d.toISOString().split("T")[0];
+      return date;
+    },
     getTempsharing(panoID) {
+      this.linkdateArray.splice(0,this.linkdateArray.length);
+      this.menuArray.splice(0,this.menuArray.length);
+      this.linknameArray.splice(0,this.linknameArray.length);
       this.sharing.panoID = panoID;
       API.graphql({
         query: sharingByPano,
@@ -497,41 +588,140 @@ export default {
         },
       }).then((data) => {
         this.sharing.list = data.data.sharingByPano.items;
+        for (let i=0; i<this.sharing.list.length; i++){
+          let ttl_time = this.changeSetTime(this.sharing.list[i].ttl);
+          this.sharing.list[i].ttl = ttl_time;
+          this.linkdateArray[i] = ttl_time;
+          this.linknameArray[i] = this.sharing.list[i].linkname;
+        }
+        
         this.sharing.dialog = true;
       });
     },
 
     async addTempsharing() {
-      let newSharing = {
+      this.linkdate = new Date().toISOString().split("T")[0];
+
+      let linkname = 'LINK_';
+      let newItem = {
         panoID: this.sharing.panoID,
         password: nanoid(),
-        ttl: Math.round(Date.now() / 1000) + this.sharing.newHours * 60 * 60,
-      };
-      await API.graphql(
-        graphqlOperation(createTemporarySharing, {
-          input: newSharing,
-        })
-      );
-      this.sharing.list.push(newSharing);
+        ttl: this.linkdate,
+        linkname : linkname,
+      }
+      this.linkdateArray.push(this.linkdate);
+      this.linknameArray.push(linkname);
+      this.sharing.list.push(newItem);
       this.sharing.new = null;
     },
 
-    deleteTempsharing(item, index) {
-      API.graphql(
+    async createTempsharing(item, index) {
+      const date = new Date(this.linkdateArray[index]).setHours(23, 59, 59);
+      let linkname = this.linknameArray[index];
+      let check_item = true;
+      if(linkname == 'LINK_' ||linkname == ''){
+
+        this.snakeBar.color = "error";
+        this.snakeBar.text = "Linkname is must required!";
+        this.snakeBar.snackbar = true;
+
+      } else {
+        this.sharing.list.map((shareItem, key) => {
+          if(shareItem.linkname == linkname){
+            check_item = false;
+          }
+        })
+        if (check_item == true){
+          let newSharing = {
+            panoID: item.panoID,
+            password: nanoid(),
+            ttl: date,
+            linkname : linkname,
+          };
+          await API.graphql(
+            graphqlOperation(createTemporarySharing, {
+              input: newSharing,
+            })
+          );
+          let modifyItem = {
+            id : item.id,
+            panoID: this.sharing.panoID,
+            password: nanoid(),
+            ttl: this.linkdateArray[index],
+            linkname : linkname,
+          }
+          this.sharing.list[index] = modifyItem;
+          this.getTempsharing(this.sharing.panoID);
+        } else {
+          this.snakeBar.color = "error";
+          this.snakeBar.text = "Linkname is not invalid!";
+          this.snakeBar.snackbar = true;
+        }
+      }
+    },
+    async updateTempsharing(item, index) {
+      const date = new Date(this.linkdateArray[index]).setHours(23, 59, 59);
+      let linkname = this.linknameArray[index];
+      let check_item = true;
+      this.sharing.list.map((shareItem, key) => {
+          if(shareItem.linkname == linkname){
+            check_item = false;
+          }
+        })
+        if (check_item == false){
+          let updateSharing = {
+            id : item.id,
+            panoID: item.panoID,
+            password: nanoid(),
+            ttl: date,
+            linkname : linkname,
+          };
+          await API.graphql(
+            graphqlOperation(updateTemporarySharing, {
+              input: updateSharing,
+            })
+          );
+          let modifyItem = {
+            id : item.id,
+            panoID: this.sharing.panoID,
+            password: nanoid(),
+            ttl: this.linkdateArray[index],
+            linkname : linkname,
+          }
+          this.sharing.list[index] = modifyItem;
+          this.getTempsharing(this.sharing.panoID);
+        } else {
+          this.snakeBar.color = "error";
+          this.snakeBar.text = "Linkname is not invalid!";
+          this.snakeBar.snackbar = true;
+        }
+    },
+    async deleteTempsharing(item, index) {
+      await API.graphql(
         graphqlOperation(deleteTemporarySharing, {
           input: { id: item.id },
         })
       );
+      await this.getTempsharing(this.sharing.panoID);
       this.sharing.list.splice(index, 1);
     },
-    copySharingLink(panoID, password) {
-      let base = window.location.href.replace("panolist", "pano");
-      this.$root.$dialogLoader.start(
-        "Link Copied to the clipboard",
-        {},
-        navigator.clipboard.writeText(base + "/" + panoID + "/" + password),
-        true
-      );
+
+    copySharingLink(panoID,linkname,password) {
+      if(linkname == 'LINK_' ||linkname == ''){
+
+        this.snakeBar.color = "error";
+        this.snakeBar.text = "Linkname is must requarid!";
+        this.snakeBar.snackbar = true;
+
+      } else {
+        let base = window.location.href.replace("panolist","sharing");
+        this.$root.$dialogLoader.start(
+          "Link Copied to the clipboard",
+          {},
+          navigator.clipboard.writeText(base + "/" + linkname),
+          true
+        );
+      }
     },
   },
 };
@@ -541,4 +731,26 @@ amplify-s3-image {
   --height: 200px;
   --width: 400px;
 }
+.v-row {
+    display: flex;
+    flex-wrap: wrap;
+    flex: 1 1 auto;
+    margin: -12px;
+}
+.v-row--dense>.v-col, .v-row--dense>[class*=v-col-] {
+    padding: 5px;
+}
+.response {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+@media (min-width: 600px){
+  .response {
+    flex: 0 0 50%;
+    max-width: 50%;
+    padding: 10px;
+  }
+}
+
+
 </style>

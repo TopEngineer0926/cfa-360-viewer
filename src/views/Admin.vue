@@ -408,6 +408,7 @@ export default {
         })
       );
 
+      this.setInitViewers();
       this.updateProjectsPermissionTable();
     },
 
@@ -482,7 +483,7 @@ export default {
       this.INDEXusers.forEach((user) => {
         user.projectAdmin = admins.includes(user.username) ? true : false;
         user.projectEditor = editors.includes(user.username) ? true : false;
-        user.projectViewer = viewers.includes(user.username) ? true : false;
+        user.projectViewer = true;
 
         user.partialAdmin = partialAdmins.includes(user.username)
           ? true
@@ -545,6 +546,22 @@ export default {
       });
 
       this.updateProjectsPermissionTable();
+    },
+    setInitViewers() {
+      this.projectsPermission.forEach((projectPermission) => {
+        this.INDEXusers.forEach((user) => {
+          projectPermission.viewers.push(user.username);
+        });
+      });
+
+      this.projectsPermission.forEach(async (projectPermission) => {
+        await API.graphql({
+          query: updateProjectPermission,
+          variables: {
+            input: projectPermission,
+          },
+        });
+      });
     },
     // async loadSiteSetting() {
     //   let siteSettingData = (

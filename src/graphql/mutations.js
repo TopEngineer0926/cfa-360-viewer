@@ -361,6 +361,7 @@ export const createTemporarySharing = /* GraphQL */ `
       id
       panoID
       owner
+      linkname
       password
       ttl
       createdAt
@@ -377,6 +378,7 @@ export const updateTemporarySharing = /* GraphQL */ `
       id
       panoID
       owner
+      linkname
       password
       ttl
       createdAt
@@ -393,6 +395,7 @@ export const deleteTemporarySharing = /* GraphQL */ `
       id
       panoID
       owner
+      linkname
       password
       ttl
       createdAt

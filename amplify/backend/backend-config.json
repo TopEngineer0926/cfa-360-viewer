@@ -1,60 +1,166 @@
 {
-  "auth": {
-    "360viewerb3eeeb6b": {
-      "service": "Cognito",
-      "serviceType": "imported",
-      "providerPlugin": "awscloudformation",
-      "dependsOn": [],
-      "customAuth": false
-    }
-  },
-  "storage": {
-    "360s3": {
-      "service": "S3",
-      "providerPlugin": "awscloudformation"
-    }
-  },
   "api": {
     "360viewer": {
-      "service": "AppSync",
-      "providerPlugin": "awscloudformation",
       "output": {
         "authConfig": {
+          "additionalAuthenticationProviders": [
+            {
+              "authenticationType": "AWS_IAM"
+            }
+          ],
           "defaultAuthentication": {
             "authenticationType": "AMAZON_COGNITO_USER_POOLS",
             "userPoolConfig": {
               "userPoolId": "auth360viewerb3eeeb6b"
             }
-          },
-          "additionalAuthenticationProviders": [
-            {
-              "authenticationType": "AWS_IAM"
-            }
-          ]
+          }
         }
-      }
+      },
+      "providerPlugin": "awscloudformation",
+      "service": "AppSync"
     },
     "index": {
-      "service": "API Gateway",
-      "providerPlugin": "awscloudformation",
       "dependsOn": [
         {
-          "category": "function",
-          "resourceName": "indexLambda",
           "attributes": [
             "Name",
             "Arn"
-          ]
+          ],
+          "category": "function",
+          "resourceName": "indexLambda"
         }
-      ]
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
     }
   },
-  "hosting": {},
+  "auth": {
+    "360viewerb3eeeb6b": {
+      "customAuth": false,
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "Cognito",
+      "serviceType": "imported"
+    }
+  },
   "function": {
     "indexLambda": {
       "build": true,
       "providerPlugin": "awscloudformation",
       "service": "Lambda"
+    }
+  },
+  "hosting": {},
+  "parameters": {
+    "AMPLIFY_auth_360viewerb3eeeb6b_allowUnauthenticatedIdentities": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_authRoleArn": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_authRoleName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_identityPoolId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_identityPoolName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_nativeClientId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_unauthRoleArn": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_unauthRoleName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_userPoolId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_userPoolName": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_auth_360viewerb3eeeb6b_webClientId": {
+      "usedBy": [
+        {
+          "category": "auth",
+          "resourceName": "360viewerb3eeeb6b"
+        }
+      ]
+    },
+    "AMPLIFY_function_indexLambda_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "indexLambda"
+        }
+      ]
+    },
+    "AMPLIFY_function_indexLambda_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "indexLambda"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "360s3": {
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
     }
   }
 }
