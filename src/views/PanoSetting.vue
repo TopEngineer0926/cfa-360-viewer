@@ -350,10 +350,41 @@ export default {
         },
       });
 
+      var FileURL = location.protocol + "//" + location.host + "/white.png";
+      let vm = this;
+      this.GetFileObjectFromURL(FileURL, function (fileObject) {
+        Storage.put(
+          vm.panoSource.id + "/plan_image",
+          fileObject,
+          {
+            contentType: "image/png"
+          }
+        )
+      });
+
       this.$router.push('/panolist').catch((err) => {})
       // this.$router.go();
     },
-
+    GetFileBlobUsingURL(url, convertBlob) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        xhr.responseType = "blob";
+        xhr.addEventListener('load', function() {
+            convertBlob(xhr.response);
+        });
+        xhr.send();
+    },
+    blobToFile(blob, name) {
+        blob.lastModifiedDate = new Date();
+        blob.name = name;
+        return blob;
+    },
+    GetFileObjectFromURL(filePathOrUrl, convertBlob) {
+      let vm = this;
+       this.GetFileBlobUsingURL(filePathOrUrl, function (blob) {
+          convertBlob(vm.blobToFile(blob, 'testFile.png'));
+       });
+    },
     async addNewContent() {
       if (this.newContent.type !== "youtube") {
         this.newContent.link = (
