@@ -1009,6 +1009,26 @@ export default {
     mouseOver(scene){
       this.panotitle = scene.title;
     },
+    GetFileBlobUsingURL(url, convertBlob) {
+        var xhr = new XMLHttpRequest();
+        xhr.open("GET", url);
+        xhr.responseType = "blob";
+        xhr.addEventListener('load', function() {
+            convertBlob(xhr.response);
+        });
+        xhr.send();
+    },
+    blobToFile(blob, name) {
+        blob.lastModifiedDate = new Date();
+        blob.name = name;
+        return blob;
+    },
+    GetFileObjectFromURL(filePathOrUrl, convertBlob) {
+      let vm = this;
+       this.GetFileBlobUsingURL(filePathOrUrl, function (blob) {
+          convertBlob(vm.blobToFile(blob, 'testFile.png'));
+       });
+    },
     async initPano() {
       if (this.panoSource.sceneArr && this.panoSource.sceneArr.length > 0) {
         this.pano = {
@@ -1023,8 +1043,28 @@ export default {
                   this.panoSource.id + "/plan_image",
                   { expires: 432000 }
                 );
-                this.planView.id = scene.id;
-                this.planView.img = plan_image;
+                if (!plan_image) {
+                  let FileURL = location.protocol + "//" + location.host + "/white.png";
+                  let vm = this;
+                  this.GetFileObjectFromURL(FileURL, async function (fileObject) {
+                    await Storage.put(
+                      vm.panoSource.id + "/plan_image",
+                      fileObject,
+                      {
+                        contentType: "image/png"
+                      }
+                    )
+                    let plan_image = await Storage.get(
+                      this.panoSource.id + "/plan_image",
+                      { expires: 432000 }
+                    );
+                    vm.planView.id = scene.id;
+                    vm.planView.img = plan_image;
+                  });
+                } else {
+                  this.planView.id = scene.id;
+                  this.planView.img = plan_image;
+                }
                 return;
               }
             }
