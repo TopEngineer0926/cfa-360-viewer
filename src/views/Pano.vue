@@ -1039,14 +1039,21 @@ export default {
           this.panoSource.sceneArr.map(async (scene, key) => {
             if (key === 0) {
               if (scene.title === 'Plan Image') {
-                let plan_image = await Storage.get(
-                  this.panoSource.id + "/plan_image",
-                  { expires: 432000 }
-                );
-                if (!plan_image) {
+                const files = await Storage.list(this.panoSource.id);
+                const fileExists = files.find(file => file.key === this.panoSource.id + "/plan_image");
+
+                if (fileExists) {
+                  let plan_image = await Storage.get(
+                    this.panoSource.id + "/plan_image",
+                    { expires: 432000 }
+                  );
+
+                  this.planView.id = scene.id;
+                  this.planView.img = plan_image;
+                } else {
                   let FileURL = location.protocol + "//" + location.host + "/white.png";
                   let vm = this;
-                  this.GetFileObjectFromURL(FileURL, async function (fileObject) {
+                  await this.GetFileObjectFromURL(FileURL, async function (fileObject) {
                     await Storage.put(
                       vm.panoSource.id + "/plan_image",
                       fileObject,
@@ -1054,16 +1061,13 @@ export default {
                         contentType: "image/png"
                       }
                     )
-                    let plan_image = await Storage.get(
+                  });
+                  let plan_image = await Storage.get(
                       this.panoSource.id + "/plan_image",
                       { expires: 432000 }
                     );
-                    vm.planView.id = scene.id;
-                    vm.planView.img = plan_image;
-                  });
-                } else {
-                  this.planView.id = scene.id;
-                  this.planView.img = plan_image;
+                    this.planView.id = scene.id;
+                    this.planView.img = plan_image;
                 }
                 return;
               }
