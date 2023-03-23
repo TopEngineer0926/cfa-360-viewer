@@ -276,7 +276,7 @@
           <v-btn
             color="primary"
             text
-            @click="saveScene(); editSceneData.dialog = false; isPlan = false;"
+            @click="saveScene(); editSceneData.dialog = false;"
             :disabled="!editSceneData.editValid"
           >
             Save
@@ -932,18 +932,27 @@ export default {
           graphqlOperation(getPano, { id: this.customID })
         ).then((data) => {
           this.panoSource = data.data.getPano;
-          if (this.panoSource && this.panoSource.sceneArr.length > 0) {
+          if (this.panoSource && this.panoSource.sceneArr?.length > 0) {
             if (!this.panoSource.sceneArr[0].title || this.panoSource.sceneArr[0].title !== 'Plan Image') {
               this.panoSource.sceneArr = [
                 {
-                  id : null,
+                  id : nanoid(),
                   img : null,
-                  spots : null,
+                  spots : [],
                   title : "Plan Image"
                 },
                 ...this.panoSource.sceneArr
               ]
             }
+          } else {
+            this.panoSource.sceneArr = [
+                {
+                  id : nanoid(),
+                  img : null,
+                  spots : [],
+                  title : "Plan Image"
+                },
+              ]
           }
           this.$store.commit("SET_NAVBAR_TEXT", {
             prototypeName: this.panoSource.prototypeName,
@@ -1010,8 +1019,12 @@ export default {
           this.panoSource.sceneArr.map(async (scene, key) => {
             if (key === 0) {
               if (scene.title === 'Plan Image') {
-                this.planView.id = null;
-                this.planView.img = ' ';
+                let plan_image = await Storage.get(
+                  this.panoSource.id + "/plan_image",
+                  { expires: 432000 }
+                );
+                this.planView.id = scene.id;
+                this.planView.img = plan_image;
                 return;
               }
             }
@@ -1030,7 +1043,7 @@ export default {
             scene.thumbnail = thumb;
             if(key == 0){
               this.planView.id = scene.id;
-              this.planView.img = panorama;
+              this.planView.img = plan_image;
             }else{
               this.pano.scenes[scene.id].hfov = 120;
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
@@ -1155,7 +1168,7 @@ export default {
         }
 
         let scene = this.panoSource.sceneArr[0];
-        scene.spots.map((spot,index) => {
+        scene.spots?.map((spot,index) => {
           let start_Xpos, start_Ypos;
           start_Xpos = div_container.getBoundingClientRect().width/2 - this.image_width/2;
           start_Ypos = div_container.getBoundingClientRect().height/2 - this.image_height/2;
@@ -1362,7 +1375,7 @@ export default {
       if (!sceneID) {
         this.editSceneData.sceneID = null;
         this.editSceneData.sceneIndex = null;
-        this.editSceneData.title = null;
+        this.editSceneData.title = '';
         this.editSceneData.panorama = null;
       } else {
         this.editSceneData.sceneIndex = this.panoSource.sceneArr.findIndex(
@@ -1518,6 +1531,21 @@ export default {
             )
           ).key;
 
+          if (this.isPlan) {
+            await Storage.put(
+              this.panoSource.id + "/plan_image",
+              this.editSceneData.imgToUpload,
+              {
+                contentType: this.editSceneData.imgToUpload.type,
+                metadata: {
+                  user: this.user.email,
+                  pano: this.panoSource.id,
+                  type: "scene",
+                },
+              }
+            )
+          }
+
           if (this.thumbImg === null) {
             s3ThumbLink = (
               await Storage.put(
@@ -1578,7 +1606,8 @@ export default {
           );
 
           //edit scene title
-          this.pano.scenes[sceneID].title = this.editSceneData.title;
+          if (this.pano.scenes[sceneID])
+            this.pano.scenes[sceneID].title = this.editSceneData.title;
 
           //edit sceneArr title
           this.panoSource.sceneArr[sceneIndex].title = this.editSceneData.title;
@@ -1608,7 +1637,8 @@ export default {
             let url = await Storage.get(s3link);
 
             //edit scene panorama
-            this.pano.scenes[sceneID].panorama = url;
+            if (this.pano.scenes[sceneID])
+              this.pano.scenes[sceneID].panorama = url;
           }
         } else {
           let panorama_url = await Storage.get(s3link);
@@ -1649,6 +1679,8 @@ export default {
         this.thumbImg = null;
         this.initPano();
       }
+
+      this.isPlan = false;
       //  this.$forceUpdate();
     },
     mousePinDownHandler(event) {
