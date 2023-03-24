@@ -1023,10 +1023,10 @@ export default {
         blob.name = name;
         return blob;
     },
-    GetFileObjectFromURL(filePathOrUrl, convertBlob) {
+    async GetFileObjectFromURL(filePathOrUrl, convertBlob) {
       let vm = this;
-       this.GetFileBlobUsingURL(filePathOrUrl, function (blob) {
-          convertBlob(vm.blobToFile(blob, 'testFile.png'));
+      await this.GetFileBlobUsingURL(filePathOrUrl, async function (blob) {
+          await convertBlob(vm.blobToFile(blob, 'testFile.png'));
        });
     },
     async initPano() {
@@ -1063,11 +1063,11 @@ export default {
                     )
                   });
                   let plan_image = await Storage.get(
-                      this.panoSource.id + "/plan_image",
-                      { expires: 432000 }
-                    );
-                    this.planView.id = scene.id;
-                    this.planView.img = plan_image;
+                    this.panoSource.id + "/plan_image",
+                    { expires: 432000 }
+                  );
+                  this.planView.id = scene.id;
+                  this.planView.img = plan_image;
                 }
                 return;
               }
