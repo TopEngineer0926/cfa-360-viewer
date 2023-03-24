@@ -1053,8 +1053,8 @@ export default {
                 } else {
                   let FileURL = location.protocol + "//" + location.host + "/white.png";
                   let vm = this;
-                  await this.GetFileObjectFromURL(FileURL, async function (fileObject) {
-                    await Storage.put(
+                  this.GetFileObjectFromURL(FileURL, async function (fileObject) {
+                    Storage.put(
                       vm.panoSource.id + "/plan_image",
                       fileObject,
                       {
@@ -1062,14 +1062,7 @@ export default {
                       }
                     )
                   });
-                  let plan_image = await Storage.get(
-                    this.panoSource.id + "/plan_image",
-                    { expires: 432000 }
-                  );
-                  this.planView.id = scene.id;
-                  this.planView.img = plan_image;
                 }
-                return;
               }
             }
             this.pano.scenes[scene.id] = {};
@@ -1086,6 +1079,10 @@ export default {
             this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
             if(key == 0){
+              let plan_image = await Storage.get(
+                this.panoSource.id + "/plan_image",
+                { expires: 432000 }
+              );
               this.planView.id = scene.id;
               this.planView.img = plan_image;
             }else{
@@ -1134,8 +1131,6 @@ export default {
         oImg.src = this.planView.img
         oImg.style.objectFit = 'contain'
         oImg.style.height = '100%'
-        if (this.planView.img == ' ')
-          oImg.style.backgroundColor = 'white'
 
         div_container.style.width = div_bg.getBoundingClientRect().width + 'px';
         div_container.style.height = (div_bg.getBoundingClientRect().height - div_expand.getBoundingClientRect().height) + 'px';
