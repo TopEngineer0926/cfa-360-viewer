@@ -230,16 +230,20 @@
                 </v-col>
 
                 <v-col cols="1">
-                  <v-btn
-                    text
-                    @click="
-                      copySharingLink(sharingitem.panoID,sharingitem.linkname,sharingitem.password)
-                    "
-                    >Copy</v-btn>
+                  <div v-if = "sharingitem.linkname != 'LINK_'">
+                    <v-btn
+                      text
+                      @click="
+                        copySharingLink(sharingitem.panoID,sharingitem.linkname,sharingitem.password)
+                      "
+                      >Copy</v-btn>
+                  </div>
                 </v-col>
 
                 <v-col cols="2" align="center">
-                  <v-btn text @click="deleteTempsharing(sharingitem, index)">Delete</v-btn>
+                  <div v-if = "sharingitem.linkname != 'LINK_'">
+                    <v-btn text @click="deleteTempsharing(sharingitem, index)">Delete</v-btn>
+                  </div>
                 </v-col>
 
                 <v-col cols="2" align="center">
