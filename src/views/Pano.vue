@@ -1133,13 +1133,77 @@ export default {
             }
             // this.loadHotSpots(key);
           })
-        );
-        
+        ).then(() => {
+          setTimeout(() => {
+            this.checkWhiteImage(this.setWhiteImage)
+          }, 3000);
+        });
+      }
+    },
+    setWhiteImage(val) {
+      if (!val) {
         this.currentSceneIndex = 0;
-        window.addEventListener('resize', ()=>this.resizeWindow());
-        this.removeChild(0);
-        this.resizeExpand();
-        this.showPlanView();
+      } else {
+        this.currentSceneIndex = 1;
+      }
+
+      window.addEventListener('resize', ()=>this.resizeWindow());
+      this.removeChild(0);
+      this.resizeExpand();
+      this.showPlanView();
+
+      if (this.currentSceneIndex != 0) {
+        this.loadScene(this.panoSource.sceneArr[1].id);
+      }
+    },
+    checkWhiteImage(setWhiteImage) {
+      // Load the image using the Image object
+      // let div_img = document.getElementsByClassName("img")[0];
+      var img = document.createElement("img");
+      img.src = this.planView.img;
+      img.crossOrigin = "anonymous";
+
+      img.onload = function() {
+        // Create a canvas element and set its dimensions
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Draw the image onto the canvas
+        var ctx = canvas.getContext('2d');
+        ctx.crossOrigin = "anonymous";
+        ctx.drawImage(img, 0, 0);
+
+        // Get the pixel data of the canvas
+        const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        let whitePixels = 0;
+        const whiteThreshold = 250; // Set the threshold for what is considered "white"
+
+        // Traverse through each pixel and calculate the degree of "whiteness"
+        for (let i = 0; i < pixelData.data.length; i += 4) {
+          const red = pixelData.data[i];
+          const green = pixelData.data[i+1];
+          const blue = pixelData.data[i+2];
+          const alpha = pixelData.data[i+3];
+
+          // Check if the pixel is "white" enough
+          if (red > whiteThreshold && green > whiteThreshold && blue > whiteThreshold) {
+            whitePixels++;
+          }
+        }
+
+        // Calculate the percentage of white pixels in the image
+        const percentageOfWhite = (whitePixels / (pixelData.data.length / 4)) * 100;
+
+        // Determine if the image is mostly white or not
+        if (percentageOfWhite > 95) {
+          console.log('The image is mostly white');
+          setWhiteImage(true);
+        } else {
+          console.log('The image is not mostly white');
+          setWhiteImage(false);
+        }
       }
     },
     getContainedSize(img) {
