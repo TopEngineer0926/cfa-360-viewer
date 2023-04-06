@@ -1153,7 +1153,9 @@ export default {
       this.showPlanView();
 
       if (this.currentSceneIndex != 0) {
-        this.loadScene(this.panoSource.sceneArr[1].id);
+        if (this.panoSource.sceneArr.length > 1) {
+          this.loadScene(this.panoSource.sceneArr[1].id);
+        }
       }
     },
     checkWhiteImage(setWhiteImage) {
