@@ -60,7 +60,7 @@
                     v-if="isEditable && canCreateTag"
                     small
                     text
-                    @click.stop="addLayer()"
+                    @click.stop="createLayerConfirmDialog()"
                     class="ma-1"
                   >
                     Add Layer
@@ -626,6 +626,38 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-show="layerConfirmDialog"
+      v-model="layerConfirmDialog"
+      persistent
+      ref="layerConfirm"
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline">Create Layer</v-card-title>
+        <v-card-text>
+          <v-form
+            lazy-validation
+          >
+            <v-text-field
+              v-model="layerName"
+              require
+              :rules="[(v) => !!v || 'Layer Name is required']"
+              label="Layer Name"
+            ></v-text-field>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click.stop="addLayer()">
+            Confirm
+          </v-btn>
+          <v-btn color="grey" text @click="cancelLayerConfirmDialog">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -752,7 +784,9 @@ export default {
       snapshotDialog: false,
       dlgViewer: null,
       thumbImg: null,
-      isPlan: false
+      isPlan: false,
+      layerConfirmDialog: false,
+      layerName: '',
     };
   },
   async created() {
@@ -1794,12 +1828,35 @@ export default {
       this.viewer.on("mousedown", this.mouseDownHandler);
     },
     addLayer() {
-      this.panoSource.layers.push({
-        id: nanoid(6),
-        name: "New Layer",
-        icon: "cross",
-      });
-      this.savePano();
+      if (this.layerName != '') {
+        let check_item = true;
+        this.panoSource.layers.map((layer, key) => {
+          if(layer.name == this.layerName){
+            check_item = false;
+          }
+        })
+
+        if (check_item) {
+          this.panoSource.layers.push({
+            id: nanoid(6),
+            name: this.layerName,
+            icon: "cross",
+          });
+
+          this.savePano();
+          this.cancelLayerConfirmDialog();
+        } else {
+          this.$root.$dialogLoader.showSnackbar("Layer name must be unique!");
+        }
+      } else {
+        this.$root.$dialogLoader.showSnackbar("Layer name must be required!");
+      }
+    },
+    createLayerConfirmDialog() {
+      this.layerConfirmDialog = true;
+    },
+    cancelLayerConfirmDialog() {
+      this.layerConfirmDialog = false;
     },
     cancelSpot() {
       this.editSpotData = {
