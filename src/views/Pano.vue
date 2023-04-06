@@ -1086,7 +1086,13 @@ export default {
               this.planView.id = scene.id;
               this.planView.img = plan_image;
             }else{
-              this.pano.scenes[scene.id].hfov = 120;
+              if (window.innerHeight > window.innerWidth) {
+                // Portrait mode
+                this.pano.scenes[scene.id].hfov = 90;
+              } else {
+                // Landscape mode
+                this.pano.scenes[scene.id].hfov = 120;
+              }
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
@@ -1372,10 +1378,16 @@ export default {
             this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
 
+            if (window.innerHeight > window.innerWidth) {
+              // Portrait mode
+              this.pano.scenes[scene.id].hfov = 90;
+            } else {
+              // Landscape mode
               this.pano.scenes[scene.id].hfov = 120;
-              this.pano.scenes[scene.id].sceneFadeDuration = 1000;
-              this.pano.scenes[scene.id].pitch = 0;
-              this.pano.scenes[scene.id].yaw = 0;
+            }
+            this.pano.scenes[scene.id].sceneFadeDuration = 1000;
+            this.pano.scenes[scene.id].pitch = 0;
+            this.pano.scenes[scene.id].yaw = 0;
           })
         );
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
@@ -2097,7 +2109,7 @@ export default {
         "type": 'equirectangular',
         "panorama": this.editSceneData.imgToUpload ? `${URL.createObjectURL(this.editSceneData.imgToUpload)}` : this.editSceneData.panorama,
         "autoLoad": true,
-        "hfov": 120
+        "hfov": window.innerHeight > window.innerWidth ? 90 : 120
       });
 
       el.appendChild(div_el);
