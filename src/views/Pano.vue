@@ -658,6 +658,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-snackbar
+      v-model="snakeBar.snackbar"
+      :bottom="snakeBar.y === 'bottom'"
+      :color="snakeBar.color"
+      :left="snakeBar.x === 'left'"
+      :multi-line="snakeBar.mode === 'multi-line'"
+      :right="snakeBar.x === 'right'"
+      :timeout="snakeBar.timeout"
+      :top="snakeBar.y === 'top'"
+      :vertical="snakeBar.mode === 'vertical'"
+    >
+      {{ snakeBar.text }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -787,6 +800,15 @@ export default {
       isPlan: false,
       layerConfirmDialog: false,
       layerName: '',
+      snakeBar : {
+        color: '',
+        mode: '',
+        snackbar: false,
+        text: '',
+        timeout: 4000,
+        x: null,
+        y: 'bottom',
+      },
     };
   },
   async created() {
@@ -1912,10 +1934,14 @@ export default {
           this.savePano();
           this.cancelLayerConfirmDialog();
         } else {
-          this.$root.$dialogLoader.showSnackbar("Layer name must be unique!");
+          this.snakeBar.color = "error";
+          this.snakeBar.text = "Layer name must be unique!";
+          this.snakeBar.snackbar = true;
         }
       } else {
-        this.$root.$dialogLoader.showSnackbar("Layer name must be required!");
+        this.snakeBar.color = "error";
+        this.snakeBar.text = "Layer name must be required!";
+        this.snakeBar.snackbar = true;
       }
     },
     createLayerConfirmDialog() {
