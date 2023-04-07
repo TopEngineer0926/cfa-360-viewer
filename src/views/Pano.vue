@@ -60,7 +60,7 @@
                     v-if="isEditable && canCreateTag"
                     small
                     text
-                    @click.stop="addLayer()"
+                    @click.stop="createLayerConfirmDialog()"
                     class="ma-1"
                   >
                     Add Layer
@@ -626,6 +626,51 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog
+      v-show="layerConfirmDialog"
+      v-model="layerConfirmDialog"
+      persistent
+      ref="layerConfirm"
+      max-width="600"
+    >
+      <v-card>
+        <v-card-title class="headline">Create Layer</v-card-title>
+        <v-card-text>
+          <v-form
+            lazy-validation
+          >
+            <v-text-field
+              v-model="layerName"
+              require
+              :rules="[(v) => !!v || 'Layer Name is required']"
+              label="Layer Name"
+            ></v-text-field>
+          </v-form>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="primary" text @click.stop="addLayer()">
+            Confirm
+          </v-btn>
+          <v-btn color="grey" text @click="cancelLayerConfirmDialog">
+            Cancel
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-snackbar
+      v-model="snakeBar.snackbar"
+      :bottom="snakeBar.y === 'bottom'"
+      :color="snakeBar.color"
+      :left="snakeBar.x === 'left'"
+      :multi-line="snakeBar.mode === 'multi-line'"
+      :right="snakeBar.x === 'right'"
+      :timeout="snakeBar.timeout"
+      :top="snakeBar.y === 'top'"
+      :vertical="snakeBar.mode === 'vertical'"
+    >
+      {{ snakeBar.text }}
+    </v-snackbar>
   </div>
 </template>
 
@@ -752,7 +797,18 @@ export default {
       snapshotDialog: false,
       dlgViewer: null,
       thumbImg: null,
-      isPlan: false
+      isPlan: false,
+      layerConfirmDialog: false,
+      layerName: '',
+      snakeBar : {
+        color: '',
+        mode: '',
+        snackbar: false,
+        text: '',
+        timeout: 4000,
+        x: null,
+        y: 'bottom',
+      },
     };
   },
   async created() {
@@ -1086,20 +1142,92 @@ export default {
               this.planView.id = scene.id;
               this.planView.img = plan_image;
             }else{
-              this.pano.scenes[scene.id].hfov = 120;
+              if (window.innerHeight > window.innerWidth) {
+                // Portrait mode
+                this.pano.scenes[scene.id].hfov = 90;
+              } else {
+                // Landscape mode
+                this.pano.scenes[scene.id].hfov = 120;
+              }
               this.pano.scenes[scene.id].sceneFadeDuration = 1000;
               this.pano.scenes[scene.id].pitch = 0;
               this.pano.scenes[scene.id].yaw = 0;
             }
             // this.loadHotSpots(key);
           })
-        );
-        
+        ).then(() => {
+          setTimeout(() => {
+            this.checkWhiteImage(this.setWhiteImage)
+          }, 3000);
+        });
+      }
+    },
+    setWhiteImage(val) {
+      if (!val) {
         this.currentSceneIndex = 0;
-        window.addEventListener('resize', ()=>this.resizeWindow());
-        this.removeChild(0);
-        this.resizeExpand();
-        this.showPlanView();
+      } else {
+        this.currentSceneIndex = 1;
+      }
+
+      window.addEventListener('resize', ()=>this.resizeWindow());
+      this.removeChild(0);
+      this.resizeExpand();
+      this.showPlanView();
+
+      if (this.currentSceneIndex != 0) {
+        if (this.panoSource.sceneArr.length > 1) {
+          this.loadScene(this.panoSource.sceneArr[1].id);
+        }
+      }
+    },
+    checkWhiteImage(setWhiteImage) {
+      // Load the image using the Image object
+      // let div_img = document.getElementsByClassName("img")[0];
+      var img = document.createElement("img");
+      img.src = this.planView.img;
+      img.crossOrigin = "anonymous";
+
+      img.onload = function() {
+        // Create a canvas element and set its dimensions
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // Draw the image onto the canvas
+        var ctx = canvas.getContext('2d');
+        ctx.crossOrigin = "anonymous";
+        ctx.drawImage(img, 0, 0);
+
+        // Get the pixel data of the canvas
+        const pixelData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+        let whitePixels = 0;
+        const whiteThreshold = 250; // Set the threshold for what is considered "white"
+
+        // Traverse through each pixel and calculate the degree of "whiteness"
+        for (let i = 0; i < pixelData.data.length; i += 4) {
+          const red = pixelData.data[i];
+          const green = pixelData.data[i+1];
+          const blue = pixelData.data[i+2];
+          const alpha = pixelData.data[i+3];
+
+          // Check if the pixel is "white" enough
+          if (red > whiteThreshold && green > whiteThreshold && blue > whiteThreshold) {
+            whitePixels++;
+          }
+        }
+
+        // Calculate the percentage of white pixels in the image
+        const percentageOfWhite = (whitePixels / (pixelData.data.length / 4)) * 100;
+
+        // Determine if the image is mostly white or not
+        if (percentageOfWhite > 95) {
+          console.log('The image is mostly white');
+          setWhiteImage(true);
+        } else {
+          console.log('The image is not mostly white');
+          setWhiteImage(false);
+        }
       }
     },
     getContainedSize(img) {
@@ -1372,10 +1500,16 @@ export default {
             this.pano.scenes[scene.id].panorama = panorama;
             scene.thumbnail = thumb;
 
+            if (window.innerHeight > window.innerWidth) {
+              // Portrait mode
+              this.pano.scenes[scene.id].hfov = 90;
+            } else {
+              // Landscape mode
               this.pano.scenes[scene.id].hfov = 120;
-              this.pano.scenes[scene.id].sceneFadeDuration = 1000;
-              this.pano.scenes[scene.id].pitch = 0;
-              this.pano.scenes[scene.id].yaw = 0;
+            }
+            this.pano.scenes[scene.id].sceneFadeDuration = 1000;
+            this.pano.scenes[scene.id].pitch = 0;
+            this.pano.scenes[scene.id].yaw = 0;
           })
         );
         this.viewer = window.pannellum.viewer(this.$el, this.pano);
@@ -1782,12 +1916,39 @@ export default {
       this.viewer.on("mousedown", this.mouseDownHandler);
     },
     addLayer() {
-      this.panoSource.layers.push({
-        id: nanoid(6),
-        name: "New Layer",
-        icon: "cross",
-      });
-      this.savePano();
+      if (this.layerName != '') {
+        let check_item = true;
+        this.panoSource.layers.map((layer, key) => {
+          if(layer.name == this.layerName){
+            check_item = false;
+          }
+        })
+
+        if (check_item) {
+          this.panoSource.layers.push({
+            id: nanoid(6),
+            name: this.layerName,
+            icon: "cross",
+          });
+
+          this.savePano();
+          this.cancelLayerConfirmDialog();
+        } else {
+          this.snakeBar.color = "error";
+          this.snakeBar.text = "Layer name must be unique!";
+          this.snakeBar.snackbar = true;
+        }
+      } else {
+        this.snakeBar.color = "error";
+        this.snakeBar.text = "Layer name must be required!";
+        this.snakeBar.snackbar = true;
+      }
+    },
+    createLayerConfirmDialog() {
+      this.layerConfirmDialog = true;
+    },
+    cancelLayerConfirmDialog() {
+      this.layerConfirmDialog = false;
     },
     cancelSpot() {
       this.editSpotData = {
@@ -2097,7 +2258,7 @@ export default {
         "type": 'equirectangular',
         "panorama": this.editSceneData.imgToUpload ? `${URL.createObjectURL(this.editSceneData.imgToUpload)}` : this.editSceneData.panorama,
         "autoLoad": true,
-        "hfov": 120
+        "hfov": window.innerHeight > window.innerWidth ? 90 : 120
       });
 
       el.appendChild(div_el);
