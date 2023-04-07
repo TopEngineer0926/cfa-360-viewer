@@ -5,6 +5,9 @@
       
       <div class="img-container">
         <div class="img"></div>
+          <div class="floor-plan-status">
+            <h1 v-if="isWhiteImage && currentSceneIndex === 0">No Floor Plan Loaded</h1>
+          </div>
       </div>
 
       <div class="button"></div>
@@ -809,6 +812,7 @@ export default {
         x: null,
         y: 'bottom',
       },
+      isWhiteImage: false
     };
   },
   async created() {
@@ -1163,6 +1167,7 @@ export default {
       }
     },
     setWhiteImage(val) {
+      this.isWhiteImage = val;
       if (!val) {
         this.currentSceneIndex = 0;
       } else {
@@ -2409,6 +2414,13 @@ export default {
 .bg-transparent{
   background:transparent !important;
   border-radius: 10px;
+}
+.floor-plan-status {
+  position: absolute; 
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 100%;
 }
 .plan-thumbnail{
   padding: 5px;
