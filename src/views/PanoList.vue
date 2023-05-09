@@ -589,6 +589,11 @@ export default {
         query: sharingByPano,
         variables: {
           panoID: panoID,
+          filter: {
+            owner: {
+              eq: this.user.email.replace("@", "AT")
+            }
+          }
         },
       }).then((data) => {
         this.sharing.list = data.data.sharingByPano.items;
@@ -658,7 +663,7 @@ export default {
           this.getTempsharing(this.sharing.panoID);
         } else {
           this.snakeBar.color = "error";
-          this.snakeBar.text = "Linkname is not invalid!";
+          this.snakeBar.text = "Linkname is not valid!";
           this.snakeBar.snackbar = true;
         }
       }
